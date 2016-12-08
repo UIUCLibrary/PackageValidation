@@ -1,4 +1,4 @@
-# FURPS Requirements
+% FURPS Requirements
 
 **Authors:** 
 
@@ -6,28 +6,27 @@
 * William Schlaack
 
 
-## Abstract
+# Abstract
 
 > The format for this document is based on the FURPS model developed by Hewlett-Packard and contains the 
 > list of basic requirements for a Python rewrite of the HathiTrust packaging script. 
 
 
-## Table of Contents
+# Table of Contents
 
-* [Requirements](#requirements)
-    * [Functional](#functional-requirements)
-    * [Usability](#usability-requirements)
-    * [Reliability](#reliability-requirements)
-    * [Performance](#performance-requirements)
-    * [Supportability](#supportability-requirements)
+* [Functional Requirements](#functional-requirements)
+* [Usability Requirements](#usability-requirements)
+* [Reliability Requirements](#reliability-requirements)
+* [Performance Requirements](#performance-requirements)
+* [Supportability Requirements](#supportability-requirements)
 * [Notes](#notes)
   
 
-## Requirements
+# Requirements
 
-### Functional Requirements
+## Functional Requirements
 
-#### Table 1: General Functional Requirements
+### Table 1: General Functional Requirements
 
 | ID   | Description                   | Priority          | Details                                                  |
 | ---- |:------------------------------| :---------------- | :------------------------------------------------------- |
@@ -47,9 +46,9 @@
 | xx   | Validate fields inside a YAML file              | Must     | Must be able to validate the existence and correctness of fields within a YAML file |
 
 
-### Usability Requirements
+## Usability Requirements
 
-#### Table 2: General Usability Requirements
+### Table 2: General Usability Requirements
 
 | ID   | Description                   | Priority          | Details                                                  |
 | ---- |:------------------------------| :---------------- | :------------------------------------------------------- |
@@ -60,9 +59,9 @@
 | xx   | Communicate all errors        | Must        | Inform the user of errors. |
 
 
-### Reliability Requirements
+## Reliability Requirements
 
-#### Table 3: General Reliability Requirements
+### Table 3: General Reliability Requirements
 
 | ID   | Description                   | Priority          | Details                                                  |
 | ---- |:------------------------------| :---------------- | :------------------------------------------------------- |
@@ -70,18 +69,18 @@
 | xx   | Terminate on fatal error      | Must        | If the script experience an unhandled exception/error | 
 
 
-### Performance Requirements
+## Performance Requirements
 
-#### Table 4: General Performance Requirements
+### Table 4: General Performance Requirements
 
 | ID   | Description                   | Priority          | Details                                                  |
 | ---- |:------------------------------| :---------------- | :------------------------------------------------------- |
 | xx   | Run locally on workstations   | Must        | Must be able to run on Windows 7 desktops with ... **TODO: fill in this information**  |
 
 
-### Supportability Requirements
+## Supportability Requirements
 
-#### Table 5: General Supportability Requirements
+### Table 5: General Supportability Requirements
 
 | ID   | Description                   | Priority          | Details                                                  |
 | ---- |:------------------------------| :---------------- | :------------------------------------------------------- |
@@ -91,6 +90,6 @@
 
 
 
-## Notes
+# Notes
 
 > Write any additional notes here
