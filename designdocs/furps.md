@@ -1,0 +1,64 @@
+# FURPS Requirements
+**Authors:** Henry Borchers
+
+The format for this document is based on the FURPS model developed by Hewlett-Packard and contains the list of requirements for the Python rewrite of the HathiTrust packaging script. 
+
+
+## Functional Requirements:
+
+### Table 1: General Functional Requirements
+
+| ID   | Description                                     | Priority | Details          |
+| ---- |:------------------------------------------------| :------: | :--------------- |
+|      | Read MD5 hashes                                 | Must     | Must be able to read MD5 hashes from sidecar hash manifest files. |
+|      | Calculate MD5 hashes                            | Must     | Must be able to calculate MD5 hashes values from files. |
+|      | Compare hash values                             | Must     | Must be able to compare hash values and check for matches for validation purposes.  |
+|      | Validate base object naming scheme              | Must     | Must be able to match a base object name to a REGEX pattern.   |
+|      | Validate the existence of files                 | Must     | Must be able to check a directory for the existence of files with predefined names.  |
+|      | Check for subfolders                            | Must     | Must be able to check a folder for undesired subfolders. |
+|      | Validate all files individually                 | Must     | Must be able to iterate over all files in folder. |
+|      | Validate file naming scheme                     | Must     | Must be able to make sure that each of the file names match a specific REGEX expression |
+|      | Create Log                                      | Must     | Must be able to generate a log of errors |
+|      | Parse checksum list                             | Must     | Must be able to parse information in the checksum.md5 file  |
+|      | Compare checksum inventory list to actual files | Must     | Must be able to match that every file listed in the checksum.md5 to a physical file in the same directory |
+|      | Read and parse an XML File                      | Must     | Must be able to read an XML file  |
+
+## Usability Requirements:
+
+### Table 2: General Usability Requirements
+
+| ID | Description                                      | Priority    | Details       |
+|----| :----------------------------------------------- | :------:    | :------------ |
+|    |  Installation documentation                      | Must        | Must include written documentation on how to install the script.   |
+|    |  User documentation                              | Must        | Must include written documentation on how to use the script.   |
+|    |  Code documentation                              | High Want   | Code should be documented to aid in future support and maintenance.               |
+
+
+## Reliability Requirements:
+
+### Table 3: General Reliability Requirements
+
+| ID | Description                                      | Priority | Details       |
+|----| :----------------------------------------------- | :------: | :------------ |
+|    |  On failure, terminate.                          | Must     | If the script experience an unhandled exception/error, terminate the script and inform the user. |
+
+
+Performance Requirements:
+-------------------------
+
+### Table 4: General Performance Requirements
+
+| ID | Description                                      | Priority | Details       |
+|----| :----------------------------------------------- | :------: | :------------ |
+|    |  Unit testing                                    | Must     |  Code base should include automated unit testing  |
+
+
+## Supportability Requirements:
+
+### Table 5: General Supportability Requirements
+
+| ID | Description                                      | Priority | Details       |
+|----| :----------------------------------------------- | :------: | :------------ |
+|    | Run locally on workstations                      | Must     | Must be able to run on Windows 7 desktops with ... [fill in this information]  |
+
+
