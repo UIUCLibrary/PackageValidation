@@ -6,8 +6,10 @@
 * William Schlaack
 
 
-**Abstract:** The format for this document is based on the FURPS model developed by Hewlett-Packard and contains the 
-list of basic requirements for a Python rewrite of the HathiTrust packaging script. 
+## Abstract
+
+> The format for this document is based on the FURPS model developed by Hewlett-Packard and contains the 
+> list of basic requirements for a Python rewrite of the HathiTrust packaging script. 
 
 
 ## Table of Contents
@@ -85,7 +87,10 @@ list of basic requirements for a Python rewrite of the HathiTrust packaging scri
 
 ## Technical Specifications
 
-Tech specs go here.
+### checksum.md5
+
+Contains a list in the following format
+> filename, checksum, checksum algorithm
 
 ## Notes
 
