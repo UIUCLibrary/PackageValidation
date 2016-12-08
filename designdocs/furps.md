@@ -34,6 +34,8 @@ list of requirements for the Python rewrite of the HathiTrust packaging script.
 | ---- |:------------------------------| :---------: | :------------------------------------------------------------- |
 | xx   |  Installation documentation   | Must        | Must include written documentation on how to install the script.   |
 | xx   |  User documentation           | Must        | Must include written documentation on how to use the script.   |
+| xx   |  Command line interface       | Must        | Must include a command line user interface to run the script.   |
+| xx   |  Graphical User interface     | High Want   | Script should be accessible through a graphical user interface.   |
 | xx   |  Code documentation           | High Want   | Code should be documented to aid in future support and maintenance. |
 
 
