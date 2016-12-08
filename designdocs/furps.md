@@ -14,19 +14,26 @@
 
 ## Table of Contents
 
-* Requirements
+* [Requirements](#requirements)
   * [Functional](#functional-requirements)
   * [Usability](#usability-requirements)
   * [Reliability](#reliability-requirements)
   * [Performance](#performance-requirements)
   * [Supportability](#supportability-requirements)
 * [Technical Specifications](#technical-specifications)
+  * [Folder Structure](#folder-structure)
+  * [Included Files](#included-files)
+    * [checksum.md5](#checksum-md5)
+    * [marc.xml](#marc-xml)
+    * [meta.yml](#meta-yml)
 * [Notes](#notes)
   
 
-## Functional Requirements
+## Requirements
 
-### Table 1: General Functional Requirements
+### Functional Requirements
+
+#### Table 1: General Functional Requirements
 
 | ID   | Description                   | Priority          | Details                                                  |
 | ---- |:------------------------------| :---------------- | :------------------------------------------------------- |
@@ -48,9 +55,9 @@
 | xx   | Validate fields inside a YAML file              | Must     | Must be able to validate the existence and correctness of fields within a YAML file |
 
 
-## Usability Requirements
+### Usability Requirements
 
-### Table 2: General Usability Requirements
+#### Table 2: General Usability Requirements
 
 | ID   | Description                   | Priority          | Details                                                  |
 | ---- |:------------------------------| :---------------- | :------------------------------------------------------- |
@@ -61,39 +68,66 @@
 | xx   |  Code documentation           | High Want   | Code should be documented to aid in future support and maintenance. |
 
 
-## Reliability Requirements
+### Reliability Requirements
 
-### Table 3: General Reliability Requirements
+#### Table 3: General Reliability Requirements
 
 | ID   | Description                   | Priority          | Details                                                  |
 | ---- |:------------------------------| :---------------- | :------------------------------------------------------- |
 | xx   |  On failure, terminate.       | Must        | If the script experience an unhandled exception/error, terminate the script and inform the user of the error. |
 
 
-## Performance Requirements
+### Performance Requirements
 
-### Table 4: General Performance Requirements
+#### Table 4: General Performance Requirements
 
 | ID   | Description                   | Priority          | Details                                                  |
 | ---- |:------------------------------| :---------------- | :------------------------------------------------------- |
 | xx   |  Unit testing                 | Must        |  Code base should include automated unit testing  |
 
 
-## Supportability Requirements
+### Supportability Requirements
 
-### Table 5: General Supportability Requirements
+#### Table 5: General Supportability Requirements
 
 | ID   | Description                   | Priority          | Details                                                  |
 | ---- |:------------------------------| :---------------- | :------------------------------------------------------- |
-| xx   | Run locally on workstations   | Must        | Must be able to run on Windows 7 desktops with ... [fill in this information]  |
+| xx   | Run locally on workstations   | Must        | Must be able to run on Windows 7 desktops with ... **TODO: fill in this information**  |
 
 
 ## Technical Specifications
 
-### checksum.md5
+### Folder Structure
+**TODO: A very brief explanation of the file/folder structure**
 
-Contains a list in the following format
+#### Example
+> **TODO: write an sample tree structure of a package**
+
+
+### Included Files
+
+#### checksum.md5
+##### Format
+The file checksum.md5 contains a list in the following format
 > filename, checksum, checksum algorithm
+
+##### Example
+> **TODO: write an example of a line here**
+
+
+#### marc.xml
+##### Format
+**TODO: explain the basic format of this file format**
+
+##### Example
+> **TODO: write an example here**
+
+#### meta.yml
+##### Format
+**TODO: explain the basic format of this file format**
+
+##### Example
+> **TODO: write  an example here**
 
 ## Notes
 
