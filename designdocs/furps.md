@@ -2,6 +2,7 @@
 **Authors:** 
 
 * Henry Borchers
+* William Schlaack
 
 **Abstract:** The format for this document is based on the FURPS model developed by Hewlett-Packard and contains the 
 list of requirements for the Python rewrite of the HathiTrust packaging script. 
