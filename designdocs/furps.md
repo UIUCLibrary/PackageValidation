@@ -9,8 +9,8 @@ list of requirements for the Python rewrite of the HathiTrust packaging script.
 
 ### Table 1: General Functional Requirements
 
-| ID   | Description           | Priority | Details                               |
-| ---- |:----------------------| :------: | :------------------------------------ |
+| ID   | Description                   | Priority    | Details                                                        |
+| ---- |:------------------------------| :---------: | :------------------------------------------------------------- |
 | xx   | Read MD5 hashes                                 | Must     | Must be able to read MD5 hashes from sidecar hash manifest files. |
 | xx   | Calculate MD5 hashes                            | Must     | Must be able to calculate MD5 hashes values from files. |
 | xx   | Compare hash values                             | Must     | Must be able to compare hash values and check for matches for validation purposes.  |
@@ -28,20 +28,20 @@ list of requirements for the Python rewrite of the HathiTrust packaging script.
 
 ### Table 2: General Usability Requirements
 
-| ID   | Description           | Priority | Details                               |
-| ---- |:----------------------| :------: | :------------------------------------ |
-|      |  Installation documentation                      | Must        | Must include written documentation on how to install the script.   |
-|      |  User documentation                              | Must        | Must include written documentation on how to use the script.   |
-|      |  Code documentation                              | High Want   | Code should be documented to aid in future support and maintenance.               |
+| ID   | Description                   | Priority    | Details                                                        |
+| ---- |:------------------------------| :---------: | :------------------------------------------------------------- |
+| xx   |  Installation documentation   | Must        | Must include written documentation on how to install the script.   |
+| xx   |  User documentation           | Must        | Must include written documentation on how to use the script.   |
+| xx   |  Code documentation           | High Want   | Code should be documented to aid in future support and maintenance. |
 
 
 ## Reliability Requirements:
 
 ### Table 3: General Reliability Requirements
 
-| ID   | Description           | Priority | Details                               |
-| ---- |:----------------------| :------: | :------------------------------------ |
-|      |  On failure, terminate.                          | Must     | If the script experience an unhandled exception/error, terminate the script and inform the user. |
+| ID   | Description                   | Priority    | Details                                                        |
+| ---- |:------------------------------| :---------: | :------------------------------------------------------------- |
+| xx   |  On failure, terminate.       | Must        | If the script experience an unhandled exception/error, terminate the script and inform the user. |
 
 
 Performance Requirements:
@@ -49,17 +49,17 @@ Performance Requirements:
 
 ### Table 4: General Performance Requirements
 
-| ID   | Description           | Priority | Details                               |
-| ---- |:----------------------| :------: | :------------------------------------ |
-|      |  Unit testing                                    | Must     |  Code base should include automated unit testing  |
+| ID   | Description                   | Priority    | Details                                                        |
+| ---- |:------------------------------| :---------: | :------------------------------------------------------------- |
+| xx   |  Unit testing                 | Must        |  Code base should include automated unit testing  |
 
 
 ## Supportability Requirements:
 
 ### Table 5: General Supportability Requirements
 
-| ID   | Description           | Priority | Details                               |
-| ---- |:----------------------| :------: | :------------------------------------ |
-|      | Run locally on workstations                      | Must     | Must be able to run on Windows 7 desktops with ... [fill in this information]  |
+| ID   | Description                   | Priority    | Details                                                        |
+| ---- |:------------------------------| :---------: | :------------------------------------------------------------- |
+| xx   | Run locally on workstations   | Must        | Must be able to run on Windows 7 desktops with ... [fill in this information]  |
 
 
