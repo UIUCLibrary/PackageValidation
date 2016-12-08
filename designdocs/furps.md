@@ -41,15 +41,15 @@
 | xx   | Read MD5 hashes                                 | Must     | Must be able to read MD5 hashes from sidecar hash manifest files. |
 | xx   | Calculate MD5 hashes                            | Must     | Must be able to calculate MD5 hashes values from files. |
 | xx   | Compare hash values                             | Must     | Must be able to compare hash values and check for matches for validation purposes.  |
-| xx   | Validate base object naming scheme              | Must     | Must be able to match a base object name to a REGEX pattern.   |
+| xx   | Validate base object naming scheme              | Must     | Must be able to match a base object name to a REGEX pattern. [See Regular Expressions section](#regular-expressions)   |
 | xx   | Validate the existence of files                 | Must     | Must be able to check a directory for the existence of files with predefined names.  |
 | xx   | Check for subfolders                            | Must     | Must be able to check a folder for undesired subfolders. |
 | xx   | Validate all files individually                 | Must     | Must be able to iterate over all files in folder. |
-| xx   | Validate file naming scheme                     | Must     | Must be able to make sure that each of the file names match a specific REGEX expression |
+| xx   | Validate file naming scheme                     | Must     | Must be able to make sure that each of the file names match a specific REGEX expression. [See Regular Expressions section](#regular-expressions) |
 | xx   | Create Log                                      | Must     | Must be able to generate a log of errors |
 | xx   | Parse checksum list                             | Must     | Must be able to parse information in the checksum.md5 file  |
 | xx   | Compare checksum inventory list to actual files | Must     | Must be able to match that every file listed in the checksum.md5 to a physical file in the same directory |
-| xx   | Validate checksum inventory list format         | Must     | Must be able to make sure that the checksum.md5 is formatted correctly. [See technical specs below](#technical-specifications)|
+| xx   | Validate checksum inventory list format         | Must     | Must be able to make sure that the checksum.md5 is formatted correctly. [See technical specs](#technical-specifications)|
 | xx   | Read and parse an XML file                      | Must     | Must be able to read an XML file  |
 | xx   | Validate a XML file to .xsd schema file         | Must     | Must be able to validate an XML file to an XSD schema file |
 | xx   | Read and parse a YAML file                      | Must     | Must be able to read an YAML file  |
