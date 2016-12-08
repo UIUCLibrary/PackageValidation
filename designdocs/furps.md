@@ -23,9 +23,9 @@
 * [Technical Specifications](#technical-specifications)
   * [Folder Structure](#folder-structure)
   * [Included Files](#included-files)
-    * [checksum.md5](#checksum-md5)
-    * [marc.xml](#marc-xml)
-    * [meta.yml](#meta-yml)
+    * [checksum.md5](#checksummd5)
+    * [marc.xml](#marcxml)
+    * [meta.yml](#metayml)
 * [Notes](#notes)
   
 
