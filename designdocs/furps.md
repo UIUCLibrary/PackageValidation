@@ -27,6 +27,7 @@
         * [marc.xml](#marcxml)
         * [meta.yml](#metayml)
 * [Notes](#notes)
+    * [Regular Expressions](#regular-expressions)
   
 
 ## Requirements
@@ -130,5 +131,17 @@ The file checksum.md5 contains a list in the following format
 > **TODO: write  an example here**
 
 ## Notes
+
+### Regular Expressions
+
+> **Valid object id**
+> ``` 
+> ^\d+(p\d+(_\d+)?)?(v\d+(_\d+)?)?(i\d+(_\d+)?)?(m\d+(_\d+)?)?$
+> ```
+
+> **Valid file names**
+> ```
+>^([0-9]{8}|meta|marc|checksum)\.(txt|tif|jp2|xml|yml|md5)$
+> ```
 
 > Write any additional notes here
