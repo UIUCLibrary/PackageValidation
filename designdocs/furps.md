@@ -26,8 +26,9 @@
         * [checksum.md5](#checksummd5)
         * [marc.xml](#marcxml)
         * [meta.yml](#metayml)
-* [Notes](#notes)
     * [Regular Expressions](#regular-expressions)
+    * [XML Schema Documents](#xml-schema-documents)
+* [Notes](#notes)
   
 
 ## Requirements
@@ -130,8 +131,6 @@ The file checksum.md5 contains a list in the following format
 ##### Example
 > **TODO: write  an example here**
 
-## Notes
-
 ### Regular Expressions
 
 > **Valid object id**
@@ -143,5 +142,14 @@ The file checksum.md5 contains a list in the following format
 > ```
 >^([0-9]{8}|meta|marc|checksum)\.(txt|tif|jp2|xml|yml|md5)$
 > ```
+
+### XML Schema Documents
+|  Name                  | URI    |
+| :--------------------- | :----- |
+| MARC 21 | http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd
+| ALTO: Analyzed Layout and Text Object | http://www.loc.gov/standards/alto/alto.xsd |
+| METS XLink | http://www.loc.gov/standards/xlink/xlink.xsd |
+
+## Notes
 
 > Write any additional notes here
