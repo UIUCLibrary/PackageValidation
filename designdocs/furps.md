@@ -36,7 +36,7 @@ list of requirements for the Python rewrite of the HathiTrust packaging script.
 | xx   | Compare checksum inventory list to actual files | Must     | Must be able to match that every file listed in the checksum.md5 to a physical file in the same directory |
 | xx   | Read and parse an XML File                      | Must     | Must be able to read an XML file  |
 
-##Usability Requirements
+## Usability Requirements
 
 ### Table 2: General Usability Requirements
 
@@ -58,8 +58,8 @@ list of requirements for the Python rewrite of the HathiTrust packaging script.
 | xx   |  On failure, terminate.       | Must        | If the script experience an unhandled exception/error, terminate the script and inform the user of the error. |
 
 
-Performance Requirements
-------------------------
+##Performance Requirements
+
 
 ### Table 4: General Performance Requirements
 
