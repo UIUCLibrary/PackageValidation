@@ -61,10 +61,11 @@
 
 | ID   | Description                   | Priority          | Details                                                  |
 | ---- |:------------------------------| :---------------- | :------------------------------------------------------- |
-| xx   |  Installation documentation   | Must        | Must include written documentation on how to install the script.   |
-| xx   |  User documentation           | Must        | Must include written documentation on how to use the script.   |
-| xx   |  User interface               | Must        | Must include some form of a user interface to run the script, either commandline or GUI   |
-| xx   |  Graphical User interface     | High Want   | Script should be accessible through a graphical user interface.   |
+| xx   | Installation documentation    | Must        | Must include written documentation on how to install the script.   |
+| xx   | User documentation            | Must        | Must include written documentation on how to use the script.   |
+| xx   | User interface                | Must        | Must include some form of a user interface to run the script, either commandline or GUI   |
+| xx   | Graphical User interface      | High Want   | Script should be accessible through a graphical user interface.   |
+| xx   | Communicate all errors        | Must        | Inform the user of errors. |
 
 
 ### Reliability Requirements
@@ -74,7 +75,7 @@
 | ID   | Description                   | Priority          | Details                                                  |
 | ---- |:------------------------------| :---------------- | :------------------------------------------------------- |
 | xx   | Calculate MD5 hashes          | Must        | Must be able to reliably calculate MD5 hashes values from files. |
-| xx   | On failure, terminate.        | Must        | If the script experience an unhandled exception/error, terminate the script and inform the user of the error. |
+| xx   | Terminate on fatal error      | Must        | If the script experience an unhandled exception/error | 
 
 
 ### Performance Requirements
