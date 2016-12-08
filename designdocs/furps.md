@@ -18,6 +18,7 @@ list of basic requirements for a Python rewrite of the HathiTrust packaging scri
   * [Reliability](#reliability-requirements)
   * [Performance](#performance-requirements)
   * [Supportability](#supportability-requirements)
+* [Technical Specifications](#technical-specifications)
 * [Notes](#notes)
   
 
@@ -38,6 +39,7 @@ list of basic requirements for a Python rewrite of the HathiTrust packaging scri
 | xx   | Create Log                                      | Must     | Must be able to generate a log of errors |
 | xx   | Parse checksum list                             | Must     | Must be able to parse information in the checksum.md5 file  |
 | xx   | Compare checksum inventory list to actual files | Must     | Must be able to match that every file listed in the checksum.md5 to a physical file in the same directory |
+| xx   | Validate checksum inventory list format         | Must     | Must be able to make sure that the checksum.md5 is formatted correctly. [See technical specs below](#technical-specifications)|
 | xx   | Read and parse an XML File                      | Must     | Must be able to read an XML file  |
 
 
@@ -79,6 +81,11 @@ list of basic requirements for a Python rewrite of the HathiTrust packaging scri
 | ID   | Description                   | Priority          | Details                                                  |
 | ---- |:------------------------------| :---------------- | :------------------------------------------------------- |
 | xx   | Run locally on workstations   | Must        | Must be able to run on Windows 7 desktops with ... [fill in this information]  |
+
+
+## Technical Specifications
+
+Tech specs go here.
 
 ## Notes
 
