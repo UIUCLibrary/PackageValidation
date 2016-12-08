@@ -1,6 +1,7 @@
 # Technical Specifications
 
 **Authors:** 
+
 * Henry Borchers
 
 ## Table of Contents
