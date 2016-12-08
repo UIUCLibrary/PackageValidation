@@ -5,16 +5,17 @@
 * William Schlaack
 
 **Abstract:** The format for this document is based on the FURPS model developed by Hewlett-Packard and contains the 
-list of requirements for the Python rewrite of the HathiTrust packaging script. 
+list of basic requirements for a Python rewrite of the HathiTrust packaging script. 
 
 
 ## Table of Contents:
-- Requirements
+* Requirements
   * [Functional](#functional-requirements)
   * [Usability](#usability-requirements)
   * [Reliability](#reliability-requirements)
   * [Performance](#performance-requirements)
   * [Supportability](#supportability-requirements)
+* [Notes](#notes)
   
 
 ## Functional Requirements
@@ -76,4 +77,6 @@ list of requirements for the Python rewrite of the HathiTrust packaging script.
 | ---- |:------------------------------| :---------------- | :------------------------------------------------------- |
 | xx   | Run locally on workstations   | Must        | Must be able to run on Windows 7 desktops with ... [fill in this information]  |
 
+## Notes
 
+> Write any additional notes here
