@@ -8,7 +8,8 @@
 list of basic requirements for a Python rewrite of the HathiTrust packaging script. 
 
 
-## Table of Contents:
+## Table of Contents
+
 * Requirements
   * [Functional](#functional-requirements)
   * [Usability](#usability-requirements)
