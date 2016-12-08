@@ -40,14 +40,12 @@
 | ID   | Description                   | Priority          | Details                                                  |
 | ---- |:------------------------------| :---------------- | :------------------------------------------------------- |
 | xx   | Read MD5 hashes                                 | Must     | Must be able to read MD5 hashes from sidecar hash manifest files. |
-| xx   | Calculate MD5 hashes                            | Must     | Must be able to calculate MD5 hashes values from files. |
 | xx   | Compare hash values                             | Must     | Must be able to compare hash values and check for matches for validation purposes.  |
 | xx   | Validate base object naming scheme              | Must     | Must be able to match a base object name to a REGEX pattern. [See Regular Expressions section](#regular-expressions)   |
 | xx   | Validate the existence of files                 | Must     | Must be able to check a directory for the existence of files with predefined names.  |
 | xx   | Check for subfolders                            | Must     | Must be able to check a folder for undesired subfolders. |
 | xx   | Validate all files individually                 | Must     | Must be able to iterate over all files in folder. |
 | xx   | Validate file naming scheme                     | Must     | Must be able to make sure that each of the file names match a specific REGEX expression. [See Regular Expressions section](#regular-expressions) |
-| xx   | Create Log                                      | Must     | Must be able to generate a log of errors |
 | xx   | Parse checksum list                             | Must     | Must be able to parse information in the checksum.md5 file  |
 | xx   | Compare checksum inventory list to actual files | Must     | Must be able to match that every file listed in the checksum.md5 to a physical file in the same directory |
 | xx   | Validate checksum inventory list format         | Must     | Must be able to make sure that the checksum.md5 is formatted correctly. [See technical specs](#technical-specifications)|
@@ -67,7 +65,6 @@
 | xx   |  User documentation           | Must        | Must include written documentation on how to use the script.   |
 | xx   |  User interface               | Must        | Must include some form of a user interface to run the script, either commandline or GUI   |
 | xx   |  Graphical User interface     | High Want   | Script should be accessible through a graphical user interface.   |
-| xx   |  Code documentation           | High Want   | Code should be documented to aid in future support and maintenance. |
 
 
 ### Reliability Requirements
@@ -76,7 +73,8 @@
 
 | ID   | Description                   | Priority          | Details                                                  |
 | ---- |:------------------------------| :---------------- | :------------------------------------------------------- |
-| xx   |  On failure, terminate.       | Must        | If the script experience an unhandled exception/error, terminate the script and inform the user of the error. |
+| xx   | Calculate MD5 hashes          | Must        | Must be able to reliably calculate MD5 hashes values from files. |
+| xx   | On failure, terminate.        | Must        | If the script experience an unhandled exception/error, terminate the script and inform the user of the error. |
 
 
 ### Performance Requirements
@@ -85,7 +83,7 @@
 
 | ID   | Description                   | Priority          | Details                                                  |
 | ---- |:------------------------------| :---------------- | :------------------------------------------------------- |
-| xx   |  Unit testing                 | Must        |  Code base should include automated unit testing  |
+| xx   | Run locally on workstations   | Must        | Must be able to run on Windows 7 desktops with ... **TODO: fill in this information**  |
 
 
 ### Supportability Requirements
@@ -94,7 +92,9 @@
 
 | ID   | Description                   | Priority          | Details                                                  |
 | ---- |:------------------------------| :---------------- | :------------------------------------------------------- |
-| xx   | Run locally on workstations   | Must        | Must be able to run on Windows 7 desktops with ... **TODO: fill in this information**  |
+| xx   | Log operations and errors     | Must        | Must be able to generate a log of operations and any errors |
+| xx   | Unit testing                  | Must        |  Code base should include automated unit testing  |
+| xx   | Code documentation            | High Want   | Code should be documented to aid in future support and maintenance. |
 
 
 ## Technical Specifications
