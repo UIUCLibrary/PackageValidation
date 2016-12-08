@@ -15,17 +15,17 @@
 ## Table of Contents
 
 * [Requirements](#requirements)
-  * [Functional](#functional-requirements)
-  * [Usability](#usability-requirements)
-  * [Reliability](#reliability-requirements)
-  * [Performance](#performance-requirements)
-  * [Supportability](#supportability-requirements)
+    * [Functional](#functional-requirements)
+    * [Usability](#usability-requirements)
+    * [Reliability](#reliability-requirements)
+    * [Performance](#performance-requirements)
+    * [Supportability](#supportability-requirements)
 * [Technical Specifications](#technical-specifications)
-  * [Folder Structure](#folder-structure)
-  * [Included Files](#included-files)
-    * [checksum.md5](#checksummd5)
-    * [marc.xml](#marcxml)
-    * [meta.yml](#metayml)
+    * [Folder Structure](#folder-structure)
+    * [Included Files](#included-files)
+        * [checksum.md5](#checksummd5)
+        * [marc.xml](#marcxml)
+        * [meta.yml](#metayml)
 * [Notes](#notes)
   
 
