@@ -1,4 +1,4 @@
-% FURPS Requirements
+# FURPS Requirements
 
 **Authors:** 
 
