@@ -12,7 +12,7 @@ list of requirements for the Python rewrite of the HathiTrust packaging script.
 - Requirements
   * [Functional](#functional-requirements)
   * [Usability](#usability-requirements)
-  * [Reliability](#usability-requirements)
+  * [Reliability](#reliability-requirements)
   * [Performance](#performance-requirements)
   * [Supportability](#supportability-requirements)
   
