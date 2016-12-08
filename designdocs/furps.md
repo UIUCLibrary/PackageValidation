@@ -1,8 +1,10 @@
 # FURPS Requirements
+
 **Authors:** 
 
 * Henry Borchers
 * William Schlaack
+
 
 **Abstract:** The format for this document is based on the FURPS model developed by Hewlett-Packard and contains the 
 list of basic requirements for a Python rewrite of the HathiTrust packaging script. 
@@ -38,6 +40,7 @@ list of basic requirements for a Python rewrite of the HathiTrust packaging scri
 | xx   | Compare checksum inventory list to actual files | Must     | Must be able to match that every file listed in the checksum.md5 to a physical file in the same directory |
 | xx   | Read and parse an XML File                      | Must     | Must be able to read an XML file  |
 
+
 ## Usability Requirements
 
 ### Table 2: General Usability Requirements
@@ -61,7 +64,6 @@ list of basic requirements for a Python rewrite of the HathiTrust packaging scri
 
 
 ##Performance Requirements
-
 
 ### Table 4: General Performance Requirements
 
