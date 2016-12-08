@@ -47,7 +47,7 @@ The file checksum.md5 contains a list in the following format
 **TODO: explain the basic format of this file format**
 
 ### Example
-> **TODO: write  an example here**
+> **TODO: write an example here**
 
 # Regular Expressions
 
