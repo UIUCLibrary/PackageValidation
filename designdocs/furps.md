@@ -45,7 +45,7 @@ list of requirements for the Python rewrite of the HathiTrust packaging script.
 
 | ID   | Description                   | Priority    | Details                                                        |
 | ---- |:------------------------------| :---------: | :------------------------------------------------------------- |
-| xx   |  On failure, terminate.       | Must        | If the script experience an unhandled exception/error, terminate the script and inform the user. |
+| xx   |  On failure, terminate.       | Must        | If the script experience an unhandled exception/error, terminate the script and inform the user of the error. |
 
 
 Performance Requirements:
