@@ -42,7 +42,10 @@
 | xx   | Parse checksum list                             | Must     | Must be able to parse information in the checksum.md5 file  |
 | xx   | Compare checksum inventory list to actual files | Must     | Must be able to match that every file listed in the checksum.md5 to a physical file in the same directory |
 | xx   | Validate checksum inventory list format         | Must     | Must be able to make sure that the checksum.md5 is formatted correctly. [See technical specs below](#technical-specifications)|
-| xx   | Read and parse an XML File                      | Must     | Must be able to read an XML file  |
+| xx   | Read and parse an XML file                      | Must     | Must be able to read an XML file  |
+| xx   | Read and parse a YAML file                      | Must     | Must be able to read an YAML file  |
+| xx   | Validate a XML file to .xsd schema file         | Must     | Must be able to validate an XML file to an XSD schema file |
+| xx   | Validate fields inside a YAML file              | Must     | Must be able to validate the existence and correctness of fields within a YAML file |
 
 
 ## Usability Requirements
