@@ -57,7 +57,7 @@
 | xx   | User interface                | Must        | Must include some form of a user interface to run the script, either commandline or GUI   |
 | xx   | Graphical User interface      | High Want   | Script should be accessible through a graphical user interface.   |
 | xx   | Communicate all errors        | Must        | Inform the user of errors. |
-
+| xx   | Pause/Resume                  | Want        | Allow the user to pause/resume the script if the workstation needs to be restarted. |
 
 ## Reliability Requirements
 
@@ -75,7 +75,7 @@
 
 | ID   | Description                   | Priority          | Details                                                  |
 | ---- |:------------------------------| :---------------- | :------------------------------------------------------- |
-| xx   | Run locally on workstations   | Must        | Must be able to run on Windows 7 desktops with ... **TODO: fill in this information**  |
+| xx   | Run locally on workstations   | Must        | Must be able to run on Windows 7 desktops, possbly Windows 10 in the near future.  |
 
 
 ## Supportability Requirements
@@ -92,4 +92,4 @@
 
 # Notes
 
-> Write any additional notes here
+> The old script had the ability to update checksums if there was a discrepency or error. This might be with the zipandsubmit tool. Will look into this during our next batch.
