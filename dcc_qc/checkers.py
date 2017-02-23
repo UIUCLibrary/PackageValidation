@@ -11,6 +11,7 @@ class AbsValidator(metaclass=abc.ABCMeta):
     def check(self, file_):
         pass
 
+
 class PresCompletenessChecker(AbsValidator):
     # TODO: Create PresCompletenessChecker() class
     def check(self, file):
@@ -89,7 +90,7 @@ class AccessNamingChecker(AbsValidator):
                 errors.append(
                     "\"{}\" does not match the valid file name pattern for preservation files".format(basename))
 
-        # The only yaml file should be meta.yml
+        # The only yml file should be meta.yml
         if extension == ".yml":
             if basename != "meta":
                 valid = False
