@@ -1,4 +1,8 @@
-.cache
-.idea
-.tox
-dcc_hathi_qc.egg-info
+__pycache__/
+
+.cache/
+.idea/
+.tox/
+*.egg-info/
+
+dist/
