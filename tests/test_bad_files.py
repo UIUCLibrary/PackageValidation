@@ -213,20 +213,54 @@ def test_access_specs_correct(access_good):
             assert validator.check(file_name) is True
 
 
-def test_access_incorrect_file_naming(access_7210012):
-    invalid_files = ["0000020.tif"]
+def test_access_file_naming_incorrect(access_7210012):
+    invalid_files = ["0000020.tif", "0000020.txt"]
+
     validator_factory = validators.AccessValidators()
     validator = validator_factory.naming_checker()
 
     for root, dirs, files in access_7210012:
         for file_ in files:
 
+            if file_ == "Thumbs.db":
+                continue
+
             file_name = os.path.join(root, file_)
             result = validator.check(file_name)
             if file_ in invalid_files:
-                assert not result.valid
+                assert not result.valid, "The file {} was NOT listed as invalid".format(file_)
             else:
-                assert result.valid is True
+                assert result.valid is True, "The file {} was listed as invalid".format(file_)
+
+
+def test_access_file_naming_correct(access_good):
+    validator_factory = validators.AccessValidators()
+    validator = validator_factory.naming_checker()
+
+    for root, dirs, files in access_good:
+        for file_ in files:
+
+            if file_ == "Thumbs.db":
+                continue
+
+            file_name = os.path.join(root, file_)
+            result = validator.check(file_name)
+            assert result.valid is True, "The file {} was listed as invalid".format(file_)
+
+
+def test_preservation_file_naming_correct(preservation_good):
+    validator_factory = validators.PreservationValidators()
+    validator = validator_factory.naming_checker()
+
+    for root, dirs, files in preservation_good:
+        for file_ in files:
+
+            if file_ == "Thumbs.db":
+                continue
+
+            file_name = os.path.join(root, file_)
+            result = validator.check(file_name)
+            assert result.valid is True, "The file {} was listed as invalid".format(file_)
 
 
 def test_access_files_found_all(access_good):
