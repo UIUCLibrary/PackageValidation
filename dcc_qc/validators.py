@@ -1,8 +1,12 @@
 import abc
+import os
+from collections import namedtuple
+import re
+
+Results = namedtuple("Results", ["valid", "errors"])
 
 
 class AbsFactory(metaclass=abc.ABCMeta):
-
     @staticmethod
     @abc.abstractmethod
     def technical_checker():
@@ -33,19 +37,19 @@ class AbsValidator(metaclass=abc.ABCMeta):
 class AccessValidators(AbsFactory):
     @staticmethod
     def metadata_checker():
-        pass
+        return AccessMetadataChecker
 
     @staticmethod
     def technical_checker():
-        pass
+        return AccessTechnicalChecker
 
     @staticmethod
     def completeness_checker():
-        pass
+        return AccessCompletenessChecker
 
     @staticmethod
     def naming_checker():
-        pass
+        return AccessNamingChecker()
 
 
 class PreservationValidators(AbsFactory):
@@ -71,18 +75,6 @@ class PreservationValidators(AbsFactory):
 # =================
 
 
-class Result:
-    # TODO: Create Result() class
-
-    @property
-    def valid(self):
-        return False
-
-    @property
-    def errors(self)->list:
-        return []
-
-
 class PresCompletenessChecker(AbsValidator):
     # TODO: Create PresCompletenessChecker() class
     def check(self, file):
@@ -90,9 +82,28 @@ class PresCompletenessChecker(AbsValidator):
 
 
 class PresNamingChecker(AbsValidator):
-    # TODO: Create PresNamingChecker() class
+    valid_extensions = [".tif"]
+    valid_naming_scheme = re.compile("^\d{8}$")
+
     def check(self, file):
-        pass
+        valid = True
+        errors = []
+
+        basename, extension = os.path.splitext(os.path.basename(file))
+
+        if extension not in PresNamingChecker.valid_extensions:
+            valid = False
+            errors.append("Invalid preservation file extension: \"{}\"".format(extension))
+
+        # Check the image files have the full 8 digits
+        if extension == ".tif":
+            if "target" not in basename:
+                if PresNamingChecker.valid_naming_scheme.match(basename) is None:
+                    valid = False
+                    errors.append(
+                        "\"{}\" does not match the valid file name pattern for preservation files".format(basename))
+
+        return Results(valid=valid, errors=errors)
 
 
 class PresMetadataChecker(AbsValidator):
@@ -115,8 +126,41 @@ class AccessCompletenessChecker(AbsValidator):
 
 class AccessNamingChecker(AbsValidator):
     # TODO: Create AccessNamingChecker() class
+    valid_extensions = [".tif", ".txt", ".md5", ".xml", ".yml"]
+    valid_naming_scheme = re.compile("^\d{8}$")
+
     def check(self, file):
-        pass
+        valid = True
+        errors = []
+
+        basename, extension = os.path.splitext(os.path.basename(file))
+
+        if extension not in AccessNamingChecker.valid_extensions:
+            valid = False
+            errors.append("Invalid file access file extension: \"{}\"".format(extension))
+
+        # Check the image files have the full 8 digits
+        if extension == ".tif" or extension == ".txt":
+            if AccessNamingChecker.valid_naming_scheme.match(basename) is None:
+                valid = False
+                errors.append(
+                    "\"{}\" does not match the valid file name pattern for preservation files".format(basename))
+
+        # The only xml file should be marc.xml
+        if extension == ".xml":
+            if basename != "marc":
+                valid = False
+                errors.append(
+                    "\"{}\" does not match the valid file name pattern for preservation files".format(basename))
+
+        # The only yaml file should be meta.yml
+        if extension == ".yml":
+            if basename != "meta":
+                valid = False
+                errors.append(
+                    "\"{}\" does not match the valid file name pattern for preservation files".format(basename))
+
+        return Results(valid=valid, errors=errors)
 
 
 class AccessMetadataChecker(AbsValidator):
