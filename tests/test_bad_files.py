@@ -118,69 +118,69 @@ def preservation_good():
 def test_access_job_identifier_bad(access_bad_7209692):
     invalid_files = ["00000004.tif", '00000008.tif']
 
-    validator_factory = validators.access_validators()
+    validator_factory = validators.AccessValidators()
     validator = validator_factory.check_metadata()
 
     for root, dirs, files in access_bad_7209692:
         for file_ in files:
 
             file_name = os.path.join(root, file_)
-            is_valid = validator.check(file_name)
+            result = validator.check(file_name)
             if file_ in invalid_files:
-                assert is_valid is False
+                assert not result.valid
             else:
-                assert is_valid is True
+                assert result.valid is True
 
 
 def test_access_metadata_title_incorrect(access_bad_7209692):
     invalid_files = ["00000014.tif", '00000022.tif']
 
-    validator_factory = validators.access_validators()
+    validator_factory = validators.AccessValidators()
     validator = validator_factory.check_metadata()
 
     for root, dirs, files in access_bad_7209692:
         for file_ in files:
 
             file_name = os.path.join(root, file_)
-            is_valid = validator.check(file_name)
+            result = validator.check(file_name)
             if file_ in invalid_files:
-                assert is_valid is False
+                assert not result.valid
             else:
-                assert is_valid is True
+                assert result.valid is True
 
 
 def test_access_metadata_credit_line_missing(access_bad_7209692):
     invalid_files = ["00000023.tif"]
 
-    validator_factory = validators.access_validators()
+    validator_factory = validators.AccessValidators()
     validator = validator_factory.check_metadata()
 
     for root, dirs, files in access_bad_7209692:
         for file_ in files:
 
             file_name = os.path.join(root, file_)
-            is_valid = validator.check(file_name)
+            result = validator.check(file_name)
             if file_ in invalid_files:
-                assert is_valid is False
+                assert not result.valid
             else:
-                assert is_valid is True
+                assert result.valid is True
 
 
 def test_access_metadata_creator_missing(access_bad_7209692):
     invalid_files = ["00000026.tif"]
 
-    validator_factory = validators.access_validators()
+    validator_factory = validators.AccessValidators()
     validator = validator_factory.check_metadata()
 
     for root, dirs, files in access_bad_7209692:
         for file_ in files:
 
             file_name = os.path.join(root, file_)
-            is_valid = validator.check(file_name)
+            result = validator.check(file_name)
             if file_ in invalid_files:
-                assert is_valid is False
+                assert not result.valid
             else:
-                assert is_valid is True
+                assert result.valid is True
 
 
 def test_access_specs_incorrect(access_bad_7210012):
@@ -189,23 +189,23 @@ def test_access_specs_incorrect(access_bad_7210012):
                      "00000027.tif",
                      "00000033.tif"]
 
-    validator_factory = validators.access_validators()
+    validator_factory = validators.AccessValidators()
     validator = validator_factory.check_technical()
 
     for root, dirs, files in access_bad_7210012:
         for file_ in files:
 
             file_name = os.path.join(root, file_)
-            is_valid = validator.check(file_name)
+            result = validator.check(file_name)
             if file_ in invalid_files:
-                assert is_valid is False
+                assert not result.valid
             else:
-                assert is_valid is True
+                assert result.valid is True
 
 
 def test_access_specs_correct(access_good):
 
-    validator_factory = validators.access_validators()
+    validator_factory = validators.AccessValidators()
     validator = validator_factory.check_technical()
 
     for root, dirs, files in access_good:
@@ -217,68 +217,87 @@ def test_access_specs_correct(access_good):
 def test_access_incorrect_file_naming(access_bad_7210012):
 
     invalid_files = ["0000020.tif"]
-    validator_factory = validators.access_validators()
+    validator_factory = validators.AccessValidators()
     validator = validator_factory.check_namming()
 
     for root, dirs, files in access_bad_7210012:
         for file_ in files:
 
             file_name = os.path.join(root, file_)
-            is_valid = validator.check(file_name)
+            result = validator.check(file_name)
             if file_ in invalid_files:
-                assert is_valid is False
+                assert not result.valid
             else:
-                assert is_valid is True
+                assert result.valid is True
 
 
 def test_access_files_found_all(access_good):
 
-    validator_factory = validators.access_validators()
+    validator_factory = validators.AccessValidators()
     validator = validator_factory.check_completeness()
-    assert validator.check(access_good) is True
+    
+    result = validator.check(access_good)
+    assert not result.valid
 
 
 def test_access_files_text_missing(access_bad_7210438):
-    validator_factory = validators.access_validators()
+    
+    validator_factory = validators.AccessValidators()
     validator = validator_factory.check_completeness()
-    assert validator.check(access_bad_7210438) is False
+    
+    result = validator.check(access_bad_7210438)
+    assert not result.valid
 
-
+    
 def test_access_files_checksum_missing(access_bad_7210438):
-    validator_factory = validators.access_validators()
+    
+    validator_factory = validators.AccessValidators()
     validator = validator_factory.check_completeness()
-    assert validator.check(access_bad_7210438) is False
+    
+    result = validator.check(access_bad_7210438)
+    assert not result.valid
 
 
 def test_access_files_marc_missing(access_bad_7210438):
-    validator_factory = validators.access_validators()
+    
+    validator_factory = validators.AccessValidators()
     validator = validator_factory.check_completeness()
-    assert validator.check(access_bad_7210438) is False
+    
+    result = validator.check(access_bad_7210438)
+    assert not result.valid
 
 
 def test_access_files_meta_missing(access_bad_7210438):
-    validator_factory = validators.access_validators()
+    
+    validator_factory = validators.AccessValidators()
     validator = validator_factory.check_completeness()
-    assert validator.check(access_bad_7210438) is False
+    
+    result = validator.check(access_bad_7210438)
+    assert not result.valid
 
 
 def test_preservation_files_targets_missing(preservation_bad_7208772):
-    validator_factory = validators.preservation_validators()
+    
+    validator_factory = validators.PreservationValidators()
     validator = validator_factory.check_completeness()
-    assert validator.check(preservation_bad_7208772) is False
+    
+    result = validator.check(preservation_bad_7208772) 
+    assert not result.valid
 
 
 def test_preservation_incorrect_specs(preservation_bad_7209934):
+    
     invalid_files = ["6895567.tif", "7210439.tif"]
-    validator_factory = validators.preservation_validators()
+    
+    validator_factory = validators.PreservationValidators()
     validator = validator_factory.check_technical()
 
     for root, dirs, files in preservation_bad_7209934:
         for file_ in files:
 
             file_name = os.path.join(root, file_)
-            is_valid = validator.check(file_name)
+            result = validator.check(file_name)
             if file_ in invalid_files:
-                assert is_valid is False
+                assert not result.valid
             else:
-                assert is_valid is True
+                assert result.valid is True
