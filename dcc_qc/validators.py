@@ -59,10 +59,3 @@ class PreservationValidators(AbsFactory):
     @staticmethod
     def naming_checker():
         return checkers.PresNamingChecker()
-
-
-# =================
-# Concrete Classes
-# =================
-
-
