@@ -28,7 +28,7 @@ class PresNamingChecker(AbsValidator):
 
         basename, extension = os.path.splitext(os.path.basename(file))
 
-        if extension not in PresNamingChecker.valid_extensions:
+        if extension not in self.valid_extensions:
             valid = False
             errors.append("Invalid preservation file extension: \"{}\"".format(extension))
 
@@ -71,13 +71,13 @@ class AccessNamingChecker(AbsValidator):
 
         basename, extension = os.path.splitext(os.path.basename(file))
 
-        if extension not in AccessNamingChecker.valid_extensions:
+        if extension not in self.valid_extensions:
             valid = False
             errors.append("Invalid file access file extension: \"{}\"".format(extension))
 
         # Check the image files have the full 8 digits
         if extension == ".tif" or extension == ".txt":
-            if AccessNamingChecker.valid_naming_scheme.match(basename) is None:
+            if self.valid_naming_scheme.match(basename) is None:
                 valid = False
                 errors.append(
                     "\"{}\" does not match the valid file name pattern for preservation files".format(basename))
