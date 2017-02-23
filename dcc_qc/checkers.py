@@ -62,7 +62,6 @@ class AccessCompletenessChecker(AbsValidator):
 
 
 class AccessNamingChecker(AbsValidator):
-    # TODO: Create AccessNamingChecker() class
     valid_extensions = [".tif", ".txt", ".md5", ".xml", ".yml"]
     valid_naming_scheme = re.compile("^\d{8}$")
 
