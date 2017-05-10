@@ -280,8 +280,6 @@ def test_access_files_text_missing(access_7210438):
                 return True
         else:
             return False
-    # Check there is a matching text file for each image
-
 
     validator_factory = validators.AccessValidators()
     validator = validator_factory.completeness_checker()
