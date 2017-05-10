@@ -28,15 +28,15 @@ class AbsFactory(metaclass=abc.ABCMeta):
 class AccessValidators(AbsFactory):
     @staticmethod
     def metadata_checker():
-        return checkers.AccessMetadataChecker
+        return checkers.AccessMetadataChecker()
 
     @staticmethod
     def technical_checker():
-        return checkers.AccessTechnicalChecker
+        return checkers.AccessTechnicalChecker()
 
     @staticmethod
     def completeness_checker():
-        return checkers.AccessCompletenessChecker
+        return checkers.AccessCompletenessChecker()
 
     @staticmethod
     def naming_checker():
