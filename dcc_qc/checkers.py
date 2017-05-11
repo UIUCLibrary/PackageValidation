@@ -9,11 +9,11 @@ class Results:
         self._errors = errors
 
     @property
-    def valid(self)->bool:
+    def valid(self) -> bool:
         return self._valid
 
     @property
-    def errors(self)->list:
+    def errors(self) -> list:
         return self._errors
 # Results = namedtuple("Results", ["valid", "errors"])
 
@@ -25,9 +25,23 @@ class AbsValidator(metaclass=abc.ABCMeta):
 
 
 class PresCompletenessChecker(AbsValidator):
-    # TODO: Create PresCompletenessChecker() class
-    def check(self, file):
-        pass
+    def check(self, path):
+        valid = True
+        errors = []
+        required_files = {
+            "target_l_001.tif",
+            "target_l_002.tif",
+            "target_r_001.tif",
+            "target_r_002.tif",
+        }
+        for file in required_files:
+            if os.path.exists(os.path.join(path, file)):
+                required_files.remove(file)
+            else:
+                valid = False
+        if required_files:
+            errors.append("{} is missing the following files: {}.".format(path, ", ".join(sorted(required_files))))
+        return Results(valid=valid, errors=errors)
 
 
 class PresNamingChecker(AbsValidator):
@@ -111,7 +125,8 @@ class AccessCompletenessChecker(AbsValidator):
             required_text_file = basename + ".txt"
             if (img_path, required_text_file) not in text_files:
                 valid = False
-                errors.append("{} is missing a matching {} file.".format(os.path.join(img_path, img_file), required_text_file))
+                errors.append(
+                    "{} is missing a matching {} file.".format(os.path.join(img_path, img_file), required_text_file))
 
         # check that for every .txt file there is a matching .tif
         for txt_path, txt_file in text_files:
