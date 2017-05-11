@@ -336,8 +336,8 @@ def test_access_files_meta_missing(access_7210438):
 def test_preservation_files_targets_missing(preservation_7208772):
     validator_factory = validators.PreservationValidators()
     validator = validator_factory.completeness_checker()
-
-    result = validator.check(preservation_7208772)
+    path = next(preservation_7208772)[0]
+    result = validator.check(path)
     assert not result.valid
 
 
