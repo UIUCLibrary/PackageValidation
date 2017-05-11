@@ -20,7 +20,7 @@ class Results:
 
 class AbsValidator(metaclass=abc.ABCMeta):
     @abc.abstractmethod
-    def check(self, file_):
+    def check(self, path):
         pass
 
 
@@ -48,11 +48,11 @@ class PresNamingChecker(AbsValidator):
     valid_extensions = [".tif"]
     valid_naming_scheme = re.compile("^\d{8}$")
 
-    def check(self, file):
+    def check(self, path):
         valid = True
         errors = []
 
-        basename, extension = os.path.splitext(os.path.basename(file))
+        basename, extension = os.path.splitext(os.path.basename(path))
 
         if extension not in self.valid_extensions:
             valid = False
@@ -71,13 +71,13 @@ class PresNamingChecker(AbsValidator):
 
 class PresMetadataChecker(AbsValidator):
     # TODO: Create PresMetadataChecker() class
-    def check(self, file):
+    def check(self, path):
         pass
 
 
 class PresTechnicalChecker(AbsValidator):
     # TODO: Create PresTechnicalChecker() class
-    def check(self, file):
+    def check(self, path):
         pass
 
 
@@ -143,11 +143,11 @@ class AccessNamingChecker(AbsValidator):
     valid_extensions = [".tif", ".txt", ".md5", ".xml", ".yml"]
     valid_naming_scheme = re.compile("^\d{8}$")
 
-    def check(self, file):
+    def check(self, path):
         valid = True
         errors = []
 
-        basename, extension = os.path.splitext(os.path.basename(file))
+        basename, extension = os.path.splitext(os.path.basename(path))
 
         if extension not in self.valid_extensions:
             valid = False
@@ -179,11 +179,11 @@ class AccessNamingChecker(AbsValidator):
 
 class AccessMetadataChecker(AbsValidator):
     # TODO: Create AccessMetadataChecker() class
-    def check(self, file):
+    def check(self, path):
         pass
 
 
 class AccessTechnicalChecker(AbsValidator):
     # TODO: Create AccessTechnicalChecker() class
-    def check(self, file):
+    def check(self, path):
         pass
