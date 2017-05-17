@@ -288,6 +288,7 @@ def test_access_files_text_missing(access_7210438):
     result = validator.check(path)
     assert not result.valid
     assert has_missing_textfile_error(result.errors)
+    assert result.result_type == "Access Directory Completeness Test"
 
 
 def test_access_files_checksum_missing(access_7210438):
