@@ -5,10 +5,12 @@ sense when it is consumed by a script.
 """
 import os
 
+import tasks
 from dcc_qc import task_manager
 from dcc_qc import validation_processors
 
-TEST_PATH = "T:\HenryTest-PSR_2\DCC\Preservation_BAD"
+TEST_PATH = "Z:/MedusaStaging/MappingHistory_Archives/20170323_MappingHistory"
+# TEST_PATH = "T:\HenryTest-PSR_2\DCC\Preservation_BAD"
 
 
 # TEST_PATH = "T:\HenryTest-PSR_2\DCC\Preservation_GOOD"
@@ -27,18 +29,18 @@ def main():
 
     # Setup tasks
     for path in packages:
-        my_task = task_manager.Task(name=path)
+        my_task = tasks.Task(name=path)
 
         preservation_package_test = validation_processors.PackagePreservationComplete()
         preservation_package_test.setup()
         preservation_package_test.set_input(path)
         my_task.add_process(preservation_package_test)
 
-        manager.push_task(my_task)
+        manager.push(my_task)
 
     # run tasks
     for i, task in enumerate(manager):
-        print("({}/{}) Checking: {}".format(i + 1, len(manager), task.result_type))
+        print("({}/{}) Checking: {}".format(i + 1, len(manager), task.name))
         task.run()
         results = task.results
         if task.errors:
