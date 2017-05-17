@@ -3,6 +3,17 @@ import re
 import abc
 
 
+class AbsValidator(metaclass=abc.ABCMeta):
+    @abc.abstractmethod
+    def check(self, path):
+        pass
+
+    @staticmethod
+    @abc.abstractmethod
+    def validator_name():
+        pass
+
+
 class Results:
     def __init__(self, result_type, valid, errors):
         self._name = result_type
@@ -25,17 +36,6 @@ class Results:
         return "The result of {} {} valid.".format(self._name, "is not" if not self.valid else "is")
 
 
-class AbsValidator(metaclass=abc.ABCMeta):
-    @abc.abstractmethod
-    def check(self, path):
-        pass
-
-    @property
-    @abc.abstractmethod
-    def validator_name(self):
-        pass
-
-
 class PresCompletenessChecker(AbsValidator):
     def check(self, path):
         valid = True
@@ -51,10 +51,10 @@ class PresCompletenessChecker(AbsValidator):
         if required_files:
             valid = False
             errors.append("{} is missing the following files: {}.".format(path, ", ".join(sorted(required_files))))
-        return Results("Result of {}".format(self.validator_name), valid=valid, errors=errors)
+        return Results(self.validator_name(), valid=valid, errors=errors)
 
-    @property
-    def validator_name(self):
+    @staticmethod
+    def validator_name():
         return "Preservation Directory Completeness Test"
 
 
@@ -62,8 +62,8 @@ class PresNamingChecker(AbsValidator):
     valid_extensions = [".tif"]
     valid_naming_scheme = re.compile("^\d{8}$")
 
-    @property
-    def validator_name(self):
+    @staticmethod
+    def validator_name():
         return "Preservation File Naming Check Test"
 
     def check(self, path):
@@ -85,24 +85,34 @@ class PresNamingChecker(AbsValidator):
                         "\"{}\" does not match the valid file result_type pattern for preservation files".format(
                             basename))
 
-        return Results("Result of {}".format(self.validator_name), valid=valid, errors=errors)
+        return Results(self.validator_name(), valid=valid, errors=errors)
 
 
 class PresMetadataChecker(AbsValidator):
     # TODO: Create PresMetadataChecker() class
+
+    @staticmethod
+    def validator_name():
+        return "Preservation Metadata Checker"
+
     def check(self, path):
-        pass
+        raise NotImplementedError()
 
 
 class PresTechnicalChecker(AbsValidator):
     # TODO: Create PresTechnicalChecker() class
+
+    @staticmethod
+    def validator_name():
+        return "Preservation Technical Specs Checker"
+
     def check(self, path):
-        pass
+        raise NotImplementedError()
 
 
 class AccessCompletenessChecker(AbsValidator):
-    @property
-    def validator_name(self):
+    @staticmethod
+    def validator_name():
         return "Access Directory Completeness Test"
 
     def check(self, path: str):
@@ -159,15 +169,15 @@ class AccessCompletenessChecker(AbsValidator):
                 valid = False
                 errors.append("{} is missing a matching {}".format(os.path.join(txt_path, txt_file), required_tif_file))
 
-        return Results("Result of {}".format(self.validator_name), valid=valid, errors=errors)
+        return Results(self.validator_name(), valid=valid, errors=errors)
 
 
 class AccessNamingChecker(AbsValidator):
     valid_extensions = [".tif", ".txt", ".md5", ".xml", ".yml"]
     valid_naming_scheme = re.compile("^\d{8}$")
 
-    @property
-    def validator_name(self):
+    @staticmethod
+    def validator_name():
         return "Access File Naming Checker Test"
 
     def check(self, path):
@@ -201,16 +211,25 @@ class AccessNamingChecker(AbsValidator):
                 errors.append(
                     "\"{}\" does not match the valid file result_type pattern for preservation files".format(basename))
 
-        return Results("Result of {}".format(self.validator_name), valid=valid, errors=errors)
+        return Results(self.validator_name(), valid=valid, errors=errors)
 
 
 class AccessMetadataChecker(AbsValidator):
     # TODO: Create AccessMetadataChecker() class
+    @staticmethod
+    def validator_name():
+        return "Access File Metadata Checker"
+
     def check(self, path):
-        pass
+        raise NotImplementedError()
 
 
 class AccessTechnicalChecker(AbsValidator):
+    @staticmethod
+    def validator_name():
+        return "Access Technical Metadata Checker"
+
     # TODO: Create AccessTechnicalChecker() class
+
     def check(self, path):
-        pass
+        raise NotImplementedError()
