@@ -4,9 +4,14 @@ import abc
 
 
 class Results:
-    def __init__(self, valid, errors):
+    def __init__(self, result_type, valid, errors):
+        self._name = result_type
         self._valid = valid
         self._errors = errors
+
+    @property
+    def result_type(self):
+        return self._name
 
     @property
     def valid(self) -> bool:
@@ -15,7 +20,9 @@ class Results:
     @property
     def errors(self) -> list:
         return self._errors
-# Results = namedtuple("Results", ["valid", "errors"])
+
+    def __str__(self) -> str:
+        return "The result of {} {} valid.".format(self._name, "is not" if not self.valid else "is")
 
 
 class AbsValidator(metaclass=abc.ABCMeta):
@@ -23,30 +30,41 @@ class AbsValidator(metaclass=abc.ABCMeta):
     def check(self, path):
         pass
 
+    @property
+    @abc.abstractmethod
+    def validator_name(self):
+        pass
+
 
 class PresCompletenessChecker(AbsValidator):
     def check(self, path):
         valid = True
         errors = []
-        required_files = {
+        required_files = [
             "target_l_001.tif",
             "target_l_002.tif",
             "target_r_001.tif",
             "target_r_002.tif",
-        }
-        for file in required_files:
-            if os.path.exists(os.path.join(path, file)):
-                required_files.remove(file)
-            else:
-                valid = False
+        ]
+
+        required_files = list(filter(lambda file: not os.path.exists(os.path.join(path, file)), required_files))
         if required_files:
+            valid = False
             errors.append("{} is missing the following files: {}.".format(path, ", ".join(sorted(required_files))))
-        return Results(valid=valid, errors=errors)
+        return Results("Result of {}".format(self.validator_name), valid=valid, errors=errors)
+
+    @property
+    def validator_name(self):
+        return "Preservation Directory Completeness Test"
 
 
 class PresNamingChecker(AbsValidator):
     valid_extensions = [".tif"]
     valid_naming_scheme = re.compile("^\d{8}$")
+
+    @property
+    def validator_name(self):
+        return "Preservation File Naming Check Test"
 
     def check(self, path):
         valid = True
@@ -64,9 +82,10 @@ class PresNamingChecker(AbsValidator):
                 if PresNamingChecker.valid_naming_scheme.match(basename) is None:
                     valid = False
                     errors.append(
-                        "\"{}\" does not match the valid file name pattern for preservation files".format(basename))
+                        "\"{}\" does not match the valid file result_type pattern for preservation files".format(
+                            basename))
 
-        return Results(valid=valid, errors=errors)
+        return Results("Result of {}".format(self.validator_name), valid=valid, errors=errors)
 
 
 class PresMetadataChecker(AbsValidator):
@@ -82,6 +101,10 @@ class PresTechnicalChecker(AbsValidator):
 
 
 class AccessCompletenessChecker(AbsValidator):
+    @property
+    def validator_name(self):
+        return "Access Directory Completeness Test"
+
     def check(self, path: str):
         """
         Look for image there is an equal text file and vice-versa
@@ -136,12 +159,16 @@ class AccessCompletenessChecker(AbsValidator):
                 valid = False
                 errors.append("{} is missing a matching {}".format(os.path.join(txt_path, txt_file), required_tif_file))
 
-        return Results(valid=valid, errors=errors)
+        return Results("Result of {}".format(self.validator_name), valid=valid, errors=errors)
 
 
 class AccessNamingChecker(AbsValidator):
     valid_extensions = [".tif", ".txt", ".md5", ".xml", ".yml"]
     valid_naming_scheme = re.compile("^\d{8}$")
+
+    @property
+    def validator_name(self):
+        return "Access File Naming Checker Test"
 
     def check(self, path):
         valid = True
@@ -158,23 +185,23 @@ class AccessNamingChecker(AbsValidator):
             if self.valid_naming_scheme.match(basename) is None:
                 valid = False
                 errors.append(
-                    "\"{}\" does not match the valid file name pattern for preservation files".format(basename))
+                    "\"{}\" does not match the valid file result_type pattern for preservation files".format(basename))
 
         # The only xml file should be marc.xml
         if extension == ".xml":
             if basename != "marc":
                 valid = False
                 errors.append(
-                    "\"{}\" does not match the valid file name pattern for preservation files".format(basename))
+                    "\"{}\" does not match the valid file result_type pattern for preservation files".format(basename))
 
         # The only yml file should be meta.yml
         if extension == ".yml":
             if basename != "meta":
                 valid = False
                 errors.append(
-                    "\"{}\" does not match the valid file name pattern for preservation files".format(basename))
+                    "\"{}\" does not match the valid file result_type pattern for preservation files".format(basename))
 
-        return Results(valid=valid, errors=errors)
+        return Results("Result of {}".format(self.validator_name), valid=valid, errors=errors)
 
 
 class AccessMetadataChecker(AbsValidator):
