@@ -30,7 +30,7 @@ class HathiPackage(abs_package.AbsPackage):
                 raise Exception("Error: Found multiple access or preservation folders in {}".format(path))
 
             if len(found_access) == 0 or len(found_preservation) == 0:
-                raise Exception("Error: Missing access or preservation folders in {}".format(path))
+                raise FileNotFoundError("Error: Missing access or preservation folders in {}".format(path))
             raise Exception("Error: Unable to find access and preservation folders in {}".format(path))
 
         def create_pairs(access_path, preservation_path) -> typing.Generator[typing.Tuple[str, str], None, None]:
