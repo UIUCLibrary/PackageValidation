@@ -1,39 +1,8 @@
 import os
 import re
-import abc
 
-
-class AbsValidator(metaclass=abc.ABCMeta):
-    @abc.abstractmethod
-    def check(self, path):
-        pass
-
-    @staticmethod
-    @abc.abstractmethod
-    def validator_name():
-        pass
-
-
-class Results:
-    def __init__(self, result_type, valid, errors):
-        self._name = result_type
-        self._valid = valid
-        self._errors = errors
-
-    @property
-    def result_type(self):
-        return self._name
-
-    @property
-    def valid(self) -> bool:
-        return self._valid
-
-    @property
-    def errors(self) -> list:
-        return self._errors
-
-    def __str__(self) -> str:
-        return "The result of {} {} valid.".format(self._name, "is not" if not self.valid else "is")
+from dcc_qc import validators
+from dcc_qc.validators.abs_validators import AbsValidator
 
 
 class PresCompletenessChecker(AbsValidator):
@@ -51,7 +20,7 @@ class PresCompletenessChecker(AbsValidator):
         if required_files:
             valid = False
             errors.append("{} is missing the following files: {}.".format(path, ", ".join(sorted(required_files))))
-        return Results(self.validator_name(), valid=valid, errors=errors)
+        return validators.Results(self.validator_name(), valid=valid, errors=errors)
 
     @staticmethod
     def validator_name():
@@ -85,7 +54,7 @@ class PresNamingChecker(AbsValidator):
                         "\"{}\" does not match the valid file result_type pattern for preservation files".format(
                             basename))
 
-        return Results(self.validator_name(), valid=valid, errors=errors)
+        return validators.Results(self.validator_name(), valid=valid, errors=errors)
 
 
 class PresMetadataChecker(AbsValidator):
@@ -125,9 +94,10 @@ class AccessCompletenessChecker(AbsValidator):
         Returns:
 
         """
-        required_files = {"checksum.md5", "marc.xml", "meta.yml"}
+        required_files = {}
+        # required_files = {"checksum.md5", "marc.xml", "meta.yml"}
         valid_image_extensions = [".tif"]
-        valid_text_extensions = [".txt"]
+        valid_text_extensions = []
         errors = []
         valid = True
         image_files = set()
@@ -152,24 +122,24 @@ class AccessCompletenessChecker(AbsValidator):
             valid = False
             errors.append("{} is missing {}".format(path, _file))
 
-        # check that for every .tif file there is a matching .txt
-        for img_path, img_file in image_files:
-            basename, ext = os.path.splitext(img_file)
-            required_text_file = basename + ".txt"
-            if (img_path, required_text_file) not in text_files:
-                valid = False
-                errors.append(
-                    "{} is missing a matching {} file.".format(os.path.join(img_path, img_file), required_text_file))
+        # # check that for every .tif file there is a matching .txt
+        # for img_path, img_file in image_files:
+        #     basename, ext = os.path.splitext(img_file)
+        #     required_text_file = basename + ".txt"
+        #     if (img_path, required_text_file) not in text_files:
+        #         valid = False
+        #         errors.append(
+        #             "{} is missing a matching {} file.".format(os.path.join(img_path, img_file), required_text_file))
+        #
+        # # check that for every .txt file there is a matching .tif
+        # for txt_path, txt_file in text_files:
+        #     basename, ext = os.path.splitext(txt_file)
+        #     required_tif_file = basename + ".tif"
+        #     if (txt_path, required_tif_file) not in image_files:
+        #         valid = False
+        #         errors.append("{} is missing a matching {}".format(os.path.join(txt_path, txt_file), required_tif_file))
 
-        # check that for every .txt file there is a matching .tif
-        for txt_path, txt_file in text_files:
-            basename, ext = os.path.splitext(txt_file)
-            required_tif_file = basename + ".tif"
-            if (txt_path, required_tif_file) not in image_files:
-                valid = False
-                errors.append("{} is missing a matching {}".format(os.path.join(txt_path, txt_file), required_tif_file))
-
-        return Results(self.validator_name(), valid=valid, errors=errors)
+        return validators.Results(self.validator_name(), valid=valid, errors=errors)
 
 
 class AccessNamingChecker(AbsValidator):
@@ -211,7 +181,7 @@ class AccessNamingChecker(AbsValidator):
                 errors.append(
                     "\"{}\" does not match the valid file result_type pattern for preservation files".format(basename))
 
-        return Results(self.validator_name(), valid=valid, errors=errors)
+        return validators.Results(self.validator_name(), valid=valid, errors=errors)
 
 
 class AccessMetadataChecker(AbsValidator):
@@ -233,3 +203,5 @@ class AccessTechnicalChecker(AbsValidator):
 
     def check(self, path):
         raise NotImplementedError()
+
+
