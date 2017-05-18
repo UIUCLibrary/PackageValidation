@@ -10,16 +10,17 @@ class Task:
     def __init__(self, description="Generic task"):
 
         # Set the valid  states
-        self.queued = task_states.TaskQueued(self)
-        self.empty = task_states.TaskEmpty(self)
-        self.working = task_states.TaskWorking(self)
-        self.success = task_states.TaskSuccess(self)
-        self.failure = task_states.TaskFailed(self)
+
+        self._queued = task_states.TaskQueued(self)
+        self._empty = task_states.TaskEmpty(self)
+        self._working = task_states.TaskWorking(self)
+        self._success = task_states.TaskSuccess(self)
+        self._failed = task_states.TaskFailed(self)
 
         self._name = description
         self._results = []
         self._errors = []
-        self._state = self.empty
+        self._state = self._empty
         self.processes = []
 
     def __len__(self):
@@ -27,7 +28,7 @@ class Task:
 
     @property
     def results(self) -> typing.List[results.Results]:
-        """List of public results produced during the run() method, if any."""
+        """List of public result produced during the run() method, if any."""
         return self._results
 
     @property
