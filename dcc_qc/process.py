@@ -5,9 +5,6 @@ from dcc_qc.validators import results
 
 class AbsProcess(metaclass=abc.ABCMeta):
     """Implement this abstract class to to use a process with the task manager."""
-    def __init__(self):
-        self._errors = []
-        self._name = ""
 
     @abc.abstractmethod
     def setup(self):
@@ -18,12 +15,14 @@ class AbsProcess(metaclass=abc.ABCMeta):
         pass
 
     @property
+    @abc.abstractmethod
     def errors(self):
-        return self._errors
+        pass
 
     @property
+    @abc.abstractmethod
     def name(self):
-        return self._name
+        pass
 
 
 class AbsProcessInput(metaclass=abc.ABCMeta):
