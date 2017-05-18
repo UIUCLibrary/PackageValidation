@@ -1,13 +1,13 @@
 import typing
 
-from dcc_qc import checkers
+from dcc_qc.validators import results
 from dcc_qc import task_states
 
 from dcc_qc.task_states import statuses
 
 
 class Task:
-    def __init__(self, name="Generic task"):
+    def __init__(self, description="Generic task"):
 
         # Set the valid  states
         self.queued = task_states.TaskQueued(self)
@@ -16,7 +16,7 @@ class Task:
         self.success = task_states.TaskSuccess(self)
         self.failure = task_states.TaskFailed(self)
 
-        self._name = name
+        self._name = description
         self._results = []
         self._errors = []
         self._state = self.empty
@@ -26,14 +26,17 @@ class Task:
         return len(self.processes)
 
     @property
-    def results(self) -> typing.List[checkers.Results]:
+    def results(self) -> typing.List[results.Results]:
         """List of public results produced during the run() method, if any."""
         return self._results
 
     @property
     def errors(self):
         """List of any errors produced during the run() method, if any."""
-        return self._errors
+        errors = []
+        for result in self.results:
+            errors += result.errors
+        return errors
 
     @property
     def name(self):
