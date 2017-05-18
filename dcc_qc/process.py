@@ -1,6 +1,6 @@
 import abc
 
-from dcc_qc import checkers
+from dcc_qc.validators import results
 
 
 class AbsProcess(metaclass=abc.ABCMeta):
@@ -37,5 +37,5 @@ class AbsProcessorResults(metaclass=abc.ABCMeta):
     """Abstract class to be uses with AbsProcess. Implement if the process has a return data"""
     @property
     @abc.abstractmethod
-    def result(self)->checkers.Results:
+    def result(self)->results.Results:
         pass
