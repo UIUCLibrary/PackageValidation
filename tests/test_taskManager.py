@@ -7,7 +7,7 @@ from dcc_qc import task_states
 
 @pytest.fixture
 def task_fixture():
-    return tasks.Task(name="dummy task")
+    return tasks.Task(description="dummy task")
 
 
 @pytest.fixture
