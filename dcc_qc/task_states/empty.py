@@ -8,7 +8,7 @@ class TaskEmpty(AbsTask):
 
     def add_process(self, p):
         self._context.processes.append(p)
-        self._context._state = self._context.queued
+        self._context._state = self._context._queued
 
     def run(self):
         raise Exception("Nothing to do")

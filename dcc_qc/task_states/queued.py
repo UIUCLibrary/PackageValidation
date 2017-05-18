@@ -12,8 +12,10 @@ class TaskQueued(AbsTask):
         self._context.processes.append(p)
 
     def run(self):
-        self._context._state = self._context.working
+        self._context._state = self._context._working
+        status = self._context._success
         for p in self._context.processes:
+
             p.run()
 
             for error in p.errors:
@@ -23,9 +25,9 @@ class TaskQueued(AbsTask):
                 self._context._results.append(p.result)
 
             if self._context._errors:
-                self._context._state = self._context.failed
-            else:
-                self._context._state = self._context.success
+                status = self._context._failed
+
+        self._context._state = status
 
     @property
     def status(self):
