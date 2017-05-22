@@ -6,14 +6,14 @@ from dcc_qc.task_states.statuses import TaskStatus
 class TaskQueued(AbsTask):
     def reset(self):
         self._context.processes = []
-        self._context._state = self._context.empty
+        self._context._state = self._context.valid_states["empty"]
 
     def add_process(self, p):
         self._context.processes.append(p)
 
     def run(self):
-        self._context._state = self._context._working
-        status = self._context._success
+        self._context._state = self._context.valid_states["working"]
+        status = self._context.valid_states["success"]
         for p in self._context.processes:
 
             p.run()
@@ -24,8 +24,8 @@ class TaskQueued(AbsTask):
             if isinstance(p, process.AbsProcessorResults):
                 self._context._results.append(p.result)
 
-            if self._context._errors:
-                status = self._context._failed
+            if self._context._errors or not p.result.valid:
+                status = self._context.valid_states["failed"]
 
         self._context._state = status
 

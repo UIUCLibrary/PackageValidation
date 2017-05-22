@@ -5,7 +5,7 @@ from dcc_qc.task_states.statuses import TaskStatus
 class _TaskCompleted(AbsTask):
     def reset(self):
         self._context.processes = []
-        self._context._state = self._context.empty
+        self._context._state = self._context.valid_states["empty"]
 
     def add_process(self, p):
         raise Exception("Completed tasks cannot be modified")
