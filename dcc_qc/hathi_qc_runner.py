@@ -24,17 +24,15 @@ class HathiQCRunner(AbsRunner):
                     yield item.path
 
     def setup(self):
-        hathi_packages_folders = self.get_package_folders(self.path)
         self.packages = []
 
-        for folder in hathi_packages_folders:
-            try:
-                package_set = packages.create_package("Hathi", folder)
-                for package in package_set:
-                    self.packages.append(package)
-            except FileNotFoundError as e:
-                self.valid = False
-                self.errors.append("Unable to validate {}. Reason: {}".format(folder, e))
+        try:
+            package_set = packages.create_package("Hathi", self.path)
+            for package in package_set:
+                self.packages.append(package)
+        except packages.PackageError as e:
+            self.valid = False
+            self.errors.append("Unable to validate {}. Reason: {}".format(self.path, e))
 
         # Add the tasks that need to be validated
         for hathi_package in self.packages:
