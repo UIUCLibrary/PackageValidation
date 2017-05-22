@@ -11,6 +11,11 @@ BASE_ROOT = "T:\\"
 # =======================
 # Fixtures
 # =======================
+@pytest.fixture(name="access_good")
+def files_access_good():
+    return os.walk(os.path.normpath(
+        os.path.join(BASE_ROOT, r"HenryTest-PSR_2\DCC\Package_GOOD\20170424_CavagnaCollectionRBML_tg\access\7212907")))
+
 
 @pytest.fixture(name="access_7209692")
 def files_access_bad_7209692():
@@ -60,19 +65,19 @@ def files_access_bad_7210438():
     return os.walk(os.path.normpath(os.path.join(BASE_ROOT, r"HenryTest-PSR_2\DCC\Access_BAD\7210438")))
 
 
-@pytest.fixture(name="access_good")
-def files_access_good():
-    """
-    Note:
-        contains 7208771 and 7209666
-
-        Both files have correct specs for access files.
-        All text files, checksum, marc, and meta.yml files present.
-        Metadata is correct.
-
-    Returns:
-    """
-    return os.walk(os.path.normpath(os.path.join(BASE_ROOT, r"HenryTest-PSR_2\DCC\Access_GOOD")))
+# @pytest.fixture(name="access_good")
+# def files_access_good():
+#     """
+#     Note:
+#         contains 7208771 and 7209666
+#
+#         Both files have correct specs for access files.
+#         All text files, checksum, marc, and meta.yml files present.
+#         Metadata is correct.
+#
+#     Returns:
+#     """
+#     return os.walk(os.path.normpath(os.path.join(BASE_ROOT, r"HenryTest-PSR_2\DCC\Access_GOOD")))
 
 
 @pytest.fixture(name="preservation_7208772")
@@ -230,7 +235,7 @@ def test_access_file_naming_incorrect(access_7210012):
 
             file_name = os.path.join(root, file_)
             result = validator.check(file_name)
-            if file_ in invalid_files:
+            if file_ in invalid_files or os.path.splitext(file_name)[1] != ".tif":
                 assert not result.valid, "The file {} was NOT listed as invalid".format(file_)
             else:
                 assert result.valid is True, "The file {} was listed as invalid".format(file_)
