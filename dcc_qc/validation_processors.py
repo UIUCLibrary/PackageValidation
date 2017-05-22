@@ -29,11 +29,6 @@ class PackagePreservationComplete(AbsProcess, AbsProcessInput, AbsProcessorResul
     @property
     def errors(self):
         return self.result.errors
-        # if len(self._result.errors) > 0:
-        #     return functools.reduce(lambda lhs, rhs: lhs + rhs, self._result.errors, [])
-        # else:
-        #     return []
-
 
 
 class PackageAccessComplete(AbsProcess, AbsProcessInput, AbsProcessorResults):
@@ -89,8 +84,56 @@ class PreservationFileNaming(AbsProcess, AbsProcessInput, AbsProcessorResults):
     @property
     def errors(self):
         return self.result.errors
-        # if len(self._result.errors) > 0:
-        #     return functools.reduce(lambda lhs, rhs: lhs + rhs, self._result.errors, [])
-        # else:
-        #     return []
-        # return functools.reduce(lambda lhs, rhs: lhs + rhs, [r.errors for r in self._results], [])
+
+
+class AccessFileNaming(AbsProcess, AbsProcessInput, AbsProcessorResults):
+    def setup(self):
+        self.valitator = hathi_lab_factory.AccessValidators.naming_checker()
+        self._result = None
+        self._filename = None
+
+    def set_input(self, value):
+        self._filename = value
+
+    @property
+    def name(self):
+        return "Preservation file name test"
+
+    @property
+    def result(self) -> validators.Results:
+        return self._result
+
+    def run(self):
+        self._result = self.valitator.check(self._filename)
+
+    @property
+    def errors(self):
+        return self._result.errors
+
+
+class PackageComplete(AbsProcess, AbsProcessInput, AbsProcessorResults):
+    """Validate the existence of all required folders"""
+
+    def setup(self):
+        self.validator = hathi_lab_factory.PackageValidators.all_components_checker()
+        self._result = None
+        self._path = None
+
+    def run(self):
+        result = self.validator.check(self._path)
+        self._result = result
+
+    @property
+    def errors(self):
+        return self._result.errors
+
+    @property
+    def result(self) -> validators.Results:
+        return self._result
+
+    @property
+    def name(self):
+        return "Package Completeness test"
+
+    def set_input(self, value):
+        self._path = value
