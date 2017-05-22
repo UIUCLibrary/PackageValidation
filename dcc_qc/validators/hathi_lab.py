@@ -9,15 +9,18 @@ class PresCompletenessChecker(AbsValidator):
     def check(self, path):
         valid = True
         errors = []
-        required_files = [
+        required_files = (
             "target_l_001.tif",
             "target_l_002.tif",
             "target_r_001.tif",
             "target_r_002.tif",
-        ]
+        )
 
-        required_files = list(filter(lambda file: not os.path.exists(os.path.join(path, file)), required_files))
-        if required_files:
+        missing = []
+        for required_file in required_files:
+            if required_file not in os.listdir(path):
+                missing.append(required_file)
+        if missing:
             valid = False
             errors.append("{} is missing the following files: {}.".format(path, ", ".join(sorted(required_files))))
         return validators.Results(self.validator_name(), valid=valid, errors=errors)
@@ -29,6 +32,7 @@ class PresCompletenessChecker(AbsValidator):
 
 class PresNamingChecker(AbsValidator):
     valid_extensions = [".tif"]
+    ignore_extension = [".db"]
     valid_naming_scheme = re.compile("^\d{8}$")
 
     @staticmethod
@@ -40,19 +44,21 @@ class PresNamingChecker(AbsValidator):
         errors = []
 
         basename, extension = os.path.splitext(os.path.basename(path))
+        if extension not in self.ignore_extension:
 
-        if extension not in self.valid_extensions:
-            valid = False
-            errors.append("Invalid preservation file extension: \"{}\"".format(extension))
+            if extension not in self.valid_extensions:
+                valid = False
+                errors.append("Invalid preservation file extension: \"{}\"".format(extension))
 
-        # Check the image files have the full 8 digits
-        if extension == ".tif":
-            if "target" not in basename:
-                if PresNamingChecker.valid_naming_scheme.match(basename) is None:
-                    valid = False
-                    errors.append(
-                        "\"{}\" does not match the valid file result_type pattern for preservation files".format(
-                            basename))
+            # Check the image files have the full 8 digits
+            if extension == ".tif":
+                if "target" not in basename:
+                    if PresNamingChecker.valid_naming_scheme.match(basename) is None:
+                        valid = False
+                        errors.append(
+                            "In path, {}, \"{}\" does not match the valid file naming pattern for preservation files.".format(
+                                os.path.dirname(path),
+                                os.path.basename(path)))
 
         return validators.Results(self.validator_name(), valid=valid, errors=errors)
 
@@ -86,15 +92,15 @@ class AccessCompletenessChecker(AbsValidator):
 
     def check(self, path: str):
         """
-        Look for image there is an equal text file and vice-versa
-        Look for checksums.md5, marc.xml, and meta.yml files
+        Make sure that all files included in this folder are tiff files 
+        and contain nothing else
         Args:
             path: 
 
         Returns:
 
         """
-        required_files = {}
+        required_files = set()
         # required_files = {"checksum.md5", "marc.xml", "meta.yml"}
         valid_image_extensions = [".tif"]
         valid_text_extensions = []
@@ -105,17 +111,17 @@ class AccessCompletenessChecker(AbsValidator):
 
         # Sort the files into their own category
         for root, dirs, files in os.walk(path):
-            for f in files:
+            for file_ in files:
 
                 # if the filename is the required files set, remove them
-                if f in required_files:
-                    required_files.remove(f)
+                if file_ in required_files:
+                    required_files.remove(file_)
 
-                basename, ext = os.path.splitext(f)
+                basename, ext = os.path.splitext(file_)
                 if ext in valid_image_extensions:
-                    image_files.add((root, f))
+                    image_files.add((root, file_))
                 elif ext in valid_text_extensions:
-                    text_files.add((root, f))
+                    text_files.add((root, file_))
 
         # If there are any files still in the required_files set are missing.
         for _file in required_files:
@@ -143,7 +149,8 @@ class AccessCompletenessChecker(AbsValidator):
 
 
 class AccessNamingChecker(AbsValidator):
-    valid_extensions = [".tif", ".txt", ".md5", ".xml", ".yml"]
+    valid_extensions = [".tif"]
+    ignore_extension = [".db"]
     valid_naming_scheme = re.compile("^\d{8}$")
 
     @staticmethod
@@ -155,31 +162,32 @@ class AccessNamingChecker(AbsValidator):
         errors = []
 
         basename, extension = os.path.splitext(os.path.basename(path))
+        if extension not in self.ignore_extension:
 
-        if extension not in self.valid_extensions:
-            valid = False
-            errors.append("Invalid file access file extension: \"{}\"".format(extension))
+            if extension not in self.valid_extensions:
+                valid = False
+                errors.append("The file \"{}\" in {} has a file extension not allowed in this folder: \"{}\"".format(
+                    os.path.basename(path), os.path.dirname(path), extension))
 
-        # Check the image files have the full 8 digits
-        if extension == ".tif" or extension == ".txt":
+            # Check the image files have the full 8 digits
             if self.valid_naming_scheme.match(basename) is None:
                 valid = False
                 errors.append(
-                    "\"{}\" does not match the valid file result_type pattern for preservation files".format(basename))
-
-        # The only xml file should be marc.xml
-        if extension == ".xml":
-            if basename != "marc":
-                valid = False
-                errors.append(
-                    "\"{}\" does not match the valid file result_type pattern for preservation files".format(basename))
-
-        # The only yml file should be meta.yml
-        if extension == ".yml":
-            if basename != "meta":
-                valid = False
-                errors.append(
-                    "\"{}\" does not match the valid file result_type pattern for preservation files".format(basename))
+                    "\"{}\" does not match the valid file pattern for preservation files".format(basename))
+                #
+                # # The only xml file should be marc.xml
+                # if extension == ".xml":
+                #     if basename != "marc":
+                #         valid = False
+                #         errors.append(
+                #             "\"{}\" does not match the valid file pattern for preservation files".format(basename))
+                #
+                # # The only yml file should be meta.yml
+                # if extension == ".yml":
+                #     if basename != "meta":
+                #         valid = False
+                #         errors.append(
+                #             "\"{}\" does not match the valid file result_type pattern for preservation files".format(basename))
 
         return validators.Results(self.validator_name(), valid=valid, errors=errors)
 
@@ -205,3 +213,60 @@ class AccessTechnicalChecker(AbsValidator):
         raise NotImplementedError()
 
 
+class PackageChecker(AbsValidator):
+    @staticmethod
+    def validator_name():
+        return "Package completeness checker"
+
+    @staticmethod
+    def find_root_directory_errors(path):
+        required_directories = {"access", "preservation"}
+        for item in os.scandir(path):
+            if item.is_dir():
+                if item.name in required_directories:
+                    required_directories.remove(item.name)
+                else:
+                    yield "{} is an invalid folder.".format(item.path)
+            elif item.is_file():
+                yield "{} is an invalid file.".format(item.path)
+
+        if required_directories:
+            for folder in required_directories:
+                yield "{} is missing required folder {}".format(path, folder)
+
+    @staticmethod
+    def find_subdirectory_errors(path):
+        preservation_folder = os.path.join(path, "preservation")
+        access_folder = os.path.join(path, "access")
+        preservation_folders = os.listdir(preservation_folder)
+        access_folders = os.listdir(access_folder)
+
+        # find missing matching preservation folders
+        master = set(preservation_folders)
+        for access in access_folders:
+            master.remove(access)
+
+        for item_left in master:
+            yield "missing matching {} in {}".format(item_left, preservation_folder)
+
+        # find missing matching access folders
+        master = set(access_folders)
+        for preservation in preservation_folders:
+            master.remove(preservation)
+
+        for item_left in master:
+            yield "missing matching {} in {}".format(item_left, access_folder)
+
+    def check(self, path):
+        valid = True
+        errors = []
+        for error in self.find_root_directory_errors(path):
+            valid = False
+            errors.append(error)
+
+        if valid:
+            for error in self.find_subdirectory_errors(path):
+                valid = False
+                errors.append(error)
+
+        return validators.Results(self.validator_name(), valid=valid, errors=errors)
