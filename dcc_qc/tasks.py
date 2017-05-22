@@ -10,17 +10,19 @@ class Task:
     def __init__(self, description="Generic task"):
 
         # Set the valid  states
+        self.valid_states = {
+            "queued": task_states.TaskQueued(self),
+            "empty": task_states.TaskEmpty(self),
+            "working": task_states.TaskWorking(self),
+            "success": task_states.TaskSuccess(self),
+            "failed": task_states.TaskFailed(self),
 
-        self._queued = task_states.TaskQueued(self)
-        self._empty = task_states.TaskEmpty(self)
-        self._working = task_states.TaskWorking(self)
-        self._success = task_states.TaskSuccess(self)
-        self._failed = task_states.TaskFailed(self)
+        }
 
         self._name = description
         self._results = []
         self._errors = []
-        self._state = self._empty
+        self._state = self.valid_states["empty"]
         self.processes = []
 
     def __len__(self):
