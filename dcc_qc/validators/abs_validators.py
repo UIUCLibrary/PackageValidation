@@ -1,7 +1,7 @@
 import abc
 
 
-class AbsFactory(metaclass=abc.ABCMeta):
+class AbsComponentTesterFactory(metaclass=abc.ABCMeta):
     @staticmethod
     @abc.abstractmethod
     def technical_checker():
@@ -20,6 +20,13 @@ class AbsFactory(metaclass=abc.ABCMeta):
     @staticmethod
     @abc.abstractmethod
     def naming_checker():
+        pass
+
+
+class AbsPackageFactory(metaclass=abc.ABCMeta):
+    @staticmethod
+    @abc.abstractmethod
+    def all_components_checker():
         pass
 
 
