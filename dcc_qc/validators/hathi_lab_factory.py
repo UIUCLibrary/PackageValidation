@@ -1,8 +1,8 @@
 from dcc_qc import validators
-from dcc_qc.validators.abs_validators import AbsFactory
+from dcc_qc.validators.abs_validators import AbsComponentTesterFactory, AbsPackageFactory
 
 
-class AccessValidators(AbsFactory):
+class AccessValidators(AbsComponentTesterFactory):
     @staticmethod
     def metadata_checker():
         return validators.hathi_lab.AccessMetadataChecker()
@@ -20,7 +20,7 @@ class AccessValidators(AbsFactory):
         return validators.hathi_lab.AccessNamingChecker()
 
 
-class PreservationValidators(AbsFactory):
+class PreservationValidators(AbsComponentTesterFactory):
     @staticmethod
     def metadata_checker():
         return validators.hathi_lab.PresMetadataChecker()
@@ -36,3 +36,9 @@ class PreservationValidators(AbsFactory):
     @staticmethod
     def naming_checker():
         return validators.hathi_lab.PresNamingChecker()
+
+
+class PackageValidators(AbsPackageFactory):
+    @staticmethod
+    def all_components_checker():
+        return validators.hathi_lab.PackageChecker()
