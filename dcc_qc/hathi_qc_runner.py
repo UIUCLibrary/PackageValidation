@@ -15,7 +15,8 @@ from dcc_qc import validation_processors
 from dcc_qc.abs_runner import AbsRunner
 from dcc_qc.task_states import TaskStatus
 
-logger = logging.getLogger(__package__ + ".cli.hathi_qc_runner")
+logger = logging.getLogger(__name__)
+
 
 class HathiQCRunner(AbsRunner):
     @staticmethod
