@@ -31,6 +31,7 @@ pipeline{
                                     sh """
                                     ${env.PYTHON3} -m venv .env
                                     . .env/bin/activate
+                                    pip install requirements.txt
                                     ${env.TOX}  --skip-missing-interpreters -e py35
                                     """
                                 }
