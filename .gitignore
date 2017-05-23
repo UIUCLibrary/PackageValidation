@@ -6,3 +6,7 @@ __pycache__/
 *.egg-info/
 
 dist/
+/reports/
+__main__.py
+build/
+reports/
