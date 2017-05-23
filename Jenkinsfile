@@ -17,20 +17,29 @@ pipeline{
                         "Windows": {
                             node(label: 'Windows') {
                                 deleteDir()
-                                unstash "Source"
-                                bat "${env.TOX}  --skip-missing-interpreters"
-                                junit 'reports/junit-*.xml'
+                                try{
+                                  unstash "Source"
+                                  bat "${env.TOX}  --skip-missing-interpreters"
+                                }
+                                finally{
+                                  junit 'reports/junit-*.xml'
+                                }
 
                             }
                         },
                         "Linux": {
                             node(label: "!Windows") {
                                 deleteDir()
-                                unstash "Source"
-                                withEnv(["PATH=${env.PYTHON3}/..:${env.PATH}"]) {
-                                    sh "${env.TOX}  --skip-missing-interpreters -e py35"
+                                try{
+                                  unstash "Source"
+                                  withEnv(["PATH=${env.PYTHON3}/..:${env.PATH}"]) {
+                                      sh "${env.TOX}  --skip-missing-interpreters -e py35"
+                                  }
                                 }
-                                junit 'reports/junit-*.xml'
+                                finally {
+                                  junit 'reports/junit-*.xml'  
+                                }
+
                             }
                         }
                 )
