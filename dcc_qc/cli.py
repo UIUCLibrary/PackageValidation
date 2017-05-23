@@ -29,6 +29,9 @@ def main():
         debug_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
         std_handler = logging.StreamHandler(sys.stdout)
+        if log_file:
+            file_handler = logging.FileHandler(filename=log_file)
+            logger.addHandler(file_handler)
         if debug_mode:
             std_handler.setLevel(logging.DEBUG)
             std_handler.setFormatter(debug_formatter)
