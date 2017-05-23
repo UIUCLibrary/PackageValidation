@@ -18,7 +18,7 @@ pipeline{
                             node(label: 'Windows') {
                                 deleteDir()
                                 unstash "source"
-                                sh "mkdir reports"
+                                bat "mkdir reports"
                                 bat "${env.TOX}  --skip-missing-interpreters"
                                 junit 'reports/junit-*.xml'
 
