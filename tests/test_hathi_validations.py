@@ -634,8 +634,7 @@ def test_preservation_file_naming_correct(preservation_good):
 def test_access_files_found_all(access_good):
     validator_factory = dcc_qc.validators.hathi_lab_factory.AccessValidators()
     validator = validator_factory.completeness_checker()
-    path = os.path.join(access_good.strpath, "DCC/Package_GOOD/20170424_CavagnaCollectionRBML_tg/access/7212907/")
-    result = validator.check(path)
+    result = validator.check(access_good)
     assert result.valid
 
 
