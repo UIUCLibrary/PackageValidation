@@ -8,7 +8,7 @@ pipeline{
 
       steps{
         echo "Cloning source"
-        stash includes: "**", name: "source", useDefaultExclusives: false
+        stash includes: "**", name: "source", useDefaultExcludes: false
       }
     }
   }
