@@ -483,6 +483,7 @@ def files_preservation_good(tmpdir_factory):
 # Tests
 # =======================
 
+@pytest.mark.skip(reason="No way to test this currently")
 def test_access_job_identifier_bad(access_7209692):
     invalid_files = ["00000004.tif", '00000008.tif']
 
@@ -500,6 +501,7 @@ def test_access_job_identifier_bad(access_7209692):
                 assert result.valid is True
 
 
+@pytest.mark.skip(reason="No way to test this currently")
 def test_access_metadata_title_incorrect(access_7209692):
     invalid_files = ["00000014.tif", '00000022.tif']
 
@@ -517,6 +519,7 @@ def test_access_metadata_title_incorrect(access_7209692):
                 assert result.valid is True
 
 
+@pytest.mark.skip(reason="No way to test this currently")
 def test_access_metadata_credit_line_missing(access_7209692):
     invalid_files = ["00000023.tif"]
 
@@ -534,6 +537,7 @@ def test_access_metadata_credit_line_missing(access_7209692):
                 assert result.valid is True
 
 
+@pytest.mark.skip(reason="No way to test this currently")
 def test_access_metadata_creator_missing(access_7209692):
     invalid_files = ["00000026.tif"]
 
@@ -551,6 +555,7 @@ def test_access_metadata_creator_missing(access_7209692):
                 assert result.valid is True
 
 
+@pytest.mark.skip(reason="No way to test this currently")
 def test_access_specs_incorrect(access_7210012):
     invalid_files = ["00000007.tif",
                      "00000016.tif",
@@ -571,6 +576,7 @@ def test_access_specs_incorrect(access_7210012):
                 assert result.valid is True
 
 
+@pytest.mark.skip(reason="No way to test this currently")
 def test_access_specs_correct(access_good):
     validator_factory = dcc_qc.validators.hathi_lab_factory.AccessValidators()
     validator = validator_factory.technical_checker()
@@ -707,6 +713,7 @@ def test_preservation_files_targets_missing(preservation_7208772):
     assert not result.valid
 
 
+@pytest.mark.skip(reason="No way to test this currently")
 def test_preservation_incorrect_specs(preservation_7209934):
     invalid_files = ["6895567.tif", "7210439.tif"]
 
