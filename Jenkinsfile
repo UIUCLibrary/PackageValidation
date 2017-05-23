@@ -17,7 +17,7 @@ pipeline{
                         "Windows": {
                             node(label: 'Windows') {
                                 deleteDir()
-                                unstash "Source"
+                                unstash "source"
                                 bat "${env.TOX}  --skip-missing-interpreters"
                                 junit 'reports/junit-*.xml'
 
@@ -26,7 +26,7 @@ pipeline{
                         "Linux": {
                             node(label: "!Windows") {
                                 deleteDir()
-                                unstash "Source"
+                                unstash "source"
                                 withEnv(["PATH=${env.PYTHON3}/..:${env.PATH}"]) {
                                     sh "${env.TOX}  --skip-missing-interpreters -e py35"
                                 }
