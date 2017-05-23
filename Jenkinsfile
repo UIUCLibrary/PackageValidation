@@ -29,7 +29,8 @@ pipeline{
                                 unstash "source"
                                 withEnv(["PATH=${env.PYTHON3}/..:${env.PATH}"]) {
                                     sh """
-                                    virtualenv --version
+                                    ${env.PYTHON3} -m venv env
+                                    env/bin/activate
                                     ${env.TOX}  --skip-missing-interpreters -e py35
                                     """
                                 }
