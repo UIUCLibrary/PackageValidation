@@ -18,9 +18,8 @@ pipeline{
                             node(label: 'Windows') {
                                 deleteDir()
                                 unstash "source"
-                                bat "mkdir reports"
                                 bat "${env.TOX}  --skip-missing-interpreters"
-                                junit 'reports/junit-*.xml'
+                                // junit 'reports/junit-*.xml'
 
                             }
                         },
@@ -29,17 +28,16 @@ pipeline{
                                 deleteDir()
                                 unstash "source"
                                 withEnv(["PATH=${env.PYTHON3}/..:${env.PATH}"]) {
-                                    sh "mkdir reports"
                                     sh "${env.TOX}  --skip-missing-interpreters -e py35"
                                 }
-                                junit 'reports/junit-*.xml'
+                                // junit 'reports/junit-*.xml'
                             }
                         }
                 )
             }
             post {
               always {
-                junit 'reports/junit-*.xml'
+                junit 'junit-*.xml'
               }
             }
         }
