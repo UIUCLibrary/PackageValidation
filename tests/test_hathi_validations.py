@@ -489,7 +489,7 @@ def test_access_job_identifier_bad(access_7209692):
     validator_factory = dcc_qc.validators.hathi_lab_factory.AccessValidators()
     validator = validator_factory.metadata_checker()
 
-    for root, dirs, files in access_7209692:
+    for root, dirs, files in os.walk(access_7209692):
         for file_ in files:
 
             file_name = os.path.join(root, file_)
@@ -506,7 +506,7 @@ def test_access_metadata_title_incorrect(access_7209692):
     validator_factory = dcc_qc.validators.hathi_lab_factory.AccessValidators()
     validator = validator_factory.metadata_checker()
 
-    for root, dirs, files in access_7209692:
+    for root, dirs, files in os.walk(access_7209692):
         for file_ in files:
 
             file_name = os.path.join(root, file_)
@@ -523,7 +523,7 @@ def test_access_metadata_credit_line_missing(access_7209692):
     validator_factory = dcc_qc.validators.hathi_lab_factory.AccessValidators()
     validator = validator_factory.metadata_checker()
 
-    for root, dirs, files in access_7209692:
+    for root, dirs, files in os.walk(access_7209692):
         for file_ in files:
 
             file_name = os.path.join(root, file_)
@@ -540,7 +540,7 @@ def test_access_metadata_creator_missing(access_7209692):
     validator_factory = dcc_qc.validators.hathi_lab_factory.AccessValidators()
     validator = validator_factory.metadata_checker()
 
-    for root, dirs, files in access_7209692:
+    for root, dirs, files in os.walk(access_7209692):
         for file_ in files:
 
             file_name = os.path.join(root, file_)
@@ -560,7 +560,7 @@ def test_access_specs_incorrect(access_7210012):
     validator_factory = dcc_qc.validators.hathi_lab_factory.AccessValidators()
     validator = validator_factory.technical_checker()
 
-    for root, dirs, files in access_7210012:
+    for root, dirs, files in os.walk(access_7210012):
         for file_ in files:
 
             file_name = os.path.join(root, file_)
@@ -575,7 +575,7 @@ def test_access_specs_correct(access_good):
     validator_factory = dcc_qc.validators.hathi_lab_factory.AccessValidators()
     validator = validator_factory.technical_checker()
 
-    for root, dirs, files in access_good:
+    for root, dirs, files in os.walk(access_good):
         for file_ in files:
             file_name = os.path.join(root, file_)
             assert validator.check(file_name) is True
@@ -713,7 +713,7 @@ def test_preservation_incorrect_specs(preservation_7209934):
     validator_factory = dcc_qc.validators.hathi_lab_factory.PreservationValidators()
     validator = validator_factory.technical_checker()
 
-    for root, dirs, files in preservation_7209934:
+    for root, dirs, files in os.walk(preservation_7209934):
         for file_ in files:
 
             file_name = os.path.join(root, file_)
