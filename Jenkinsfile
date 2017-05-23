@@ -8,6 +8,7 @@ pipeline{
 
       steps{
         echo "Cloning source"
+        sh "ls"
       }
     }
   }
