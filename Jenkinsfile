@@ -32,7 +32,7 @@ pipeline{
                                     ${env.PYTHON3} -m venv .env
                                     . .env/bin/activate
                                     pip install -r requirements.txt
-                                    ${env.TOX}  --skip-missing-interpreters -e py35
+                                    tox  --skip-missing-interpreters -e py35
                                     """
                                 }
                                 junit 'reports/junit-*.xml'
@@ -42,5 +42,25 @@ pipeline{
             }
         }
 
+    stage("Packaging"){
+      agent any
+      steps{
+        node(label: "!Windows") {
+            deleteDir()
+            unstash "source"
+            withEnv(["PATH=${env.PYTHON3}/..:${env.PATH}"]) {
+                sh """
+                ${env.PYTHON3} -m venv .env
+                . .env/bin/activate
+                pip install -r requirements.txt
+                ${env.TOX}  --skip-missing-interpreters -e py35
+                python setup.py sdist
+                """
+                archiveArtifacts artifacts: "dist/**", fingerprint: true
+            }
+      }
+
+
+    }
   }
 }
