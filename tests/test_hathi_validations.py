@@ -43,7 +43,7 @@ def files_access_good(tmpdir):
         os.makedirs(full_path, exist_ok=True)
         pathlib.Path(os.path.join(full_path, filename)).touch()
 
-    return tmpdir
+    return str(tmpdir)
 
 
 @pytest.fixture(name="access_7209692")
@@ -617,7 +617,7 @@ def test_access_file_naming_correct(access_good):
     validator_factory = dcc_qc.validators.hathi_lab_factory.AccessValidators()
     validator = validator_factory.naming_checker()
 
-    for root, dirs, files in os.walk(access_good, followlinks=True):
+    for root, dirs, files in os.walk(access_good):
         for file_ in files:
 
             if file_ == "Thumbs.db":
