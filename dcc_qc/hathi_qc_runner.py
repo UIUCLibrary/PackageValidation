@@ -6,6 +6,7 @@ sense when it is consumed by a script.
 import os
 import typing
 import functools
+import logging
 import warnings
 import sys
 
@@ -14,10 +15,12 @@ from dcc_qc import validation_processors
 from dcc_qc.abs_runner import AbsRunner
 from dcc_qc.task_states import TaskStatus
 
+logger = logging.getLogger(__name__)
+
 
 class HathiQCRunner(AbsRunner):
     @staticmethod
-    def get_package_folders(path) -> typing.Generator[packages.abs_package.AbsPackage, None, None]:
+    def get_package_folders(path) -> typing.Generator[str, None, None]:
         with os.scandir(path) as search_path:
             for item in search_path:
                 if item.is_dir():
@@ -76,22 +79,22 @@ class HathiQCRunner(AbsRunner):
 
     def run(self):
         for i, task in enumerate(self.manager):
-            print("({}/{}): {}".format(i + 1, len(self.manager), task.name))
+            logger.info("({}/{}) Starting: {}".format(i + 1, len(self.manager), task.name))
             task.run()
             results = task.results
             if task.errors:
-                print("errors = {}".format(len(task.errors)))
+                logger.error("{} had {} errors.".format(task.name, len(task.errors)))
             if task.status == TaskStatus.SUCCESS:
-                print("Package validation passed.")
+                logger.info("Task : {} passed.".format(task.name))
             if task.status == TaskStatus.FAILED:
-                print("Package validation Failed.")
+                logger.error("Task : {} failed.".format(task.name))
                 self.valid = False
             for result in results:
                 if not result.valid:
-                    print("      {}".format(result))
+                    # print("      {}".format(result))
                     for error in result.errors:
                         self.errors.append(error)
-                        print("      {}".format(error))
+                        logger.error("Task Error: {}: {}".format(task.name, error))
 
 
 def get_package_folders(path) -> typing.Generator[packages.abs_package.AbsPackage, None, None]:
