@@ -65,8 +65,8 @@ def main():
         print("Validation Failed")
         if runner.errors:
             print("Errors:")
-            for error in runner.errors:
-                print(error)
+            for i, error in enumerate(runner.errors):
+                print("{}) {}".format(i+1, error))
     else:
         print("All tests PASSED")
     print("=====================")
