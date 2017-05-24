@@ -2,6 +2,7 @@ import os
 import pathlib
 
 import pytest
+from dcc_qc import packages
 
 TEST_PATH = "T:\HenryTest-PSR_2\DCC\Package_GOOD\\20170424_CavagnaCollectionRBML_tg"
 
@@ -256,24 +257,17 @@ def hathi_sample_package(tmpdir):
         full_path = os.path.join(str(tmpdir), short_path)
         os.makedirs(full_path, exist_ok=True)
         pathlib.Path(os.path.join(full_path, filename)).touch()
-    return str(tmpdir)
+    return packages.create_package("Hathi", root_path=str(tmpdir))
 
 
 def test_get_hathi_package(hathi_sample_package):
-    for root, dirs, files in os.walk(hathi_sample_package):
-        for f in files:
-            sample = os.path.join(root, f)
+    assert isinstance(hathi_sample_package, packages.Hathi)
 
-            print(os.path.exists(sample))
-            # p = packages.create_package("Hathi", root_path=hathi_sample_package)
-            # assert isinstance(p, packages.Hathi)
-            # assert isinstance(hathi_sample_package, packages.Hathi)
 
-#
-# def test_load_hathi_package(hathi_sample_package):
-#     assert len(hathi_sample_package) == 7
-#
-#
-# def test_hathi_package_iter(hathi_sample_package):
-#     for item in hathi_sample_package:
-#         print(item)
+def test_load_hathi_package(hathi_sample_package):
+    assert len(hathi_sample_package) == 7
+
+
+def test_hathi_package_iter(hathi_sample_package):
+    for item in hathi_sample_package:
+        print(item)
