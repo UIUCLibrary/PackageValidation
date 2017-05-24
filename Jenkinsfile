@@ -57,11 +57,12 @@ pipeline{
                 python setup.py sdist
                 """
                 dir("dist") {
-                  archiveArtifacts artifacts: "*.tar.gz", fingerprint: true  
+                  archiveArtifacts artifacts: "*.tar.gz", fingerprint: true
                 }
 
             }
           }
       }
+    }
   }
 }
