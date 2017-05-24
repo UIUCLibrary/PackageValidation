@@ -3,6 +3,7 @@ import os
 import pytest
 
 import dcc_qc.validators.hathi_lab_factory
+import pathlib
 from dcc_qc import validators
 
 BASE_ROOT = "T://"
@@ -11,8 +12,8 @@ BASE_ROOT = "T://"
 # =======================
 # Fixtures
 # =======================
-@pytest.fixture(name="access_good", scope='session')
-def files_access_good(tmpdir_factory):
+@pytest.fixture(name="access_good")
+def files_access_good(tmpdir):
     test_files = ["DCC/Package_GOOD/20170424_CavagnaCollectionRBML_tg/access/7212907/00000001.tif",
                   "DCC/Package_GOOD/20170424_CavagnaCollectionRBML_tg/access/7212907/00000002.tif",
                   "DCC/Package_GOOD/20170424_CavagnaCollectionRBML_tg/access/7212907/00000003.tif",
@@ -35,15 +36,18 @@ def files_access_good(tmpdir_factory):
                   "DCC/Package_GOOD/20170424_CavagnaCollectionRBML_tg/access/7212907/00000020.tif",
                   "DCC/Package_GOOD/20170424_CavagnaCollectionRBML_tg/access/7212907/00000021.tif",
                   "DCC/Package_GOOD/20170424_CavagnaCollectionRBML_tg/access/7212907/00000022.tif"]
-    test_file_folder = tmpdir_factory.mktemp("DCC")
-    for file_ in test_files:
-        test_file_folder.join(file_)
 
-    return test_file_folder
+    for file_ in test_files:
+        short_path, filename = os.path.split(file_)
+        full_path = os.path.join(str(tmpdir), short_path)
+        os.makedirs(full_path, exist_ok=True)
+        pathlib.Path(os.path.join(full_path, filename)).touch()
+
+    return tmpdir
 
 
 @pytest.fixture(name="access_7209692")
-def files_access_bad_7209692(tmpdir_factory):
+def files_access_bad_7209692(tmpdir):
     """
     Note:
         Images 00000004, 00000008, have incorrect Job Identifier metadata.
@@ -167,16 +171,16 @@ def files_access_bad_7209692(tmpdir_factory):
                         "Access_BAD/7209692/CaptureOne/Cache/Proxies/00000026.tif.cof",
                         "Access_BAD/7209692/CaptureOne/Cache/Proxies/00000026.tif.cop",
                         "Access_BAD/7209692/CaptureOne/Cache/Thumbnails/00000001.tif.[fdafdd01-d550-4a5e-9b41-3d3be329cd87].cot"]
-
-    test_file_folder = tmpdir_factory.mktemp("DCC")
     for file_ in bad_access_files:
-        test_file_folder.join(file_)
-
-    return test_file_folder
+        short_path, filename = os.path.split(file_)
+        full_path = os.path.join(str(tmpdir), short_path)
+        os.makedirs(full_path, exist_ok=True)
+        pathlib.Path(os.path.join(full_path, filename)).touch()
+    return str(tmpdir)
 
 
 @pytest.fixture(name="access_7210012")
-def files_access_bad_7210012(tmpdir_factory):
+def files_access_bad_7210012(tmpdir):
     """
     Note:
         Images 00000007, 00000016, 00000027, 00000033 have incorrect specs for access files.
@@ -259,11 +263,12 @@ def files_access_bad_7210012(tmpdir_factory):
         "Access_BAD/7210012/meta.yml",
         "Access_BAD/7210012/Thumbs.db",
     ]
-    test_file_folder = tmpdir_factory.mktemp("DCC")
     for file_ in files:
-        test_file_folder.join(file_)
-
-    return test_file_folder
+        short_path, filename = os.path.split(file_)
+        full_path = os.path.join(str(tmpdir), short_path)
+        os.makedirs(full_path, exist_ok=True)
+        pathlib.Path(os.path.join(full_path, filename)).touch()
+    return str(tmpdir)
 
 
 @pytest.fixture(name="access_7210438")
@@ -285,7 +290,7 @@ def files_access_bad_7210438():
 
 
 @pytest.fixture(name="preservation_7208772")
-def files_preservation_bad_7208772(tmpdir_factory):
+def files_preservation_bad_7208772(tmpdir):
     """
     Note:
         All images have incorrect specs for preservation files.
@@ -326,16 +331,16 @@ def files_preservation_bad_7208772(tmpdir_factory):
         "00000029.tif",
         "00000030.tif",
     ]
-
-    test_file_folder = tmpdir_factory.mktemp("DCC")
     for file_ in files:
-        test_file_folder.join(file_)
-
-    return test_file_folder
+        short_path, filename = os.path.split(file_)
+        full_path = os.path.join(str(tmpdir), short_path)
+        os.makedirs(full_path, exist_ok=True)
+        pathlib.Path(os.path.join(full_path, filename)).touch()
+    return str(tmpdir)
 
 
 @pytest.fixture(name="preservation_7209934")
-def files_preservation_bad_7209934(tmpdir_factory):
+def files_preservation_bad_7209934(tmpdir):
     """
     Note:
         Images 00000005, 00000010, 00000015, 00000020, 00000025 have incorrect specs for preservation files.
@@ -378,16 +383,16 @@ def files_preservation_bad_7209934(tmpdir_factory):
         "target_r_001.tif",
         "Target_r_002.tif",
     ]
-
-    test_file_folder = tmpdir_factory.mktemp("DCC")
     for file_ in files:
-        test_file_folder.join(file_)
-
-    return test_file_folder
+        short_path, filename = os.path.split(file_)
+        full_path = os.path.join(str(tmpdir), short_path)
+        os.makedirs(full_path, exist_ok=True)
+        pathlib.Path(os.path.join(full_path, filename)).touch()
+    return str(tmpdir)
 
 
 @pytest.fixture(name="preservation_good")
-def files_preservation_good(tmpdir_factory):
+def files_preservation_good(tmpdir):
     """
     Note:
         Contains 6895567 & 7210439
@@ -471,12 +476,13 @@ def files_preservation_good(tmpdir_factory):
         "7210439/Thumbs.db",
 
     ]
-
-    test_file_folder = tmpdir_factory.mktemp("DCC")
     for file_ in files:
-        test_file_folder.join(file_)
+        short_path, filename = os.path.split(file_)
+        full_path = os.path.join(str(tmpdir), short_path)
+        os.makedirs(full_path, exist_ok=True)
+        pathlib.Path(os.path.join(full_path, filename)).touch()
+    return str(tmpdir)
 
-    return test_file_folder
 
 
 # =======================
