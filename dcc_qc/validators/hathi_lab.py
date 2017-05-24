@@ -56,8 +56,7 @@ class PresNamingChecker(AbsValidator):
                     if PresNamingChecker.valid_naming_scheme.match(basename) is None:
                         valid = False
                         errors.append(
-                            "In path, {}, \"{}\" does not match the valid file naming pattern for preservation files. "
-                            "This is test is case sensitive.".format(
+                            "In path, {}, \"{}\" does not match the valid file naming pattern for preservation files.".format(
                                 os.path.dirname(path),
                                 os.path.basename(path)))
 
@@ -174,8 +173,7 @@ class AccessNamingChecker(AbsValidator):
             if self.valid_naming_scheme.match(basename) is None:
                 valid = False
                 errors.append(
-                    "\"{}\" does not match the valid file pattern for access files. "
-                    "This is test is case sensitive.".format(path))
+                    "\"{}\" does not match the valid file pattern for preservation files".format(basename))
                 #
                 # # The only xml file should be marc.xml
                 # if extension == ".xml":
