@@ -175,7 +175,7 @@ class AccessNamingChecker(AbsValidator):
                 valid = False
                 errors.append(
                     "\"{}\" does not match the valid file pattern for access files. "
-                    "This is test is case sensitive.".format(basename))
+                    "This is test is case sensitive.".format(path))
                 #
                 # # The only xml file should be marc.xml
                 # if extension == ".xml":
