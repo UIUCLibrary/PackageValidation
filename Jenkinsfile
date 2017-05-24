@@ -56,7 +56,10 @@ pipeline{
                 ${env.TOX}  --skip-missing-interpreters -e py35
                 python setup.py sdist
                 """
-                archiveArtifacts artifacts: "dist/**", fingerprint: true
+                dir("dist") {
+                  archiveArtifacts artifacts: "*.tar.gz", fingerprint: true  
+                }
+
             }
           }
       }
