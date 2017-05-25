@@ -14,8 +14,7 @@ from dcc_qc import task_manager, tasks, packages
 from dcc_qc import validation_processors
 from dcc_qc.abs_runner import AbsRunner
 from dcc_qc.task_states import TaskStatus
-
-logger = logging.getLogger(__name__)
+from dcc_qc.validators import error_message
 
 
 class HathiQCRunner(AbsRunner):
@@ -35,7 +34,9 @@ class HathiQCRunner(AbsRunner):
                 self.packages.append(package)
         except packages.PackageError as e:
             self.valid = False
-            self.errors.append("Unable to validate {}. Reason: {}".format(self.path, e))
+            new_error = error_message.ValidationError(e, group=self.path)
+            new_error.source = self.path
+            self.errors.append(new_error)
 
         # Add the tasks that need to be validated
         for hathi_package in self.packages:
@@ -43,11 +44,17 @@ class HathiQCRunner(AbsRunner):
 
             my_task = tasks.Task(description="Validating {} in {}".format(task_name, hathi_package.root))
 
-            # Package Completeness:
-            package_completeness_test = validation_processors.PackageComplete()
-            package_completeness_test.setup()
-            package_completeness_test.set_input(hathi_package.root)
-            my_task.add_process(package_completeness_test)
+            # Package Structure Completeness:
+            package_structure_test = validation_processors.PackageStructureComplete()
+            package_structure_test.setup()
+            package_structure_test.set_input(hathi_package.root)
+            my_task.add_process(package_structure_test)
+
+            # Package component Completeness:
+            package_component_test = validation_processors.PackageComponentComplete()
+            package_component_test.setup()
+            package_component_test.set_input(hathi_package)
+            my_task.add_process(package_component_test)
 
             # Preservation Folder
             preservation_folder_completeness_test = validation_processors.PackagePreservationComplete()
@@ -78,23 +85,25 @@ class HathiQCRunner(AbsRunner):
             self.manager.push(my_task)
 
     def run(self):
+        logger = logging.getLogger(__name__)
         for i, task in enumerate(self.manager):
             logger.info("({}/{}) Starting: {}".format(i + 1, len(self.manager), task.name))
             task.run()
             results = task.results
             if task.errors:
-                logger.error("{} had {} errors.".format(task.name, len(task.errors)))
+                logger.info("{} had {} errors.".format(task.name, len(task.errors)))
             if task.status == TaskStatus.SUCCESS:
                 logger.info("Task : {} passed.".format(task.name))
             if task.status == TaskStatus.FAILED:
-                logger.error("Task : {} failed.".format(task.name))
+                logger.info("Task : {} failed.".format(task.name))
                 self.valid = False
             for result in results:
                 if not result.valid:
                     # print("      {}".format(result))
-                    for error in result.errors:
-                        self.errors.append(error)
-                        logger.error("Task Error: {}: {}".format(task.name, error))
+                    for validation_error in result.errors:
+                        assert isinstance(validation_error, error_message.ValidationError)
+                        self.errors.append(validation_error)
+                        logger.info("Validation failure: {}: {}".format(task.name, validation_error))
 
 
 def get_package_folders(path) -> typing.Generator[packages.abs_package.AbsPackage, None, None]:
@@ -108,81 +117,3 @@ def get_package_folders(path) -> typing.Generator[packages.abs_package.AbsPackag
 def get_packages(path):
     packages = []
     return packages
-
-
-# Deprecated function
-def run(path):
-    warnings.warn("The run(path) function is deprecated. Use HathiQCRunner class instead", DeprecationWarning)
-    hathi_packages_folders = get_package_folders(path)
-    validation_success = True
-    manager = task_manager.TaskManager()
-    folder_errors = []
-
-    # Setup tasks
-    for folder in hathi_packages_folders:
-        try:
-            print("Searching for package in {}".format(folder))
-            hathi_packages = packages.create_package("Hathi", folder)
-            print("Found package in {}".format(folder))
-            for hathi_package in hathi_packages:
-                task_name = hathi_package.directories["preservation"].split(os.path.sep)[-1]
-
-                my_task = tasks.Task(description="Validating {} in {}".format(task_name, hathi_package.root))
-                # Package Completeness:
-                package_completeness_test = validation_processors.PackageComplete()
-                package_completeness_test.setup()
-                package_completeness_test.set_input(hathi_package.root)
-                my_task.add_process(package_completeness_test)
-
-                # Preservation Folder
-                preservation_folder_completeness_test = validation_processors.PackagePreservationComplete()
-                preservation_folder_completeness_test.setup()
-                preservation_folder_completeness_test.set_input(hathi_package.directories["preservation"])
-                my_task.add_process(preservation_folder_completeness_test)
-
-                # Access folder
-                access_folder_completeness_test = validation_processors.PackageAccessComplete()
-                access_folder_completeness_test.setup()
-                access_folder_completeness_test.set_input(hathi_package.directories['access'])
-                my_task.add_process(access_folder_completeness_test)
-
-                # Preservation file name
-                for file in os.scandir(hathi_package.directories["preservation"]):
-                    preservation_file_naming_test = validation_processors.PreservationFileNaming()
-                    preservation_file_naming_test.setup()
-                    preservation_file_naming_test.set_input(file.path)
-                    my_task.add_process(preservation_file_naming_test)
-
-                # Access file name
-                for file in os.scandir(hathi_package.directories["access"]):
-                    access_file_naming_test = validation_processors.AccessFileNaming()
-                    access_file_naming_test.setup()
-                    access_file_naming_test.set_input(file.path)
-                    my_task.add_process(access_file_naming_test)
-
-                manager.push(my_task)
-        except FileNotFoundError as e:
-            error_message = "Unable to validate {}. Reason: {}".format(folder, e)
-            print(error_message, file=sys.stderr)
-            folder_errors.append(error_message)
-
-    # run tasks
-    for i, task in enumerate(manager):
-        print("({}/{}): {}".format(i + 1, len(manager), task.name))
-        task.run()
-        results = task.results
-        if task.errors:
-            print("errors = {}".format(len(task.errors)))
-        if task.status == TaskStatus.SUCCESS:
-            print("Package validation passed.")
-        if task.status == TaskStatus.FAILED:
-            print("Package validation Failed.")
-            validation_success = False
-        for result in results:
-            if not result.valid:
-                print("      {}".format(result))
-                for error in result.errors:
-                    print("      {}".format(error))
-
-    task_errors = functools.reduce(lambda lhs, rhs: lhs + rhs, [e.errors for e in manager], [])
-    return validation_success, task_errors + folder_errors
