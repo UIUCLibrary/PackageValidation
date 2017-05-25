@@ -1,11 +1,32 @@
 import os
 import re
 
+
 from dcc_qc import validators
 from dcc_qc.validators.abs_validators import AbsValidator
+from dcc_qc.validators import error_message
 
 
 class PresCompletenessChecker(AbsValidator):
+    @staticmethod
+    def find_missing_by_number(path):
+        files = [x.name for x in filter(lambda i: os.path.splitext(i.name)[1] == ".tif", os.scandir(path))]
+
+        values = []
+        for f in files:
+            try:
+                values.append(int(os.path.splitext(f)[0]))
+            except ValueError as e:
+                pass
+        highest_value = sorted(values)[-1]
+        if highest_value > 99999999:
+            raise ValueError("Unable to determine the expected file names based on files in path")
+
+        for i in range(1, highest_value):
+            expected_file_name = "{}.tif".format(str(i).zfill(8))
+            if expected_file_name not in os.listdir(path):
+                yield expected_file_name
+
     def check(self, path):
         valid = True
         errors = []
@@ -15,19 +36,42 @@ class PresCompletenessChecker(AbsValidator):
             "target_r_001.tif",
             "target_r_002.tif",
         )
+        try:
+            missing = list(self.find_missing_by_number(path))
 
-        missing = []
-        for required_file in required_files:
-            if required_file not in os.listdir(path):
-                missing.append(required_file)
+            if missing:
+                valid = False
+                new_error = error_message.ValidationError(
+                    "Expected files [{}] not found in preservation folder".format(", ".join(missing)),
+                    group=path.split(os.sep)[-1])
+                new_error.source = path
+                errors.append(new_error)
+        except ValueError as e:
+            valid = False
+            new_error = error_message.ValidationError("Error trying to find missing files. Reason: {}".format(e),
+                                                      group=path.split(os.sep)[-1])
+            new_error.source = path
+            errors.append(new_error)
+
+        # Find missing required files
+        missing = list(self.find_missing_required_files(path=path, expected_files=required_files))
         if missing:
             valid = False
-            errors.append("{} is missing the following files: {}.".format(path, ", ".join(sorted(required_files))))
+            new_error = error_message.ValidationError(
+                "Missing expected file(s), [{}]".format(", ".join(missing)), group=path.split(os.sep)[-1])
+            new_error.source = path
+            errors.append(new_error)
         return validators.Results(self.validator_name(), valid=valid, errors=errors)
 
     @staticmethod
     def validator_name():
         return "Preservation Directory Completeness Test"
+
+    @staticmethod
+    def find_missing_required_files(path, expected_files):
+        for expected_file in expected_files:
+            if expected_file not in os.listdir(path):
+                yield expected_file
 
 
 class PresNamingChecker(AbsValidator):
@@ -42,23 +86,28 @@ class PresNamingChecker(AbsValidator):
     def check(self, path):
         valid = True
         errors = []
-
+        file_location = os.path.dirname(path)
         basename, extension = os.path.splitext(os.path.basename(path))
         if extension not in self.ignore_extension:
 
             if extension not in self.valid_extensions:
                 valid = False
-                errors.append("Invalid preservation file extension: \"{}\"".format(extension))
+                new_error = error_message.ValidationError(
+                    "Invalid preservation file extension: \"{}\"".format(extension),
+                    group=path)
+                new_error.source = path
+                errors.append(new_error)
 
             # Check the image files have the full 8 digits
             if extension == ".tif":
                 if "target" not in basename:
                     if PresNamingChecker.valid_naming_scheme.match(basename) is None:
                         valid = False
-                        errors.append(
-                            "In path, {}, \"{}\" does not match the valid file naming pattern for preservation files.".format(
-                                os.path.dirname(path),
-                                os.path.basename(path)))
+                        new_error = error_message.ValidationError(
+                            "Does not match the valid preservation file naming pattern",
+                            group=file_location.split(os.sep)[-1])
+                        new_error.source = path
+                        errors.append(new_error)
 
         return validators.Results(self.validator_name(), valid=valid, errors=errors)
 
@@ -87,6 +136,29 @@ class PresTechnicalChecker(AbsValidator):
 
 class AccessCompletenessChecker(AbsValidator):
     @staticmethod
+    def find_missing_by_number(path):
+        files = [x.name for x in filter(lambda i: os.path.splitext(i.name)[1] == ".tif", os.scandir(path))]
+
+        values = []
+        for f in files:
+            try:
+                values.append(int(os.path.splitext(f)[0]))
+            except ValueError as e:
+                pass
+        try:
+            highest_value = sorted(values)[-1]
+            if highest_value > 99999999:
+                raise ValueError("Unable to determine the expected file names based on files in path")
+
+            for i in range(1, highest_value):
+                expected_file_name = "{}.tif".format(str(i).zfill(8))
+                if expected_file_name not in os.listdir(path):
+                    yield expected_file_name
+        except IndexError as e:
+            raise
+            # raise Exception("Unable to locate files in path {}".format(path))
+
+    @staticmethod
     def validator_name():
         return "Access Directory Completeness Test"
 
@@ -108,6 +180,21 @@ class AccessCompletenessChecker(AbsValidator):
         valid = True
         image_files = set()
         text_files = set()
+        try:
+            missing = list(self.find_missing_by_number(path))
+            if missing:
+                valid = False
+                new_error = error_message.ValidationError(
+                    "Expected files [{}] not found in access folder".format(", ".join(missing)),
+                    group=path.split(os.sep)[-1])
+                new_error.source = path
+                errors.append(new_error)
+        except ValueError as e:
+            valid = False
+            new_error = error_message.ValidationError("Error trying to find missing files. Reason: {}".format(e),
+                                                      group=path.split(os.sep)[-1])
+            new_error.source = path
+            errors.append(new_error)
 
         # Sort the files into their own category
         for root, dirs, files in os.walk(path):
@@ -124,9 +211,13 @@ class AccessCompletenessChecker(AbsValidator):
                     text_files.add((root, file_))
 
         # If there are any files still in the required_files set are missing.
-        for _file in required_files:
+        if required_files:
             valid = False
-            errors.append("{} is missing {}".format(path, _file))
+            new_error = error_message.ValidationError(
+                "Missing expected file(s), [{}]".format(", ".join(required_files)))
+            new_error.source(path)
+            errors.append(new_error)
+            # errors.append("{} is missing {}".format(path, _file))
 
         # # check that for every .tif file there is a matching .txt
         # for img_path, img_file in image_files:
@@ -160,20 +251,26 @@ class AccessNamingChecker(AbsValidator):
     def check(self, path):
         valid = True
         errors = []
-
+        file_location = os.path.dirname(path)
         basename, extension = os.path.splitext(os.path.basename(path))
         if extension not in self.ignore_extension:
 
             if extension not in self.valid_extensions:
                 valid = False
-                errors.append("The file \"{}\" in {} has a file extension not allowed in this folder: \"{}\"".format(
-                    os.path.basename(path), os.path.dirname(path), extension))
+                new_error = error_message.ValidationError(
+                    "Invalid file type", group=path.split(os.sep)[-1])
+                new_error.source = path
+                errors.append(new_error)
 
             # Check the image files have the full 8 digits
             if self.valid_naming_scheme.match(basename) is None:
                 valid = False
-                errors.append(
-                    "\"{}\" does not match the valid file pattern for preservation files".format(basename))
+                new_error = error_message.ValidationError(
+                    "Does not match the valid file pattern for preservation files",
+                    group=file_location.split(os.sep)[-1])
+                new_error.source = path
+                errors.append(new_error)
+
                 #
                 # # The only xml file should be marc.xml
                 # if extension == ".xml":
@@ -213,10 +310,102 @@ class AccessTechnicalChecker(AbsValidator):
         raise NotImplementedError()
 
 
-class PackageChecker(AbsValidator):
+class PackageComponentChecker(AbsValidator):
     @staticmethod
     def validator_name():
-        return "Package completeness checker"
+        return "Package component checker"
+
+    @staticmethod
+    def check_for_missing_matching_preservation(access_folder, preservation_folder):
+        extension_used = [".tif"]
+
+        pres_files = list(filter(
+            lambda i: i.is_file() and os.path.splitext(i.name)[1].lower() in extension_used,
+            os.scandir(preservation_folder)))
+        access_files = list(filter(
+            lambda i: i.is_file() and os.path.splitext(i.name)[1].lower() in extension_used,
+            os.scandir(access_folder)))
+
+        access_set = {f.name: f for f in access_files}
+        pres_set = {f.name: f for f in pres_files}
+        return [i[1].path for i in filter(lambda f: f[0] not in pres_set, access_set.items())]
+
+    @staticmethod
+    def check_for_missing_matching_access(access_folder, preservation_folder):
+        extension_used = [".tif"]
+        pres_files_ignored = [
+            "target_l_001.tif",
+            "target_r_001.tif",
+            "target_l_002.tif",
+            "target_r_002.tif",
+        ]
+
+        pres_files = list(filter(
+            lambda i: i.is_file() and
+                      os.path.splitext(i.name)[1].lower() in extension_used and
+                      i.name not in pres_files_ignored,
+            os.scandir(preservation_folder)))
+        access_files = list(filter(
+            lambda i: i.is_file() and os.path.splitext(i.name)[1].lower() in extension_used,
+            os.scandir(access_folder)))
+
+        access_set = {f.name: f for f in access_files}
+        pres_set = {f.name: f for f in pres_files}
+        return [i[1].path for i in filter(lambda f: f[0] not in access_set, pres_set.items())]
+
+    def check(self, path):
+        # NOTE: this uses the package because of the way hathi packages are formatted
+        valid = True
+        errors = []
+        # Check if everything in access folder is found same in the preservation folder
+
+        missing_pres_files = self.check_for_missing_matching_preservation(
+            access_folder=path.directories["access"],
+            preservation_folder=path.directories["preservation"])
+        if missing_pres_files:
+            valid = False
+            new_error = error_message.ValidationError(
+                "The files [{}] were found in the access but not in the preservation folder".format(
+                    ", ".join([os.path.basename(f) for f in missing_pres_files])),
+                group=path.identifier
+            )
+            new_error.source = path.directories["access"]
+            errors.append(new_error)
+
+        missing_access_files = self.check_for_missing_matching_access(
+            access_folder=path.directories["access"],
+            preservation_folder=path.directories["preservation"])
+        if missing_access_files:
+            new_error = error_message.ValidationError(
+                "The files [{}] were found in the preservation folder but not in the access folder".format(
+                    ", ".join([os.path.basename(f) for f in missing_access_files])),
+                group=path.identifier
+            )
+            new_error.source = path.directories["preservation"]
+            errors.append(new_error)
+        return validators.Results(self.validator_name(), valid=valid, errors=errors)
+        # raise NotImplementedError()
+
+        # @staticmethod
+
+        #     missing_in_preservation = []
+        #     for item in filter(lambda i: i.is_file() and os.path.splitext(i)[1].lower() == ".tif",
+        #                        os.scandir(package.directories["access"])):
+        #         access_file = item.name
+        #         preservation_dir = package.directories["preservation"]
+        #         if not os.path.exists(os.path.join(preservation_dir, access_file)):
+        #             missing_in_preservation.append((preservation_dir, access_file))
+        #     if missing_in_preservation:
+        #         new_error = error.ValidationError(
+        #             "Files {} found in access folder but not preservation folder".format(", ".join(missing_in_preservation)))
+        #         new_error.source = package.root
+        #         return new_error
+
+
+class PackageStructureChecker(AbsValidator):
+    @staticmethod
+    def validator_name():
+        return "Package structure checker"
 
     @staticmethod
     def find_root_directory_errors(path):
@@ -226,13 +415,20 @@ class PackageChecker(AbsValidator):
                 if item.name in required_directories:
                     required_directories.remove(item.name)
                 else:
-                    yield "{} is an invalid folder.".format(item.path)
+                    new_error = error_message.ValidationError("{} is an invalid folder.".format(item.path), group=path)
+                    new_error.source = path
+                    yield new_error
             elif item.is_file():
-                yield "{} is an invalid file.".format(item.path)
+                new_error = error_message.ValidationError("{} is an invalid file.".format(item.path), group=path)
+                new_error.source = path
+                yield new_error
 
         if required_directories:
             for folder in required_directories:
-                yield "{} is missing required folder {}".format(path, folder)
+                new_error = error_message.ValidationError("{} is missing required folder {}".format(path, folder),
+                                                          group=path)
+                new_error.source = path
+                yield new_error
 
     @staticmethod
     def find_subdirectory_errors(path):
@@ -247,7 +443,10 @@ class PackageChecker(AbsValidator):
             master.remove(access)
 
         for item_left in master:
-            yield "missing matching {} in {}".format(item_left, preservation_folder)
+            new_error = error_message.ValidationError(
+                "missing matching {} in {}".format(item_left, preservation_folder), group=path)
+            new_error.source = path
+            yield new_error
 
         # find missing matching access folders
         master = set(access_folders)
@@ -255,7 +454,10 @@ class PackageChecker(AbsValidator):
             master.remove(preservation)
 
         for item_left in master:
-            yield "missing matching {} in {}".format(item_left, access_folder)
+            new_error = error_message.ValidationError("missing matching {} in {}".format(item_left, access_folder),
+                                                      group=path)
+            new_error.source = path
+            yield new_error
 
     def check(self, path):
         valid = True
