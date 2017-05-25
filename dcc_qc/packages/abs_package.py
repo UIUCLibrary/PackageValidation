@@ -2,7 +2,8 @@ import abc
 import typing
 from collections import namedtuple
 
-PackageItem = namedtuple("PackageItem", ["root", "directories"])
+PackageItem = namedtuple("PackageItem", ["root", "identifier", "directories"])
+
 
 class AbsPackage(metaclass=abc.ABCMeta):
     def __init__(self, root_path):
@@ -12,7 +13,7 @@ class AbsPackage(metaclass=abc.ABCMeta):
 
     @property
     @abc.abstractmethod
-    def items(self)->typing.Generator[PackageItem, None, None]:
+    def items(self) -> typing.Generator[PackageItem, None, None]:
         pass
 
     @abc.abstractmethod
