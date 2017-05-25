@@ -3,6 +3,10 @@ from dcc_qc.task_states.statuses import TaskStatus
 
 
 class _TaskCompleted(AbsTask):
+    @property
+    def status(self):
+        raise NotImplementedError()
+
     def reset(self):
         self._context.processes = []
         self._context._state = self._context.valid_states["empty"]
