@@ -4,6 +4,7 @@ import pytest
 
 import dcc_qc.validators.hathi_lab_factory
 import pathlib
+from dcc_qc.validators import error_message
 from dcc_qc import validators
 
 BASE_ROOT = "T://"
@@ -14,28 +15,28 @@ BASE_ROOT = "T://"
 # =======================
 @pytest.fixture(name="access_good")
 def files_access_good(tmpdir):
-    test_files = ["DCC/Package_GOOD/20170424_CavagnaCollectionRBML_tg/access/7212907/00000001.tif",
-                  "DCC/Package_GOOD/20170424_CavagnaCollectionRBML_tg/access/7212907/00000002.tif",
-                  "DCC/Package_GOOD/20170424_CavagnaCollectionRBML_tg/access/7212907/00000003.tif",
-                  "DCC/Package_GOOD/20170424_CavagnaCollectionRBML_tg/access/7212907/00000004.tif",
-                  "DCC/Package_GOOD/20170424_CavagnaCollectionRBML_tg/access/7212907/00000005.tif",
-                  "DCC/Package_GOOD/20170424_CavagnaCollectionRBML_tg/access/7212907/00000006.tif",
-                  "DCC/Package_GOOD/20170424_CavagnaCollectionRBML_tg/access/7212907/00000007.tif",
-                  "DCC/Package_GOOD/20170424_CavagnaCollectionRBML_tg/access/7212907/00000008.tif",
-                  "DCC/Package_GOOD/20170424_CavagnaCollectionRBML_tg/access/7212907/00000009.tif",
-                  "DCC/Package_GOOD/20170424_CavagnaCollectionRBML_tg/access/7212907/00000010.tif",
-                  "DCC/Package_GOOD/20170424_CavagnaCollectionRBML_tg/access/7212907/00000011.tif",
-                  "DCC/Package_GOOD/20170424_CavagnaCollectionRBML_tg/access/7212907/00000012.tif",
-                  "DCC/Package_GOOD/20170424_CavagnaCollectionRBML_tg/access/7212907/00000013.tif",
-                  "DCC/Package_GOOD/20170424_CavagnaCollectionRBML_tg/access/7212907/00000014.tif",
-                  "DCC/Package_GOOD/20170424_CavagnaCollectionRBML_tg/access/7212907/00000015.tif",
-                  "DCC/Package_GOOD/20170424_CavagnaCollectionRBML_tg/access/7212907/00000016.tif",
-                  "DCC/Package_GOOD/20170424_CavagnaCollectionRBML_tg/access/7212907/00000017.tif",
-                  "DCC/Package_GOOD/20170424_CavagnaCollectionRBML_tg/access/7212907/00000018.tif",
-                  "DCC/Package_GOOD/20170424_CavagnaCollectionRBML_tg/access/7212907/00000019.tif",
-                  "DCC/Package_GOOD/20170424_CavagnaCollectionRBML_tg/access/7212907/00000020.tif",
-                  "DCC/Package_GOOD/20170424_CavagnaCollectionRBML_tg/access/7212907/00000021.tif",
-                  "DCC/Package_GOOD/20170424_CavagnaCollectionRBML_tg/access/7212907/00000022.tif"]
+    test_files = ["access/7212907/00000001.tif",
+                  "access/7212907/00000002.tif",
+                  "access/7212907/00000003.tif",
+                  "access/7212907/00000004.tif",
+                  "access/7212907/00000005.tif",
+                  "access/7212907/00000006.tif",
+                  "access/7212907/00000007.tif",
+                  "access/7212907/00000008.tif",
+                  "access/7212907/00000009.tif",
+                  "access/7212907/00000010.tif",
+                  "access/7212907/00000011.tif",
+                  "access/7212907/00000012.tif",
+                  "access/7212907/00000013.tif",
+                  "access/7212907/00000014.tif",
+                  "access/7212907/00000015.tif",
+                  "access/7212907/00000016.tif",
+                  "access/7212907/00000017.tif",
+                  "access/7212907/00000018.tif",
+                  "access/7212907/00000019.tif",
+                  "access/7212907/00000020.tif",
+                  "access/7212907/00000021.tif",
+                  "access/7212907/00000022.tif"]
 
     for file_ in test_files:
         short_path, filename = os.path.split(file_)
@@ -609,6 +610,8 @@ def test_access_file_naming_incorrect(access_7210012):
             result = validator.check(file_name)
             if file_ in invalid_files or os.path.splitext(file_name)[1] != ".tif":
                 assert not result.valid, "The file {} was NOT listed as invalid".format(file_)
+                for error_ in result.errors:
+                    assert isinstance(error_, error_message.ValidationError)
             else:
                 assert result.valid is True, "The file {} was listed as invalid".format(file_)
 
@@ -644,9 +647,11 @@ def test_preservation_file_naming_correct(preservation_good):
 
 
 def test_access_files_found_all(access_good):
+    path = os.path.join(access_good, "access", "7212907")
+
     validator_factory = dcc_qc.validators.hathi_lab_factory.AccessValidators()
     validator = validator_factory.completeness_checker()
-    result = validator.check(access_good)
+    result = validator.check(path)
     assert result.valid
 
 
@@ -717,6 +722,8 @@ def test_preservation_files_targets_missing(preservation_7208772):
 
     result = validator.check(preservation_7208772)
     assert not result.valid
+    for error_ in result.errors:
+        assert isinstance(error_, error_message.ValidationError)
 
 
 @pytest.mark.skip(reason="No way to test this currently")
