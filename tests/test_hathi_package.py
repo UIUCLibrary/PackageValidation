@@ -270,4 +270,4 @@ def test_load_hathi_package(hathi_sample_package):
 
 def test_hathi_package_iter(hathi_sample_package):
     for item in hathi_sample_package:
-        isinstance(item, packages.abs_package.PackageItem)
+        assert isinstance(item, packages.abs_package.PackageItem)

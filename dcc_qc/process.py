@@ -24,6 +24,9 @@ class AbsProcess(metaclass=abc.ABCMeta):
     def name(self):
         pass
 
+    def __str__(self):
+        return "{} {}".format(self.name, super.__str__(self))
+
 
 class AbsProcessInput(metaclass=abc.ABCMeta):
     """Abstract class to be used with AbsProcess. Implement if the process has an input"""

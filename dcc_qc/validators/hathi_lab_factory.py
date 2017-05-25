@@ -40,5 +40,9 @@ class PreservationValidators(AbsComponentTesterFactory):
 
 class PackageValidators(AbsPackageFactory):
     @staticmethod
-    def all_components_checker():
-        return validators.hathi_lab.PackageChecker()
+    def structure_complete_checker():
+        return validators.hathi_lab.PackageStructureChecker()
+
+    @staticmethod
+    def component_complete_checker():
+        return validators.hathi_lab.PackageComponentChecker()

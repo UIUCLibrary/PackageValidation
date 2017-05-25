@@ -26,7 +26,12 @@ class AbsComponentTesterFactory(metaclass=abc.ABCMeta):
 class AbsPackageFactory(metaclass=abc.ABCMeta):
     @staticmethod
     @abc.abstractmethod
-    def all_components_checker():
+    def structure_complete_checker():
+        pass
+
+    @staticmethod
+    @abc.abstractmethod
+    def component_complete_checker():
         pass
 
 

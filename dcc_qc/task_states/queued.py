@@ -1,4 +1,3 @@
-from dcc_qc import process
 from dcc_qc.task_states.abs_state import AbsTask
 from dcc_qc.task_states.statuses import TaskStatus
 
@@ -15,15 +14,7 @@ class TaskQueued(AbsTask):
         self._context._state = self._context.valid_states["working"]
         status = self._context.valid_states["success"]
         for p in self._context.processes:
-
-            p.run()
-
-            for error in p.errors:
-                self._context._errors.append(error)
-
-            if isinstance(p, process.AbsProcessorResults):
-                self._context._results.append(p.result)
-
+            self._context._run_process(process_to_run=p)
             if self._context._errors or not p.result.valid:
                 status = self._context.valid_states["failed"]
 

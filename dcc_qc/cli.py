@@ -2,10 +2,11 @@ import argparse
 import os
 import logging
 import sys
+
+import itertools
+
 from dcc_qc import hathi_qc_runner
-
-logger = logging.getLogger(__package__)
-
+from dcc_qc import configure_logging
 
 def get_args():
     parser = argparse.ArgumentParser()
@@ -24,24 +25,7 @@ def find_arg_errors(args):
 
 
 def main():
-    def configure_logger(debug_mode=False, log_file=None):
-        logger.setLevel(logging.DEBUG)
-        debug_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-
-        std_handler = logging.StreamHandler(sys.stdout)
-        if log_file:
-            file_handler = logging.FileHandler(filename=log_file)
-            logger.addHandler(file_handler)
-        if debug_mode:
-            std_handler.setLevel(logging.DEBUG)
-            std_handler.setFormatter(debug_formatter)
-        else:
-            std_handler.setLevel(logging.INFO)
-
-        # std_handler.setFormatter(debug_formatter)
-
-        logger.addHandler(std_handler)
-
+    logger = logging.getLogger(__name__)
     args = get_args()
 
     arg_errors = list(find_arg_errors(args))
@@ -49,9 +33,10 @@ def main():
         for er in arg_errors:
             print(er, file=sys.stderr)
         sys.exit(1)
-    configure_logger(debug_mode=args.debug)
+    configure_logging.configure_logger(debug_mode=args.debug)
     logger.debug("Loading HathiQCRunner() with {}".format(args.path))
     runner = hathi_qc_runner.HathiQCRunner(args.path)
+    logger.debug("Running HathiQCRunner()")
     runner.run()
 
     # Summary
@@ -65,8 +50,21 @@ def main():
         print("Validation Failed")
         if runner.errors:
             print("Errors:")
-            for i, error in enumerate(sorted(runner.errors)):
-                print("{}) {}".format(i+1, error))
+            sorted_groups = sorted(runner.errors, key=lambda x: x.group)
+            for i, (error_source, error_group) in enumerate(itertools.groupby(sorted_groups, key=lambda y: y.group)):
+
+                print("{}) {}".format(i + 1, error_source))
+                sorter_source = sorted(error_group, key=lambda x: x.source)
+                foo = itertools.groupby(sorter_source, key=lambda y: y.source)
+                for ia, source in enumerate(foo):
+                    source_name, errors = source
+                    print("   > {}".format(source_name))
+                    for errors in errors:
+                        print("         * {}".format(errors.message))
+                    # for msg in msgs:
+                    #     print(" *  {}".format(msg.message))
+                    print()
+                print()
     else:
         print("All tests PASSED")
     print("=====================")
