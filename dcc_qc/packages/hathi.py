@@ -29,7 +29,8 @@ class HathiPackage(AbsPackage):
                 raise Exception("Error: Found multiple access or preservation folders in {}".format(path))
 
             if len(found_access) == 0 or len(found_preservation) == 0:
-                raise packages.PackagePartMissing("Error: Missing access and/or preservation folders in {}".format(path))
+                raise packages.PackagePartMissing(
+                    "Error: Missing access and/or preservation folders in {}".format(path))
             raise packages.PackageError("Error: Unable to find access and preservation folders in {}".format(path))
 
         def create_pairs(access_path, preservation_path) -> typing.Generator[typing.Tuple[str, str], None, None]:
@@ -45,9 +46,11 @@ class HathiPackage(AbsPackage):
         assert access_path.replace("access", "") == preservation_path.replace("preservation", "")
 
         for access, preservation in create_pairs(access_path, preservation_path):
+            identifier = access.split(os.sep)[-1]
             self._items.append(
                 PackageItem(
                     root=self.root_path,
+                    identifier=identifier,
                     directories={
                         "access": access,
                         "preservation": preservation
