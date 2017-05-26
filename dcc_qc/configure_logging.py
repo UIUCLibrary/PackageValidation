@@ -1,9 +1,6 @@
 import logging
 import sys
 
-def setup_logging():
-    pass
-
 
 def configure_logger(debug_mode=False, log_file=None):
     logger = logging.getLogger(__package__)
@@ -13,7 +10,10 @@ def configure_logger(debug_mode=False, log_file=None):
     std_handler = logging.StreamHandler(sys.stdout)
     if log_file:
         file_handler = logging.FileHandler(filename=log_file)
+        file_handler.setLevel(logging.DEBUG)
+        file_handler.setFormatter(debug_formatter)
         logger.addHandler(file_handler)
+
     if debug_mode:
         std_handler.setLevel(logging.DEBUG)
         std_handler.setFormatter(debug_formatter)

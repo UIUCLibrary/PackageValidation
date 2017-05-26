@@ -16,6 +16,7 @@ def get_args():
         '--debug',
         action="store_true",
         help="Run script in debug mode")
+    parser.add_argument("--log-debug", help="Save debug information to a file")
 
     return parser.parse_args()
 
@@ -29,12 +30,13 @@ def main():
     logger = logging.getLogger(__name__)
     args = get_args()
 
+
     arg_errors = list(find_arg_errors(args))
     if arg_errors:
         for er in arg_errors:
             print(er, file=sys.stderr)
         sys.exit(1)
-    configure_logging.configure_logger(debug_mode=args.debug)
+    configure_logging.configure_logger(debug_mode=args.debug, log_file=args.log_debug)
     logger.debug("Loading HathiQCRunner() with {}".format(args.path))
     runner = hathi_qc_runner.HathiQCRunner(args.path)
     logger.debug("Running HathiQCRunner()")
