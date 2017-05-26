@@ -71,7 +71,7 @@ pipeline{
                 bat """
                   ${env.PYTHON3} -m venv .env
                   echo "Building wheel"
-                  dir
+                  dir /s
                   .env/Scripts/activate.bat
                   python setup.py bdist_wheel --universal
                 """
