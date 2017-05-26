@@ -72,6 +72,7 @@ pipeline{
                   ${env.PYTHON3} -m venv .env
                   echo "Building wheel"
                   call .env/Scripts/activate.bat
+                  pip install -r requirements.txt
                   python setup.py bdist_wheel --universal
                 """
                 dir("dist") {
