@@ -32,7 +32,7 @@ pipeline{
                                     ${env.PYTHON3} -m venv .env
                                     . .env/bin/activate
                                     pip install -r requirements.txt
-                                    tox  --skip-missing-interpreters -e py35
+                                    tox  --skip-missing-interpreters -e py35 || true
                                     """
                                 }
                                 junit 'reports/junit-*.xml'
