@@ -63,17 +63,17 @@ pipeline{
                 }
             }
           },
-          "Python Wheel: Windows" :{
+          "Python Wheel: (Universal)" :{
             node(label: "Windows") {
               deleteDir()
               unstash "source"
               withEnv(["PATH=${env.PYTHON3}/..:${env.PATH}"]) {
-                bat '''
+                bat """
                   ${env.PYTHON3} -m venv .env
                   echo "Building wheel"
                   .env/scripts/activate.bat
-                  python setup.py bdist_wheel
-                '''
+                  python setup.py bdist_wheel --universal
+                """
                 dir("dist") {
                   archiveArtifacts artifacts: "*.whl", fingerprint: true
                 }
