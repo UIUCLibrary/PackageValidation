@@ -79,6 +79,23 @@ pipeline{
                 }
               }
             }
+          },
+          "Python CX_Freeze Windows" :{
+            node(label: "Windows") {
+              deleteDir()
+              unstash "source"
+              withEnv(["PATH=${env.PYTHON3}/..:${env.PATH}"]) {
+                bat """
+                  ${env.PYTHON3} -m venv .env
+                  call .env/Scripts/activate.bat
+                  pip install -r requirements.txt
+                  python cx_setup.py bdist_msi --add-to-path=true
+                """
+                dir("dist") {
+                  archiveArtifacts artifacts: "*.msi", fingerprint: true
+                }
+              }
+            }
           }
         )
       }
