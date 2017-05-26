@@ -3,7 +3,6 @@ import platform
 import pytest
 includes = [
     'pkg_resources',
-    'six'
 ] + pytest.freeze_includes()
 setup(
     name='dcc_qc',
