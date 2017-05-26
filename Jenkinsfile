@@ -91,7 +91,7 @@ pipeline{
                   pip install -r requirements.txt
                   python cx_setup.py build --build-exe build/tmp
                   build\\tmp\\qcpkg.exe --pytest --verbose  --junitxml=reports/junit-frozen.xml --junit-prefix=frozen
-                  python cx_setup.py bdist_msi --add-to-path=true
+                  if %errorlevel%==0 python cx_setup.py bdist_msi --add-to-path=true
                 """
                 junit 'reports/junit-*.xml'
                 dir("dist") {
