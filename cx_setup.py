@@ -21,6 +21,6 @@ setup(
                    targetName=("qcpkg.exe" if platform.system() == "Windows" else "qcpkg"))
 
     },
-    options={"build_exe": {'includes': includes}},
+    options={"build_exe": {'includes': includes + ["six"]}},
 
 )
