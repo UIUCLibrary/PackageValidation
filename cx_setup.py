@@ -2,7 +2,8 @@ from cx_Freeze import setup, Executable
 import platform
 import pytest
 includes = [
-    'pkg_resources'
+    'pkg_resources',
+    'six'
 ] + pytest.freeze_includes()
 setup(
     name='dcc_qc',
@@ -21,6 +22,6 @@ setup(
                    targetName=("qcpkg.exe" if platform.system() == "Windows" else "qcpkg"))
 
     },
-    options={"build_exe": {'includes': includes + ["six"]}},
+    options={"build_exe": {'includes': includes}},
 
 )
