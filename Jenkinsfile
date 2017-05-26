@@ -95,6 +95,7 @@ pipeline{
                     python cx_setup.py bdist_msi --add-to-path=true
                     ) else (
                       echo errorlevel=%errorlevel%
+                      exit /b %errorlevel%
                       )
                 """
                 junit 'reports/junit-*.xml'
