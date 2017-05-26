@@ -12,7 +12,7 @@ setup(
     test_suite="tests",
     tests_require=['pytest'],
     url='https://github.com/UIUCLibrary/HathiTrustPackaging',
-    entry_points={"console_scripts": ["qc = dcc_qc.cli:main"]},
+    entry_points={"console_scripts": ["qcpkg = dcc_qc.cli:main"]},
     license='',
     author='Henry Borchers',
     author_email='hborcher@illinois.edu',
