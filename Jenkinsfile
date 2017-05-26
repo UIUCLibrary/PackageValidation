@@ -55,7 +55,6 @@ pipeline{
                 ${env.PYTHON3} -m venv .env
                 . .env/bin/activate
                 pip install -r requirements.txt
-                ${env.TOX}  --skip-missing-interpreters -e py35
                 python setup.py sdist
                 """
                 dir("dist") {
@@ -72,8 +71,6 @@ pipeline{
                 bat """
                 ${env.PYTHON3} -m venv .env
                 .env/scripts/activate.bat
-                pip install -r requirements.txt
-                ${env.TOX}  --skip-missing-interpreters -e py36
                 python setup.py bdist_wheel
                 """
                 dir("dist") {
