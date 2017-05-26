@@ -8,6 +8,7 @@ import itertools
 from dcc_qc import hathi_qc_runner
 from dcc_qc import configure_logging
 
+
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("path", help="Directory of packages to be validated")
@@ -71,4 +72,9 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    if len(sys.argv) > 1 and sys.argv[1] == "--pytest":
+        import pytest
+
+        sys.exit(pytest.main(sys.argv[2:]))
+    else:
+        main()
