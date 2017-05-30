@@ -11,7 +11,7 @@ setup(
     ],
     test_suite="tests",
     tests_require=['pytest'],
-    url='https://github.com/UIUCLibrary/HathiTrustPackaging',
+    url=dcc_qc.__url__,
     entry_points={"console_scripts": ["qcpkg = dcc_qc.cli:main"]},
     license='',
     author=dcc_qc.__author__,
