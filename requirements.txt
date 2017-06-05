@@ -2,4 +2,4 @@ pytest
 tox
 cx_Freeze
 wheel
-setuptools < 36.0.0
+setuptools == 35.0.2
