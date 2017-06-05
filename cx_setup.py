@@ -3,9 +3,7 @@ import platform
 import pytest
 import dcc_qc
 
-includes = [
-    'pkg_resources',
-] + pytest.freeze_includes()
+includes = ['pkg_resources'] + pytest.freeze_includes()
 setup(
     name=dcc_qc.__title__,
     version=dcc_qc.__version__,
@@ -23,6 +21,10 @@ setup(
                    targetName=("qcpkg.exe" if platform.system() == "Windows" else "qcpkg"))
 
     },
-    options={"build_exe": {'includes': includes}},
+    options={"build_exe": {
+                'includes': includes,
+                "include_msvcr": True
+            }
+    },
 
 )
