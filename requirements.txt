@@ -1,5 +1,5 @@
 pytest
 tox
-cx_Freeze
+cx_Freeze == 5.0.1
 wheel
 setuptools == 35.0.2
