@@ -84,11 +84,12 @@ pipeline{
             node(label: "Windows") {
               deleteDir()
               unstash "source"
-              // pip install --upgrade setuptools
+
               withEnv(["PATH=${env.PYTHON3}/..:${env.PATH}"]) {
                 bat """
                   ${env.PYTHON3} -m venv .env
                   call .env/Scripts/activate.bat
+                  pip install --upgrade pip
 
                   pip install -r requirements.txt
                   python cx_setup.py build --build-exe build/tmp
