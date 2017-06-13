@@ -3,7 +3,7 @@ pipeline{
   agent any
   parameters {
   booleanParam(name: "UPDATE_DOCS", defaultValue: false, description: "Update the documentation")
-  booleanParam(name: "SOURCE_PACKAGE", defaultValue: true, description: "Create a Source Package")
+  booleanParam(name: "PACKAGE", defaultValue: true, description: "Create a Packages")
 }
 
   stages {
@@ -68,12 +68,12 @@ pipeline{
 
     stage("Packaging"){
       agent any
+      when{
+        expression{params.PACKAGE == true}
+      }
       steps{
         parallel(
           "Source Package": {
-            when {
-              expression{params.SOURCE_PACKAGE == true}
-            }
             node(label: "!Windows") {
               deleteDir()
               unstash "source"
