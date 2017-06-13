@@ -173,10 +173,11 @@ class AccessCompletenessChecker(AbsValidator):
         """
         Make sure that all files included in this folder are tiff files 
         and contain nothing else
-        Args:
-            path: 
 
-        Returns:
+        Args:
+            path: Path to the folder to check
+
+        Returns: list of errors
 
         """
         required_files = set()
