@@ -155,7 +155,7 @@ pipeline{
               echo "Updating online documentation"
               unstash "Documentation source"
               try {
-                sh("scp -r -i ${env.DCC_DOCS_KEY} docs/build/html/* ${env.DCC_DOCS_SERVER}/package_qc/")
+                sh("rsync -r -i ${env.DCC_DOCS_KEY} docs/build/html/* ${env.DCC_DOCS_SERVER}/package_qc/")
               } catch(error) {
                 echo "Error with uploading docs"
                 throw error
