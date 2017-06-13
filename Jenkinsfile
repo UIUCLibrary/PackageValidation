@@ -6,6 +6,8 @@ pipeline{
     booleanParam(name: "PACKAGE", defaultValue: true, description: "Create a Packages")
     booleanParam(name: "BUILD_DOCS", defaultValue: true, description: "Build documentation")
     booleanParam(name: "UPDATE_DOCS", defaultValue: false, description: "Update the documentation")
+    string(name: 'URL_SUBFOLDER', defaultValue: "package_qc", description: 'The directory that the docs should be saved under')
+
 
   }
 
@@ -155,7 +157,7 @@ pipeline{
               echo "Updating online documentation"
               unstash "Documentation source"
               try {
-                sh("rsync -rv -e \"ssh -i ${env.DCC_DOCS_KEY}\" docs/build/html/ ${env.DCC_DOCS_SERVER}/package_qc/")
+                sh("rsync -rv -e \"ssh -i ${env.DCC_DOCS_KEY}\" docs/build/html/ ${env.DCC_DOCS_SERVER}/package_qc/ --delete")
               } catch(error) {
                 echo "Error with uploading docs"
                 throw error
