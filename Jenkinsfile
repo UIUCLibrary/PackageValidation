@@ -49,7 +49,7 @@ pipeline{
 
           steps {
               deleteDir()
-              unstash "Source"
+              unstash "source"
               withEnv(['PYTHON=${env.PYTHON3}']) {
                   dir('docs') {
                       sh 'make html SPHINXBUILD=$SPHINXBUILD'
