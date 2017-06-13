@@ -11,7 +11,8 @@ class PresCompletenessChecker(AbsValidator):
     @staticmethod
     def find_missing_by_number(path):
         files = [x.name for x in filter(lambda i: os.path.splitext(i.name)[1] == ".tif", os.scandir(path))]
-
+        if not files:
+            raise FileNotFoundError("No files found in {}".format(path))
         values = []
         for f in files:
             try:
@@ -36,6 +37,7 @@ class PresCompletenessChecker(AbsValidator):
             "target_r_001.tif",
             "target_r_002.tif",
         )
+        error_group = path.split(os.sep)[-1]
         try:
             missing = list(self.find_missing_by_number(path))
 
@@ -43,22 +45,27 @@ class PresCompletenessChecker(AbsValidator):
                 valid = False
                 new_error = error_message.ValidationError(
                     "Expected files [{}] not found in preservation folder".format(", ".join(missing)),
-                    group=path.split(os.sep)[-1])
+                    group=error_group)
                 new_error.source = path
                 errors.append(new_error)
         except ValueError as e:
             valid = False
             new_error = error_message.ValidationError("Error trying to find missing files. Reason: {}".format(e),
-                                                      group=path.split(os.sep)[-1])
+                                                      group=error_group)
             new_error.source = path
             errors.append(new_error)
-
-        # Find missing required files
+        except FileNotFoundError as e:
+            valid = False
+            new_error = error_message.ValidationError(e, group=error_group)
+            new_error.source = path
+            errors.append(new_error)
+            # return validators.Results(self.validator_name(), valid=valid, errors=errors)
+        # Find missing required_files
         missing = list(self.find_missing_required_files(path=path, expected_files=required_files))
         if missing:
             valid = False
             new_error = error_message.ValidationError(
-                "Missing expected file(s), [{}]".format(", ".join(missing)), group=path.split(os.sep)[-1])
+                "Missing expected file(s), [{}]".format(", ".join(missing)), group=error_group)
             new_error.source = path
             errors.append(new_error)
         return validators.Results(self.validator_name(), valid=valid, errors=errors)
