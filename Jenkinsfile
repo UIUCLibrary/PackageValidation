@@ -1,6 +1,9 @@
 #!/usr/bin/env groovy
 pipeline{
   agent any
+  parameters {
+  booleanParam(name: "UPDATE_DOCS", defaultValue: false, description: "Update the documentation")
+}
 
   stages {
     stage("Cloning source") {
@@ -14,33 +17,53 @@ pipeline{
     stage("Unit tests") {
             steps {
                 parallel(
-                        "Windows": {
-                            node(label: 'Windows') {
-                              deleteDir()
-                              unstash "source"
-                              bat "${env.TOX}  --skip-missing-interpreters"
-                              junit 'reports/junit-*.xml'
+                  "Windows": {
+                    node(label: 'Windows') {
+                      deleteDir()
+                      unstash "source"
+                      bat "${env.TOX}  --skip-missing-interpreters"
+                      junit 'reports/junit-*.xml'
 
-                            }
-                        },
-                        "Linux": {
-                            node(label: "!Windows") {
-                                deleteDir()
-                                unstash "source"
-                                withEnv(["PATH=${env.PYTHON3}/..:${env.PATH}"]) {
-                                  sh """
-                                  ${env.PYTHON3} -m venv .env
-                                  . .env/bin/activate
-                                  pip install -r requirements.txt
-                                  tox  --skip-missing-interpreters -e py35 || true
-                                  """
-                                }
-                                junit 'reports/junit-*.xml'
-                            }
-                        }
+                    }
+                  },
+                  "Linux": {
+                      node(label: "!Windows") {
+                          deleteDir()
+                          unstash "source"
+                          withEnv(["PATH=${env.PYTHON3}/..:${env.PATH}"]) {
+                            sh """
+                            ${env.PYTHON3} -m venv .env
+                            . .env/bin/activate
+                            pip install -r requirements.txt
+                            tox  --skip-missing-interpreters -e py35 || true
+                            """
+                          }
+                          junit 'reports/junit-*.xml'
+                      }
+                  }
                 )
             }
-        }
+      }
+      stage("Documentation") {
+          agent any
+
+          steps {
+              deleteDir()
+              unstash "Source"
+              withEnv(['PYTHON=${env.PYTHON3}']) {
+                  dir('docs') {
+                      sh 'make html SPHINXBUILD=$SPHINXBUILD'
+                  }
+                  stash includes: '**', name: "Documentation source", useDefaultExcludes: false
+              }
+          }
+          post {
+              success {
+                  sh 'tar -czvf sphinx_html_docs.tar.gz -C docs/build/html .'
+                  archiveArtifacts artifacts: 'sphinx_html_docs.tar.gz'
+              }
+          }
+      }
 
     stage("Packaging"){
       agent any
