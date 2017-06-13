@@ -53,6 +53,9 @@ pipeline{
       }
       stage("Documentation") {
           agent any
+          when{
+            expression{params.BUILD_DOCS == true}
+          }
 
           steps {
               deleteDir()
