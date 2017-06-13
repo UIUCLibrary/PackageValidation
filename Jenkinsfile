@@ -131,22 +131,19 @@ pipeline{
       }
     }
     stage("Update online documentation") {
-            agent any
-            when{
-              expression{params.UPDATE_DOCS == true}
-            }
+      agent any
+      when{
+        expression{params.UPDATE_DOCS == true}
+      }
 
-            steps {
-                deleteDir()
-                script {
-                    echo "Updating online documentation"
-                    unstash "Documentation source"
-                    sh("scp -r -i ${env.DCC_DOCS_KEY} docs/build/html/* ${env.DCC_DOCS_SERVER}/package_qc/")
-
-
-                }
-
-
-            }
+      steps {
+          deleteDir()
+          script {
+              echo "Updating online documentation"
+              unstash "Documentation source"
+              sh("scp -r -i ${env.DCC_DOCS_KEY} docs/build/html/* ${env.DCC_DOCS_SERVER}/package_qc/")
+          }
+      }
+    }
   }
 }
