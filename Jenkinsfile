@@ -2,9 +2,12 @@
 pipeline{
   agent any
   parameters {
-  booleanParam(name: "UPDATE_DOCS", defaultValue: false, description: "Update the documentation")
-  booleanParam(name: "PACKAGE", defaultValue: true, description: "Create a Packages")
-}
+    booleanParam(name: "UNIT_TESTS", defaultValue: true, description: "Run Automated Unit Tests")
+    booleanParam(name: "PACKAGE", defaultValue: true, description: "Create a Packages")
+    booleanParam(name: "BUILD_DOCS", defaultValue: true, description: "Build documentation")
+    booleanParam(name: "UPDATE_DOCS", defaultValue: false, description: "Update the documentation")
+
+  }
 
   stages {
     stage("Cloning source") {
@@ -16,6 +19,9 @@ pipeline{
       }
     }
     stage("Unit tests") {
+      when{
+        expression{params.UNIT_TESTS == true}
+      }
             steps {
                 parallel(
                   "Windows": {
@@ -137,7 +143,7 @@ pipeline{
     stage("Update online documentation") {
       agent any
       when{
-        expression{params.UPDATE_DOCS == true}
+        expression{params.UPDATE_DOCS == true && params.BUILD_DOCS == true}
       }
 
       steps {
