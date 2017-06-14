@@ -2,9 +2,8 @@ from cx_Freeze import setup, Executable
 import platform
 import pytest
 import dcc_qc
-import packaging
 
-includes = ['pkg_resources', 'six', 'appdirs'] + pytest.freeze_includes()
+includes = ['pkg_resources', 'six', 'appdirs', 'packaging'] + pytest.freeze_includes()
 
 
 def create_msi_tablename(python_name, fullname):
