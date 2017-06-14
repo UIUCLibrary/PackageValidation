@@ -10,3 +10,4 @@ dist/
 __main__.py
 build/
 reports/
+/docs/build/
