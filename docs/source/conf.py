@@ -60,7 +60,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = dcc_qc.FULL_NAME
+project = dcc_qc.FULL_TITLE
 copyright = '2017, {}'.format(dcc_qc.__author__)
 author = 'Henry Borchers'
 
