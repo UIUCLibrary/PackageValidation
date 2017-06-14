@@ -3,7 +3,7 @@ import platform
 import pytest
 import dcc_qc
 
-includes = ['pkg_resources', 'six', 'appdirs', 'packaging'] + pytest.freeze_includes()
+includes = ['pkg_resources'] + pytest.freeze_includes()
 
 
 def create_msi_tablename(python_name, fullname):
@@ -67,7 +67,8 @@ setup(
     options={
         "build_exe": {
             'includes': includes,
-            "include_msvcr": True
+            "include_msvcr": True,
+            "packages":['six'],
         },
         "bdist_msi": {
             "data": {
