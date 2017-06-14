@@ -68,7 +68,7 @@ setup(
         "build_exe": {
             'includes': includes,
             "include_msvcr": True,
-            "packages":['six', "appdirs"],
+            "packages":['six', "appdirs", "packaging"],
         },
         "bdist_msi": {
             "data": {
