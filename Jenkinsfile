@@ -125,6 +125,13 @@ pipeline{
 
               withEnv(["PATH=${env.PYTHON3}/..:${env.PATH}"]) {
                 bat "${env.PYTHON3} cx_setup.py build --build-exe build/tmp"
+                script {
+                  echo("Checking for VCRUNTIME140.dll")
+                  if((fileExists 'build/tmp/VCRUNTIME140.dll') == false){
+                    fail("Missing VCRUNTIME140.dll")
+                  }
+                }
+
                 bat """
 
 
