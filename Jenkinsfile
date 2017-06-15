@@ -150,7 +150,7 @@ pipeline{
                 // Package the exe into MSI
                 bat "${env.PYTHON3} cx_setup.py bdist_msi --add-to-path=true"
                 dir("dist"){
-                  stash includes: "*.msi", name: "msi"  
+                  stash includes: "*.msi", name: "msi"
                 }
 
                 // junit 'reports/junit-*.xml'
@@ -162,6 +162,8 @@ pipeline{
             node(label: "Windows") {
               deleteDir()
               unstash "msi"
+              bat "dir"
+              
               dir("ValidateMSI"){
                 bat """
                   dir
