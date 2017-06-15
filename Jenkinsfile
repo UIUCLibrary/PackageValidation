@@ -175,7 +175,7 @@ pipeline{
                 dir
                 FOR %%A IN (*.msi) DO (
                   ECHO %%A
-                  validate_msi.py %%A frozen.yml
+                  python validate_msi.py %%A frozen.yml
                 )
               """
               archiveArtifacts artifacts: "*.msi", fingerprint: true
