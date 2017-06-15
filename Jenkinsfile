@@ -171,7 +171,7 @@ pipeline{
                 pip install -r requirements.txt
                 python setup.py install
 
-                echo "validating msi files"
+                echo Validating msi file(s)
                 FOR %%A IN (*.msi) DO (
                   python validate_msi.py %%A frozen.yml
                   if not %errorlevel%==0 (
