@@ -140,7 +140,7 @@ pipeline{
                 // run pytest on exe
                 bat """
                   build\\tmp\\qcpkg.exe --pytest --verbose  --junitxml=reports/junit-frozen.xml --junit-prefix=frozen
-                  if %errorlevel%!=0 (
+                  if not %errorlevel%==0 (
                     echo errorlevel=%errorlevel%
                     exit /b %errorlevel%
                   )
