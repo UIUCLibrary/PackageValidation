@@ -124,26 +124,32 @@ pipeline{
               unstash "source"
 
               withEnv(["PATH=${env.PYTHON3}/..:${env.PATH}"]) {
+
+                // Build the exe so that pytest can be run
                 bat "${env.PYTHON3} cx_setup.py build --build-exe build/tmp"
                 script {
                   echo("Checking for VCRUNTIME140.dll")
-                  if(fileExists('build/tmp/VCRUNTIME140.dll') == false){
+                  if(fileExists('build/tmp/VCRUNTIME140.dll')){
+                    echo("Found for VCRUNTIME140.dll")
+                  }
+                    else {
                     fail("Missing VCRUNTIME140.dll")
                   }
                 }
 
+                // run pytest on exe
                 bat """
-
-
                   build\\tmp\\qcpkg.exe --pytest --verbose  --junitxml=reports/junit-frozen.xml --junit-prefix=frozen
-                  if %errorlevel%==0 (
-                    ${env.PYTHON3} cx_setup.py bdist_msi --add-to-path=true
-                    ) else (
-                      echo errorlevel=%errorlevel%
-                      exit /b %errorlevel%
-                      )
+                  if %errorlevel%!=0 (
+                    echo errorlevel=%errorlevel%
+                    exit /b %errorlevel%
+                  )
                 """
                 junit 'reports/junit-*.xml'
+
+                // Package the exe into MSI
+                bat "${env.PYTHON3} cx_setup.py bdist_msi --add-to-path=true"
+                // junit 'reports/junit-*.xml'
                 dir("dist") {
                   archiveArtifacts artifacts: "*.msi", fingerprint: true
                 }
