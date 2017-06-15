@@ -155,7 +155,9 @@ pipeline{
                 git 'https://github.com/UIUCLibrary/ValidateMSI.git'
                 dir("ValidateMSI"){
                   bat """
+                    dir
                     ${env.PYTHON3} -m venv .env
+                    dir
                     call .env/Scripts/activate.bat
                     pip install -r requirements.txt
                     python setup.py install
