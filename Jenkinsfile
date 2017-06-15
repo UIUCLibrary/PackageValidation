@@ -166,17 +166,17 @@ pipeline{
 
               bat "dir"
 
-              dir("ValidateMSI"){
-                bat """
-                  dir
-                  ${env.PYTHON3} -m venv .env
-                  dir
-                  call .env/Scripts/activate.bat
-                  pip install -r requirements.txt
-                  python setup.py install
-                """
-              }
+              bat """
+                ${env.PYTHON3} -m venv .env
+                call .env/Scripts/activate.bat
+                pip install -r requirements.txt
+                python setup.py install
 
+                FOR %%A IN (*.msi) DO (
+                  ECHO %%A
+                )
+              """
+// validate_msi.py
               dir("dist") {
                 archiveArtifacts artifacts: "*.msi", fingerprint: true
               }
