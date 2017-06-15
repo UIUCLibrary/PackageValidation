@@ -124,9 +124,10 @@ pipeline{
               unstash "source"
 
               withEnv(["PATH=${env.PYTHON3}/..:${env.PATH}"]) {
+                bat "${env.PYTHON3} cx_setup.py build --build-exe build/tmp"
                 bat """
 
-                  ${env.PYTHON3} cx_setup.py build --build-exe build/tmp
+
                   build\\tmp\\qcpkg.exe --pytest --verbose  --junitxml=reports/junit-frozen.xml --junit-prefix=frozen
                   if %errorlevel%==0 (
                     ${env.PYTHON3} cx_setup.py bdist_msi --add-to-path=true
