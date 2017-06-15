@@ -163,8 +163,7 @@ pipeline{
               deleteDir()
               git url: 'https://github.com/UIUCLibrary/ValidateMSI.git'
               unstash "msi"
-
-              bat "dir"
+              // validate_msi.py
 
               bat """
                 ${env.PYTHON3} -m venv .env
@@ -173,13 +172,11 @@ pipeline{
                 python setup.py install
 
                 FOR %%A IN (*.msi) DO (
-                  ECHO %%A
+                  validate_msi.py %%A frozen.yml
                 )
               """
-// validate_msi.py
-              dir("dist") {
-                archiveArtifacts artifacts: "*.msi", fingerprint: true
-              }
+              archiveArtifacts artifacts: "*.msi", fingerprint: true
+
 
             }
           }
