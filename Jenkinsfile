@@ -156,14 +156,16 @@ pipeline{
                 // junit 'reports/junit-*.xml'
 
                 // validate MSI contents
-                git 'https://github.com/UIUCLibrary/ValidateMSI.git'
+
               }
             }
             node(label: "Windows") {
               deleteDir()
+              git url: 'https://github.com/UIUCLibrary/ValidateMSI.git'
               unstash "msi"
+
               bat "dir"
-              
+
               dir("ValidateMSI"){
                 bat """
                   dir
