@@ -153,13 +153,14 @@ pipeline{
 
                 // validate MSI contents
                 git 'https://github.com/UIUCLibrary/ValidateMSI.git'
-
-                // bat """
-                //   ${env.PYTHON3} -m venv .env
-                //   call .env/Scripts/activate.bat
-                //   pip install -r requirements.txt
-                //   python setup.py bdist_wheel
-                // """
+                dir("ValidateMSI"){
+                  bat """
+                    ${env.PYTHON3} -m venv .env
+                    call .env/Scripts/activate.bat
+                    pip install -r requirements.txt
+                    python setup.py install
+                  """
+                }
 
                 dir("dist") {
                   archiveArtifacts artifacts: "*.msi", fingerprint: true
