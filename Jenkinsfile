@@ -174,8 +174,11 @@ pipeline{
                 echo "validating msi files"
                 dir
                 FOR %%A IN (*.msi) DO (
-                  ECHO %%A
                   python validate_msi.py %%A frozen.yml
+                  if not %errorlevel%==0 (
+                    echo errorlevel=%errorlevel%
+                    exit /b %errorlevel%
+                  )
                 )
               """
               archiveArtifacts artifacts: "*.msi", fingerprint: true
