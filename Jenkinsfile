@@ -172,6 +172,7 @@ pipeline{
                 python setup.py install
 
                 echo "validating msi files"
+                dir
                 FOR %%A IN (*.msi) DO (
                   ECHO %%A
                   validate_msi.py %%A frozen.yml
