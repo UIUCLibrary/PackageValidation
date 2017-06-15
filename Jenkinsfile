@@ -149,25 +149,31 @@ pipeline{
 
                 // Package the exe into MSI
                 bat "${env.PYTHON3} cx_setup.py bdist_msi --add-to-path=true"
+                stash includes: "*.msi", name: "msi"
                 // junit 'reports/junit-*.xml'
 
                 // validate MSI contents
                 git 'https://github.com/UIUCLibrary/ValidateMSI.git'
-                dir("ValidateMSI"){
-                  bat """
-                    dir
-                    ${env.PYTHON3} -m venv .env
-                    dir
-                    call .env/Scripts/activate.bat
-                    pip install -r requirements.txt
-                    python setup.py install
-                  """
-                }
-
-                dir("dist") {
-                  archiveArtifacts artifacts: "*.msi", fingerprint: true
-                }
               }
+            }
+            node(label: "Windows") {
+              deleteDir()
+              unstash "msi"
+              dir("ValidateMSI"){
+                bat """
+                  dir
+                  ${env.PYTHON3} -m venv .env
+                  dir
+                  call .env/Scripts/activate.bat
+                  pip install -r requirements.txt
+                  python setup.py install
+                """
+              }
+
+              dir("dist") {
+                archiveArtifacts artifacts: "*.msi", fingerprint: true
+              }
+
             }
           }
         )
