@@ -149,7 +149,10 @@ pipeline{
 
                 // Package the exe into MSI
                 bat "${env.PYTHON3} cx_setup.py bdist_msi --add-to-path=true"
-                stash includes: "*.msi", name: "msi"
+                dir("dist"){
+                  stash includes: "*.msi", name: "msi"  
+                }
+
                 // junit 'reports/junit-*.xml'
 
                 // validate MSI contents
