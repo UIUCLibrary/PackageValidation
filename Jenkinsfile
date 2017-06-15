@@ -124,22 +124,65 @@ pipeline{
               unstash "source"
 
               withEnv(["PATH=${env.PYTHON3}/..:${env.PATH}"]) {
-                bat """
 
-                  ${env.PYTHON3} cx_setup.py build --build-exe build/tmp
+                // Build the exe so that pytest can be run
+                bat "${env.PYTHON3} cx_setup.py build --build-exe build/tmp"
+                script {
+                  echo("Checking for VCRUNTIME140.dll")
+                  if(fileExists('build/tmp/VCRUNTIME140.dll')){
+                    echo("Found for VCRUNTIME140.dll")
+                  }
+                    else {
+                    fail("Missing VCRUNTIME140.dll")
+                  }
+                }
+
+                // run pytest on exe
+                bat """
                   build\\tmp\\qcpkg.exe --pytest --verbose  --junitxml=reports/junit-frozen.xml --junit-prefix=frozen
-                  if %errorlevel%==0 (
-                    ${env.PYTHON3} cx_setup.py bdist_msi --add-to-path=true
-                    ) else (
-                      echo errorlevel=%errorlevel%
-                      exit /b %errorlevel%
-                      )
+                  if not %errorlevel%==0 (
+                    echo errorlevel=%errorlevel%
+                    exit /b %errorlevel%
+                  )
                 """
                 junit 'reports/junit-*.xml'
-                dir("dist") {
-                  archiveArtifacts artifacts: "*.msi", fingerprint: true
+
+                // Package the exe into MSI
+                bat "${env.PYTHON3} cx_setup.py bdist_msi --add-to-path=true"
+                dir("dist"){
+                  stash includes: "*.msi", name: "msi"
                 }
+
+                // junit 'reports/junit-*.xml'
+
+                // validate MSI contents
+
               }
+            }
+            node(label: "Windows") {
+              deleteDir()
+              git url: 'https://github.com/UIUCLibrary/ValidateMSI.git'
+              unstash "msi"
+              // validate_msi.py
+
+              bat """
+                ${env.PYTHON3} -m venv .env
+                call .env/Scripts/activate.bat
+                pip install -r requirements.txt
+                python setup.py install
+
+                echo Validating msi file(s)
+                FOR %%A IN (*.msi) DO (
+                  python validate_msi.py %%A frozen.yml
+                  if not %errorlevel%==0 (
+                    echo errorlevel=%errorlevel%
+                    exit /b %errorlevel%
+                  )
+                )
+              """
+              archiveArtifacts artifacts: "*.msi", fingerprint: true
+
+
             }
           }
         )
