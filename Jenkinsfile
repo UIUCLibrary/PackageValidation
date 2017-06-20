@@ -2,7 +2,7 @@
 pipeline{
   agent any
   parameters {
-    string(name: PROJECT_NAME, defaultValue: "Package Qc", description: "Name given to the project")
+    string(name: "PROJECT_NAME", defaultValue: "Package Qc", description: "Name given to the project")
     booleanParam(name: "UNIT_TESTS", defaultValue: true, description: "Run Automated Unit Tests")
     booleanParam(name: "PACKAGE", defaultValue: true, description: "Create a Packages")
     booleanParam(name: "DEPLOY", defaultValue: false, description: "Deploy SCCM")
