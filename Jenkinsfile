@@ -223,7 +223,7 @@ pipeline{
         input("Deploy to production?")
       }
     }
-    
+
     stage("Deploy - SCCM upload"){
       agent any
       when {
@@ -232,7 +232,7 @@ pipeline{
       steps {
         deleteDir()
         unstash "msi"
-        sh "rsync -rv ./ \"${env.SCCM_UPLOAD_FOLDER}/${params.PROJECT_NAME}/\""
+        sh "rsync -rv ./ ${env.SCCM_UPLOAD_FOLDER}/"
       }
     }
   }
