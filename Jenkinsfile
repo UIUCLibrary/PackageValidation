@@ -210,5 +210,18 @@ pipeline{
           }
       }
     }
+    stage("Deploying"){
+      agent any
+      when {
+        expression{params.DEPLOY == true && params.PACKAGE == true}
+      }
+      steps {
+        unstash "msi"
+        sh "ls -la"
+
+      }
+
+      }
+    }
   }
 }
