@@ -216,6 +216,7 @@ pipeline{
         expression{params.DEPLOY == true && params.PACKAGE == true}
       }
       steps {
+        deleteDir()
         unstash "msi"
         sh "ls -la"
       }
