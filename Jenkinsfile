@@ -218,9 +218,6 @@ pipeline{
       steps {
         unstash "msi"
         sh "ls -la"
-
-      }
-
       }
     }
   }
