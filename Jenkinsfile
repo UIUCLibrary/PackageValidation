@@ -2,6 +2,7 @@
 pipeline{
   agent any
   parameters {
+    string(name: PROJECT_NAME, defaultValue: "Package Qc", description: "Name given to the project")
     booleanParam(name: "UNIT_TESTS", defaultValue: true, description: "Run Automated Unit Tests")
     booleanParam(name: "PACKAGE", defaultValue: true, description: "Create a Packages")
     booleanParam(name: "DEPLOY", defaultValue: false, description: "Deploy SCCM")
@@ -218,7 +219,7 @@ pipeline{
       steps {
         deleteDir()
         unstash "msi"
-        sh "rsync -rv ./ ${env.SCCM_STAGING_FOLDER}"
+        sh "rsync -rv ./Package\ Qc/" ${env.SCCM_STAGING_FOLDER}"
         input("Deploy to production?")
       }
     }
