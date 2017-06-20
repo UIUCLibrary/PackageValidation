@@ -99,7 +99,7 @@ pipeline{
                 dir("dist") {
                   archiveArtifacts artifacts: "*.tar.gz", fingerprint: true
                 }
-                }
+              }
             }
           },
           "Python Wheel:" :{
@@ -217,6 +217,7 @@ pipeline{
       }
       steps {
         deleteDir()
+        sh "ls -la"
         unstash "msi"
         sh "ls -la"
       }
