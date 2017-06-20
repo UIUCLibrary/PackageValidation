@@ -210,16 +210,16 @@ pipeline{
           }
       }
     }
-    stage("Deploying"){
+    stage("Deploy - Staging"){
       agent any
       when {
         expression{params.DEPLOY == true && params.PACKAGE == true}
       }
       steps {
         deleteDir()
-        sh "ls -la"
         unstash "msi"
         sh "ls -la"
+        input("Deploy to production?")
       }
     }
   }
