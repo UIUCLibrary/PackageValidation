@@ -219,7 +219,7 @@ pipeline{
       steps {
         deleteDir()
         unstash "msi"
-        sh "rsync -rv ./Package\ Qc/" ${env.SCCM_STAGING_FOLDER}"
+        sh "rsync -rv \"./Package Qc/"\" ${env.SCCM_STAGING_FOLDER}"
         input("Deploy to production?")
       }
     }
