@@ -4,9 +4,9 @@ pipeline{
   parameters {
     booleanParam(name: "UNIT_TESTS", defaultValue: true, description: "Run Automated Unit Tests")
     booleanParam(name: "PACKAGE", defaultValue: true, description: "Create a Packages")
+    booleanParam(name: "DEPLOY", defaultValue: false, description: "Deploy SCCM")
     booleanParam(name: "BUILD_DOCS", defaultValue: true, description: "Build documentation")
     booleanParam(name: "UPDATE_DOCS", defaultValue: false, description: "Update the documentation")
-    booleanParam(name: "DEPLOY", defaultValue: false, description: "Deploy SCCM")
     string(name: 'URL_SUBFOLDER', defaultValue: "package_qc", description: 'The directory that the docs should be saved under')
 
 
@@ -218,7 +218,7 @@ pipeline{
       steps {
         deleteDir()
         unstash "msi"
-        sh "ls -la"
+        sh "rsync ./ ${env.SCCM_STAGING_FOLDER}"
         input("Deploy to production?")
       }
     }
