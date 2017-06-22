@@ -1,28 +1,22 @@
 import abc
 import typing
 from collections import namedtuple
-
+import warnings
 PackageItem = namedtuple("PackageItem", ["root", "identifier", "directories"])
 
 
 class AbsPackage(metaclass=abc.ABCMeta):
-    def __init__(self, root_path):
+    def __init__(self, root_path=None):
         self.root_path = root_path
-        self._items = []
-        self.load()
-
-    @property
-    @abc.abstractmethod
-    def items(self) -> typing.Generator[PackageItem, None, None]:
-        pass
-
-    @abc.abstractmethod
-    def load(self):
-        pass
 
     def __len__(self):
-        return len(self._items)
+        return len(list(self.get_packages(self.root_path)))
 
     def __iter__(self):
-        for i in self.items:
+        for i in self.get_packages(self.root_path):
             yield i
+
+    @staticmethod
+    @abc.abstractmethod
+    def get_packages(path)->typing.Iterable[PackageItem]:
+        pass
