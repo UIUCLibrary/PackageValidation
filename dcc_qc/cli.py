@@ -4,28 +4,46 @@ import logging
 import sys
 
 import itertools
-
+import dcc_qc
 from dcc_qc import hathi_qc_runner
-from dcc_qc import configure_logging, reports
+from dcc_qc.runner import Runner
+from dcc_qc import configure_logging, reports, profiles
 
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("path", help="Directory of packages to be validated")
-    parser.add_argument("--save_report", dest="report_name", help="Save report to a file")
-    debug_group = parser.add_argument_group("Debug")
+
+    command_group = parser.add_mutually_exclusive_group()
+
+    command_group.add_argument("--list_profiles", action="store_true", help="List available package profiles")
+    command_group.add_argument("--version", action="version", version=dcc_qc.__version__)
+
+    process_group = command_group.add_argument_group()
+    # process_group = command_group.add_argument_group()
+    process_group.add_argument("profile", nargs="?", help="Type of package to validate")
+    process_group.add_argument("path", nargs="?", help="Directory of packages to be validated")
+    process_group.add_argument("--save_report", dest="report_name", help="Save report to a file")
+    debug_group = process_group.add_argument_group("Debug")
     debug_group.add_argument(
         '--debug',
         action="store_true",
         help="Run script in debug mode")
     debug_group.add_argument("--log-debug", help="Save debug information to a file")
+    args = parser.parse_args()
 
-    return parser.parse_args()
+    return args
 
 
 def find_arg_errors(args):
-    if not os.path.exists(args.path):
-        yield "Error: \"{}\" is not a valid path".format(args.path)
+    if args.path:
+        if not os.path.exists(args.path):
+            yield "Error: \"{}\" is not a valid path".format(args.path)
+
+
+def list_profiles():
+    profiles = dcc_qc.profiles.get_available()
+    for profile in profiles:
+        print(profile)
 
 
 def main():
@@ -37,9 +55,20 @@ def main():
         for er in arg_errors:
             print(er, file=sys.stderr)
         sys.exit(1)
+    if args.list_profiles:
+        list_profiles()
+        sys.exit()
     configure_logging.configure_logger(debug_mode=args.debug, log_file=args.log_debug)
     logger.debug("Loading HathiQCRunner() with {}".format(args.path))
-    runner = hathi_qc_runner.HathiQCRunner(args.path)
+
+    ###################################################
+    try:
+        profile = profiles.get_profile(args.profile)
+    except KeyError as e:
+        logger.error("Invalid profile {}".format(e))
+        sys.exit(1)
+        
+    runner = Runner(args.path, profile)
     logger.debug("Running HathiQCRunner()")
     runner.run()
     report_results(runner, file=args.report_name)
