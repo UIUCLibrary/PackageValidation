@@ -152,6 +152,7 @@ pipeline{
                 // Package the exe into MSI
                 bat "${env.PYTHON3} cx_setup.py bdist_msi --add-to-path=true"
                 dir("dist"){
+                  archiveArtifacts artifacts: "*.msi", fingerprint: true
                   stash includes: "*.msi", name: "msi"
                 }
 
