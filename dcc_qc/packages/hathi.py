@@ -5,12 +5,9 @@ import os
 
 
 class HathiPackage(AbsPackage):
-    @property
-    def items(self) -> typing.Generator[PackageItem, None, None]:
-        for i in self._items:
-            yield i
 
-    def load(self):
+    @staticmethod
+    def get_packages(path):
         def get_package_paths(path) -> typing.Tuple[str, str]:
             found_access = []
             found_preservation = []
@@ -42,18 +39,16 @@ class HathiPackage(AbsPackage):
                 assert pair[0] == pair[1]
                 yield os.path.join(access_path, pair[0]), os.path.join(preservation_path, pair[1])
 
-        access_path, preservation_path = get_package_paths(self.root_path)
+        access_path, preservation_path = get_package_paths(path)
         assert access_path.replace("access", "") == preservation_path.replace("preservation", "")
 
         for access, preservation in create_pairs(access_path, preservation_path):
             identifier = access.split(os.sep)[-1]
-            self._items.append(
-                PackageItem(
-                    root=self.root_path,
+            yield PackageItem(
+                    root=path,
                     identifier=identifier,
                     directories={
                         "access": access,
                         "preservation": preservation
                     }
                 )
-            )
