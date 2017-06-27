@@ -2,12 +2,12 @@ import os
 import re
 
 
-from dcc_qc import validators
-from dcc_qc.validators.abs_validators import AbsValidator
-from dcc_qc.validators import error_message
+from dcc_qc import checkers
+from dcc_qc.checkers.abs_checkers import AbsChecker
+from dcc_qc.checkers import error_message
 
 
-class PresCompletenessChecker(AbsValidator):
+class PresCompletenessChecker(AbsChecker):
     @staticmethod
     def find_missing_by_number(path):
         files = [x.name for x in filter(lambda i: os.path.splitext(i.name)[1] == ".tif", os.scandir(path))]
@@ -59,7 +59,7 @@ class PresCompletenessChecker(AbsValidator):
             new_error = error_message.ValidationError(e, group=error_group)
             new_error.source = path
             errors.append(new_error)
-            # return validators.Results(self.validator_name(), valid=valid, errors=errors)
+            # return checkers.Results(self.checker_name(), valid=valid, errors=errors)
         # Find missing required_files
         missing = list(self.find_missing_required_files(path=path, expected_files=required_files))
         if missing:
@@ -68,10 +68,10 @@ class PresCompletenessChecker(AbsValidator):
                 "Missing expected file(s), [{}]".format(", ".join(missing)), group=error_group)
             new_error.source = path
             errors.append(new_error)
-        return validators.Results(self.validator_name(), valid=valid, errors=errors)
+        return checkers.Results(self.checker_name(), valid=valid, errors=errors)
 
     @staticmethod
-    def validator_name():
+    def checker_name():
         return "Preservation Directory Completeness Test"
 
     @staticmethod
@@ -81,13 +81,13 @@ class PresCompletenessChecker(AbsValidator):
                 yield expected_file
 
 
-class PresNamingChecker(AbsValidator):
+class PresNamingChecker(AbsChecker):
     valid_extensions = [".tif"]
     ignore_extension = [".db"]
     valid_naming_scheme = re.compile("^\d{8}$")
 
     @staticmethod
-    def validator_name():
+    def checker_name():
         return "Preservation File Naming Check Test"
 
     def check(self, path):
@@ -116,32 +116,32 @@ class PresNamingChecker(AbsValidator):
                         new_error.source = path
                         errors.append(new_error)
 
-        return validators.Results(self.validator_name(), valid=valid, errors=errors)
+        return checkers.Results(self.checker_name(), valid=valid, errors=errors)
 
 
-class PresMetadataChecker(AbsValidator):
+class PresMetadataChecker(AbsChecker):
     # TODO: Create PresMetadataChecker() class
 
     @staticmethod
-    def validator_name():
+    def checker_name():
         return "Preservation Metadata Checker"
 
     def check(self, path):
         raise NotImplementedError()
 
 
-class PresTechnicalChecker(AbsValidator):
+class PresTechnicalChecker(AbsChecker):
     # TODO: Create PresTechnicalChecker() class
 
     @staticmethod
-    def validator_name():
+    def checker_name():
         return "Preservation Technical Specs Checker"
 
     def check(self, path):
         raise NotImplementedError()
 
 
-class AccessCompletenessChecker(AbsValidator):
+class AccessCompletenessChecker(AbsChecker):
     @staticmethod
     def find_missing_by_number(path):
         files = [x.name for x in filter(lambda i: os.path.splitext(i.name)[1] == ".tif", os.scandir(path))]
@@ -166,7 +166,7 @@ class AccessCompletenessChecker(AbsValidator):
             # raise Exception("Unable to locate files in path {}".format(path))
 
     @staticmethod
-    def validator_name():
+    def checker_name():
         return "Access Directory Completeness Test"
 
     def check(self, path: str):
@@ -244,16 +244,16 @@ class AccessCompletenessChecker(AbsValidator):
         #         valid = False
         #         errors.append("{} is missing a matching {}".format(os.path.join(txt_path, txt_file), required_tif_file))
 
-        return validators.Results(self.validator_name(), valid=valid, errors=errors)
+        return checkers.Results(self.checker_name(), valid=valid, errors=errors)
 
 
-class AccessNamingChecker(AbsValidator):
+class AccessNamingChecker(AbsChecker):
     valid_extensions = [".tif"]
     ignore_extension = [".db"]
     valid_naming_scheme = re.compile("^\d{8}$")
 
     @staticmethod
-    def validator_name():
+    def checker_name():
         return "Access File Naming Checker Test"
 
     def check(self, path):
@@ -294,22 +294,22 @@ class AccessNamingChecker(AbsValidator):
                 #         errors.append(
                 #             "\"{}\" does not match the valid file result_type pattern for preservation files".format(basename))
 
-        return validators.Results(self.validator_name(), valid=valid, errors=errors)
+        return checkers.Results(self.checker_name(), valid=valid, errors=errors)
 
 
-class AccessMetadataChecker(AbsValidator):
+class AccessMetadataChecker(AbsChecker):
     # TODO: Create AccessMetadataChecker() class
     @staticmethod
-    def validator_name():
+    def checker_name():
         return "Access File Metadata Checker"
 
     def check(self, path):
         raise NotImplementedError()
 
 
-class AccessTechnicalChecker(AbsValidator):
+class AccessTechnicalChecker(AbsChecker):
     @staticmethod
-    def validator_name():
+    def checker_name():
         return "Access Technical Metadata Checker"
 
     # TODO: Create AccessTechnicalChecker() class
@@ -318,9 +318,9 @@ class AccessTechnicalChecker(AbsValidator):
         raise NotImplementedError()
 
 
-class PackageComponentChecker(AbsValidator):
+class PackageComponentChecker(AbsChecker):
     @staticmethod
-    def validator_name():
+    def checker_name():
         return "Package component checker"
 
     @staticmethod
@@ -391,7 +391,7 @@ class PackageComponentChecker(AbsValidator):
             )
             new_error.source = path.directories["preservation"]
             errors.append(new_error)
-        return validators.Results(self.validator_name(), valid=valid, errors=errors)
+        return checkers.Results(self.checker_name(), valid=valid, errors=errors)
         # raise NotImplementedError()
 
         # @staticmethod
@@ -410,9 +410,9 @@ class PackageComponentChecker(AbsValidator):
         #         return new_error
 
 
-class PackageStructureChecker(AbsValidator):
+class PackageStructureChecker(AbsChecker):
     @staticmethod
-    def validator_name():
+    def checker_name():
         return "Package structure checker"
 
     @staticmethod
@@ -479,4 +479,4 @@ class PackageStructureChecker(AbsValidator):
                 valid = False
                 errors.append(error)
 
-        return validators.Results(self.validator_name(), valid=valid, errors=errors)
+        return checkers.Results(self.checker_name(), valid=valid, errors=errors)

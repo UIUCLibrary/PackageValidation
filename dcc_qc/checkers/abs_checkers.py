@@ -35,12 +35,12 @@ class AbsPackageFactory(metaclass=abc.ABCMeta):
         pass
 
 
-class AbsValidator(metaclass=abc.ABCMeta):
+class AbsChecker(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def check(self, path):
         pass
 
     @staticmethod
     @abc.abstractmethod
-    def validator_name():
+    def checker_name():
         pass
