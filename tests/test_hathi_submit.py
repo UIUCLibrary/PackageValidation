@@ -521,6 +521,7 @@ def test_hathi_submit_package_iter(hathi_sample_package):
     new_pkg = packages.create_package("HathiSubmit", root_path=str(hathi_sample_package))
     for package in new_pkg:
         assert isinstance(package, packages.abs_package.PackageItem)
+        assert package.root != str(hathi_sample_package)
 
 
 def test_get_hathi_submit_package_path_after(hathi_sample_package):
