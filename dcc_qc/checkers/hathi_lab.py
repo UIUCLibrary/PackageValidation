@@ -392,22 +392,6 @@ class PackageComponentChecker(AbsChecker):
             new_error.source = path.directories["preservation"]
             errors.append(new_error)
         return checkers.Results(self.checker_name(), valid=valid, errors=errors)
-        # raise NotImplementedError()
-
-        # @staticmethod
-
-        #     missing_in_preservation = []
-        #     for item in filter(lambda i: i.is_file() and os.path.splitext(i)[1].lower() == ".tif",
-        #                        os.scandir(package.directories["access"])):
-        #         access_file = item.name
-        #         preservation_dir = package.directories["preservation"]
-        #         if not os.path.exists(os.path.join(preservation_dir, access_file)):
-        #             missing_in_preservation.append((preservation_dir, access_file))
-        #     if missing_in_preservation:
-        #         new_error = error.ValidationError(
-        #             "Files {} found in access folder but not preservation folder".format(", ".join(missing_in_preservation)))
-        #         new_error.source = package.root
-        #         return new_error
 
 
 class PackageStructureChecker(AbsChecker):
@@ -416,7 +400,7 @@ class PackageStructureChecker(AbsChecker):
         return "Package structure checker"
 
     @staticmethod
-    def find_root_directory_errors(path):
+    def find_root_directory_errors(path: str):
         required_directories = {"access", "preservation"}
         for item in os.scandir(path):
             if item.is_dir():
