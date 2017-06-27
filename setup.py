@@ -10,7 +10,7 @@ setup(
         'dcc_qc.checkers',
         'dcc_qc.profiles',
         'dcc_qc.reports',
-        'dcc_qc.validators',
+        'dcc_qc.validator',
     ],
     test_suite="tests",
     tests_require=['pytest'],

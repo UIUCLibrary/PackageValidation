@@ -57,7 +57,7 @@ setup(
         'dcc_qc.checkers',
         'dcc_qc.profiles',
         'dcc_qc.reports',
-        'dcc_qc.validators',
+        'dcc_qc.validator',
         'tests'
     ],
     url=dcc_qc.__url__,
