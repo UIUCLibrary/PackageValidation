@@ -14,9 +14,12 @@ class TaskQueued(AbsTask):
         self._context._state = self._context.valid_states["working"]
         status = self._context.valid_states["success"]
         for p in self._context.processes:
-            self._context._run_process(process_to_run=p)
-            if self._context._errors or not p.result.valid:
-                status = self._context.valid_states["failed"]
+            try:
+                self._context._run_process(process_to_run=p)
+                if self._context._errors or not p.result.valid:
+                    status = self._context.valid_states["failed"]
+            except Exception:
+                raise RuntimeError("Error running process: {}".format(p.name))
 
         self._context._state = status
 
