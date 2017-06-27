@@ -1,7 +1,7 @@
 import abc
 import typing
 from collections import namedtuple
-import warnings
+
 PackageItem = namedtuple("PackageItem", ["root", "identifier", "directories"])
 
 
@@ -18,5 +18,5 @@ class AbsPackage(metaclass=abc.ABCMeta):
 
     @staticmethod
     @abc.abstractmethod
-    def get_packages(path)->typing.Iterable[PackageItem]:
+    def get_packages(path) -> typing.Iterable[PackageItem]:
         pass
