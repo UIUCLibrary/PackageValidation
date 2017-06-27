@@ -4,7 +4,7 @@ import pytest
 
 import dcc_qc.checkers.hathi_lab_factory
 import pathlib
-from dcc_qc.checkers import error_message, builder
+from dcc_qc.checkers import error_message
 from dcc_qc import checkers
 
 BASE_ROOT = "T://"
@@ -653,80 +653,6 @@ def test_access_files_found_all(access_good):
     validator = validator_factory.completeness_checker()
     result = validator.check(path)
     assert result.valid
-
-def test_access_files_found_all_builder(access_good):
-    path = os.path.join(access_good, "access", "7212907")
-
-    factory_builder = builder.Director(builder.HathiLabBuilder())
-    factory = factory_builder.construct()
-    validator_factory = factory.AccessCheckers()
-
-    validator = validator_factory.completeness_checker()
-    result = validator.check(path)
-    assert result.valid
-
-
-
-
-# def test_access_files_text_missing(access_7210438):
-#     def has_missing_textfile_error(errors):
-#         for error in errors:
-#             if "is missing " in error and ".txt" in error:
-#                 return True
-#         else:
-#             return False
-#
-#     validator_factory = dcc_qc.checkers.hathi_lab_factory.AccessValidators()
-#     validator = validator_factory.completeness_checker()
-#
-#     path = next(access_7210438)[0]
-#     result = validator.check(path)
-#     assert not result.valid
-#     assert has_missing_textfile_error(result.errors)
-#     assert result.result_type == "Access Directory Completeness Test"
-
-
-# def test_access_files_checksum_missing(access_7210438):
-#     def has_missing_checksum_error(errors):
-#         for error in errors:
-#             if "is missing checksum.md5" in error:
-#                 return True
-#         else:
-#             return False
-#
-#     validator_factory = dcc_qc.checkers.hathi_lab_factory.AccessValidators()
-#     validator = validator_factory.completeness_checker()
-#     path = next(access_7210438)[0]
-#     result = validator.check(path)
-#     assert not result.valid
-#     assert has_missing_checksum_error(result.errors) is True
-
-
-# def test_access_files_marc_missing(access_7210438):
-#     def has_missing_marc_error(errors):
-#         for error in errors:
-#             if "is missing marc.xml" in error:
-#                 return True
-#         else:
-#             return False
-#
-#     validator_factory = dcc_qc.checkers.hathi_lab_factory.AccessValidators()
-#     validator = validator_factory.completeness_checker()
-#
-#     path = next(access_7210438)[0]
-#     result = validator.check(path)
-#
-#     assert not result.valid
-#     assert has_missing_marc_error(result.errors) is True
-#
-#
-# def test_access_files_meta_missing(access_7210438):
-#     validator_factory = dcc_qc.checkers.hathi_lab_factory.AccessValidators()
-#     validator = validator_factory.completeness_checker()
-#
-#     path = next(access_7210438)[0]
-#     result = validator.check(path)
-#     assert not result.valid
 
 
 def test_preservation_files_targets_missing(preservation_7208772):
