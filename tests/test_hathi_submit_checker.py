@@ -766,7 +766,7 @@ def test_access_file_naming_correct(hathi_8102529_package):
     validator_factory = dcc_qc.checkers.hathi_submit_factory.AccessCheckers()
     validator = validator_factory.naming_checker()
 
-    for root, dirs, files in os.walk(hathi_8102529_package):
+    for root, dirs, files in os.walk(str(hathi_8102529_package)):
         for file_ in files:
 
             if file_ == "Thumbs.db":
@@ -779,7 +779,7 @@ def test_access_file_naming_correct(hathi_8102529_package):
 
 
 def test_access_files_found_all(hathi_8102529_package):
-    path = os.path.join(hathi_8102529_package, "8102529")
+    path = os.path.join(str(hathi_8102529_package), "8102529")
 
     validator_factory = dcc_qc.checkers.hathi_submit_factory.AccessCheckers()
     validator = validator_factory.completeness_checker()
@@ -791,7 +791,7 @@ def test_access_files_found_all(hathi_8102529_package):
 
 
 def test_access_files_missing_ocr(hathi_7465982_package):
-    path = os.path.join(hathi_7465982_package, "7465982")
+    path = os.path.join(str(hathi_7465982_package), "7465982")
 
     validator_factory = dcc_qc.checkers.hathi_submit_factory.AccessCheckers()
     validator = validator_factory.completeness_checker()
@@ -802,7 +802,7 @@ def test_access_files_missing_ocr(hathi_7465982_package):
 
 
 def test_access_files_missing_checksum(hathi_7215700_package):
-    path = os.path.join(hathi_7215700_package, "7215700")
+    path = os.path.join(str(hathi_7215700_package), "7215700")
 
     validator_factory = dcc_qc.checkers.hathi_submit_factory.AccessCheckers()
     validator = validator_factory.completeness_checker()
@@ -814,7 +814,7 @@ def test_access_files_missing_checksum(hathi_7215700_package):
 
 
 def test_access_files_missing_marc(hathi_7215682_package):
-    path = os.path.join(hathi_7215682_package, "7215682")
+    path = os.path.join(str(hathi_7215682_package), "7215682")
 
     validator_factory = dcc_qc.checkers.hathi_submit_factory.AccessCheckers()
     validator = validator_factory.completeness_checker()
