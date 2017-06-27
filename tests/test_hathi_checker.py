@@ -681,3 +681,9 @@ def test_preservation_incorrect_specs(preservation_7209934):
                 assert not result.valid
             else:
                 assert result.valid is True
+
+
+def test_get_suite():
+    suite = dcc_qc.checkers.get_check_suite("HathiLab")
+    assert isinstance(suite, dcc_qc.checkers.check_suite.HathiLab)
+    pass
