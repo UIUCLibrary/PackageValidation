@@ -2,7 +2,8 @@ from inspect import getmembers, isclass, isabstract
 from dcc_qc.checkers.abs_checkers import AbsChecker
 from dcc_qc import checkers
 
-class ValidatorFactory:
+
+class CheckersFactory:
     validators = {}
 
     def __init__(self):
