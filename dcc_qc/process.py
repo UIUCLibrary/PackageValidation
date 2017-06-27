@@ -1,6 +1,6 @@
 import abc
 
-from dcc_qc import validators
+from dcc_qc import checkers
 
 
 class AbsProcess(metaclass=abc.ABCMeta):
@@ -41,5 +41,5 @@ class AbsProcessorResults(metaclass=abc.ABCMeta):
 
     @property
     @abc.abstractmethod
-    def result(self) -> validators.Results:
+    def result(self) -> checkers.Results:
         pass
