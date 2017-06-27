@@ -2,7 +2,7 @@ import logging
 
 from dcc_qc import abs_runner, packages
 from dcc_qc.profiles.profile import AbsProfile
-from dcc_qc.validators import error_message
+from dcc_qc.checkers import error_message
 from dcc_qc.task_states import TaskStatus
 
 

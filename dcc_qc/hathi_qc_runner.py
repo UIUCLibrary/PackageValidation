@@ -15,7 +15,7 @@ from dcc_qc import task_manager, tasks, packages
 from dcc_qc import validation_processors
 from dcc_qc.abs_runner import AbsRunner
 from dcc_qc.task_states import TaskStatus
-from dcc_qc.validators import error_message
+from dcc_qc.checkers import error_message
 warnings.warn("{} is deprecated. Use runner.py".format(__name__), DeprecationWarning)
 
 class HathiQCRunner(AbsRunner):

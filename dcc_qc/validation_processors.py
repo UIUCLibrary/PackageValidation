@@ -1,12 +1,12 @@
 # import dcc_qc.validators.hathi_lab_factory
-from dcc_qc.validators import hathi_lab_factory
-from dcc_qc import validators
+from dcc_qc.checkers import hathi_lab_factory
+from dcc_qc import checkers
 from dcc_qc.process import AbsProcess, AbsProcessInput, AbsProcessorResults
 
 
 class PackagePreservationComplete(AbsProcess, AbsProcessInput, AbsProcessorResults):
     def setup(self):
-        self.validator = hathi_lab_factory.PreservationValidators.completeness_checker()
+        self.validator = hathi_lab_factory.PreservationCheckers.completeness_checker()
         self._path = None
         self._result = None
 
@@ -35,7 +35,7 @@ class PackagePreservationComplete(AbsProcess, AbsProcessInput, AbsProcessorResul
 
 class PackageAccessComplete(AbsProcess, AbsProcessInput, AbsProcessorResults):
     def setup(self):
-        self.validator = hathi_lab_factory.AccessValidators.completeness_checker()
+        self.validator = hathi_lab_factory.AccessCheckers.completeness_checker()
         self._path = None
         self._results = None
 
@@ -68,7 +68,7 @@ class PackageAccessComplete(AbsProcess, AbsProcessInput, AbsProcessorResults):
 
 class PreservationFileNaming(AbsProcess, AbsProcessInput, AbsProcessorResults):
     def setup(self):
-        self.valitator = hathi_lab_factory.PreservationValidators.naming_checker()
+        self.valitator = hathi_lab_factory.PreservationCheckers.naming_checker()
         self._result = None
         self._filename = None
 
@@ -76,7 +76,7 @@ class PreservationFileNaming(AbsProcess, AbsProcessInput, AbsProcessorResults):
         self._result = self.valitator.check(self._filename)
 
     @property
-    def result(self) -> validators.Results:
+    def result(self) -> checkers.Results:
         return self._result
 
     @property
@@ -96,7 +96,7 @@ class PreservationFileNaming(AbsProcess, AbsProcessInput, AbsProcessorResults):
 
 class AccessFileNaming(AbsProcess, AbsProcessInput, AbsProcessorResults):
     def setup(self):
-        self.valitator = hathi_lab_factory.AccessValidators.naming_checker()
+        self.valitator = hathi_lab_factory.AccessCheckers.naming_checker()
         self._result = None
         self._filename = None
 
@@ -108,7 +108,7 @@ class AccessFileNaming(AbsProcess, AbsProcessInput, AbsProcessorResults):
         return "Access file name test"
 
     @property
-    def result(self) -> validators.Results:
+    def result(self) -> checkers.Results:
         return self._result
 
     def run(self):
@@ -126,7 +126,7 @@ class PackageStructureComplete(AbsProcess, AbsProcessInput, AbsProcessorResults)
     """Validate the existence of all required folders"""
 
     def setup(self):
-        self.validator = hathi_lab_factory.PackageValidators.structure_complete_checker()
+        self.validator = hathi_lab_factory.PackageCheckers.structure_complete_checker()
         self._result = None
         self._path = None
 
@@ -139,7 +139,7 @@ class PackageStructureComplete(AbsProcess, AbsProcessInput, AbsProcessorResults)
         return self._result.errors
 
     @property
-    def result(self) -> validators.Results:
+    def result(self) -> checkers.Results:
         return self._result
 
     @property
@@ -157,7 +157,7 @@ class PackageComponentComplete(AbsProcess, AbsProcessInput, AbsProcessorResults)
     """Validate the folders are valid when compared to each other"""
 
     def setup(self):
-        self.validator = hathi_lab_factory.PackageValidators.component_complete_checker()
+        self.validator = hathi_lab_factory.PackageCheckers.component_complete_checker()
         self._result = None
         self._path = None
 
@@ -170,7 +170,7 @@ class PackageComponentComplete(AbsProcess, AbsProcessInput, AbsProcessorResults)
         return self._result.errors
 
     @property
-    def result(self) -> validators.Results:
+    def result(self) -> checkers.Results:
         return self._result
 
     @property
@@ -182,3 +182,5 @@ class PackageComponentComplete(AbsProcess, AbsProcessInput, AbsProcessorResults)
 
     def __str__(self):
         return "{}: {}".format(self.name, self._path)
+
+# TODO CREATE Validator builder:
