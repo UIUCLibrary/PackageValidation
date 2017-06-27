@@ -6,6 +6,8 @@ from dcc_qc import checkers
 class AbsProcess(metaclass=abc.ABCMeta):
     """Implement this abstract class to to use a process with the task manager."""
 
+    suite = None
+
     @abc.abstractmethod
     def setup(self):
         pass
@@ -43,3 +45,4 @@ class AbsProcessorResults(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def result(self) -> checkers.Results:
         pass
+
