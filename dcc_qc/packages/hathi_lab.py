@@ -4,7 +4,7 @@ import typing
 import os
 
 
-class HathiPackage(AbsPackage):
+class HathiLabPackage(AbsPackage):
 
     @staticmethod
     def get_packages(path):
