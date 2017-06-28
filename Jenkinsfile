@@ -5,7 +5,7 @@ pipeline{
     string(name: "PROJECT_NAME", defaultValue: "Package Qc", description: "Name given to the project")
     booleanParam(name: "UNIT_TESTS", defaultValue: true, description: "Run Automated Unit Tests")
     booleanParam(name: "PACKAGE", defaultValue: true, description: "Create a Packages")
-    booleanParam(name: "DEPLOY", defaultValue: false, description: "Deploy SCCM")
+    booleanParam(name: "DEPLOY", defaultValue: false, description: "Deploy to SCCM")
     booleanParam(name: "BUILD_DOCS", defaultValue: true, description: "Build documentation")
     booleanParam(name: "UPDATE_DOCS", defaultValue: false, description: "Update the documentation")
     string(name: 'URL_SUBFOLDER', defaultValue: "package_qc", description: 'The directory that the docs should be saved under')
@@ -152,6 +152,7 @@ pipeline{
                 // Package the exe into MSI
                 bat "${env.PYTHON3} cx_setup.py bdist_msi --add-to-path=true"
                 dir("dist"){
+                  archiveArtifacts artifacts: "*.msi", fingerprint: true
                   stash includes: "*.msi", name: "msi"
                 }
 

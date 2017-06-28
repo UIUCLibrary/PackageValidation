@@ -257,17 +257,40 @@ def hathi_sample_package(tmpdir):
         full_path = os.path.join(str(tmpdir), short_path)
         os.makedirs(full_path, exist_ok=True)
         pathlib.Path(os.path.join(full_path, filename)).touch()
-    return packages.create_package("Hathi", root_path=str(tmpdir))
+    return tmpdir
+    # return packages.create_package("Hathi", root_path=str(tmpdir))
 
 
 def test_get_hathi_package(hathi_sample_package):
-    assert isinstance(hathi_sample_package, packages.Hathi)
+    new_pkg = packages.create_package("Hathi", root_path=str(hathi_sample_package))
+    assert isinstance(new_pkg, packages.Hathi)
 
 
 def test_load_hathi_package(hathi_sample_package):
-    assert len(hathi_sample_package) == 7
+    new_pkg = packages.create_package("Hathi", root_path=str(hathi_sample_package))
+    assert len(new_pkg) == 7
 
 
 def test_hathi_package_iter(hathi_sample_package):
-    for item in hathi_sample_package:
+    new_pkg = packages.create_package("Hathi", root_path=str(hathi_sample_package))
+    for item in new_pkg:
+        assert isinstance(item, packages.abs_package.PackageItem)
+
+def test_get_hathi_package_path_after(hathi_sample_package):
+    new_pkg = packages.create_package("Hathi")
+    new_pkg.root_path = str(hathi_sample_package)
+    assert isinstance(new_pkg, packages.Hathi)
+
+
+def test_load_hathi_package_path_after(hathi_sample_package):
+    new_pkg = packages.create_package("Hathi")
+    new_pkg.root_path = str(hathi_sample_package)
+    # new_pkg = packages.create_package("Hathi", root_path=str(hathi_sample_package))
+    assert len(new_pkg) == 7
+
+
+def test_hathi_package_iter_path_after(hathi_sample_package):
+    new_pkg = packages.create_package("Hathi")
+    new_pkg.root_path = str(hathi_sample_package)
+    for item in new_pkg:
         assert isinstance(item, packages.abs_package.PackageItem)
