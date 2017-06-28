@@ -5,6 +5,7 @@ from dcc_qc.checkers import hathi_lab_factory
 from dcc_qc import checkers
 from dcc_qc.process import AbsProcess, AbsProcessInput, AbsProcessorResults
 
+
 def add_suite(cls):
     class Wrapper:
         def __init__(self, suite_name, *args):
@@ -17,7 +18,16 @@ def add_suite(cls):
         def set_suite(self, name):
             self.wrapped.suite = name
 
+        def __str__(self):
+            return self.wrapped.__str__()
+
+        @property
+        def __class__(self):
+            return self.wrapped.__class__
+
+
     return Wrapper
+
 
 @add_suite
 class PackagePreservationComplete(AbsProcess, AbsProcessInput, AbsProcessorResults):
@@ -48,6 +58,7 @@ class PackagePreservationComplete(AbsProcess, AbsProcessInput, AbsProcessorResul
 
     def __str__(self):
         return "{}: {}".format(self.name, self._path)
+
 
 @add_suite
 class PackageAccessComplete(AbsProcess, AbsProcessInput, AbsProcessorResults):
@@ -83,6 +94,7 @@ class PackageAccessComplete(AbsProcess, AbsProcessInput, AbsProcessorResults):
         # else:
         #     return []
 
+
 @add_suite
 class PreservationFileNaming(AbsProcess, AbsProcessInput, AbsProcessorResults):
     def setup(self):
@@ -111,6 +123,7 @@ class PreservationFileNaming(AbsProcess, AbsProcessInput, AbsProcessorResults):
 
     def __str__(self):
         return "{}: {}".format(self.name, self._filename)
+
 
 @add_suite
 class AccessFileNaming(AbsProcess, AbsProcessInput, AbsProcessorResults):
@@ -141,6 +154,7 @@ class AccessFileNaming(AbsProcess, AbsProcessInput, AbsProcessorResults):
 
     def __str__(self):
         return "{}: {}".format(self.name, self._filename)
+
 
 @add_suite
 class PackageStructureComplete(AbsProcess, AbsProcessInput, AbsProcessorResults):
@@ -174,6 +188,7 @@ class PackageStructureComplete(AbsProcess, AbsProcessInput, AbsProcessorResults)
     def __str__(self):
         return "{}: {}".format(self.name, self._path)
 
+
 @add_suite
 class PackageComponentComplete(AbsProcess, AbsProcessInput, AbsProcessorResults):
     """Validate the folders are valid when compared to each other"""
@@ -206,5 +221,3 @@ class PackageComponentComplete(AbsProcess, AbsProcessInput, AbsProcessorResults)
 
     def __str__(self):
         return "{}: {}".format(self.name, self._path)
-
-
