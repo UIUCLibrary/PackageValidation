@@ -28,10 +28,18 @@ dcc\_qc\.packages\.exceptions module
     :undoc-members:
     :show-inheritance:
 
-dcc\_qc\.packages\.hathi module
--------------------------------
+dcc\_qc\.packages\.hathi_lab module
+-----------------------------------
 
-.. automodule:: dcc_qc.packages.hathi
+.. automodule:: dcc_qc.packages.hathi_lab
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+dcc\_qc\.packages\.hathi_submit module
+--------------------------------------
+
+.. automodule:: dcc_qc.packages.hathi_submit
     :members:
     :undoc-members:
     :show-inheritance:
