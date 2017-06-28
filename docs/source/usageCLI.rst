@@ -1,13 +1,32 @@
 This is a command line script so you will need a terminal window open to use it.
 
-Checking a HathiTrust package from the lab
-------------------------------------------
-To run validation on a package, type "qcpkg" followed by the path to the package. If the path has spaces in it, you must
+Validate a package
+------------------
+To run validation on a package, type "qcpkg" followed by the type of package and path to the package. If the path has spaces in it, you must
 surround the path by quotes.
+
+Checking a HathiTrust package ready to be submitted to Hathi
+------------------------------------------------------------
+
+Example:
+
+    :command:`qcpkg hathisubmit "Y:\\DCC Unprocessed Files\\20170523_CavagnaCollectionRBML_rj"`
+
+
+See the list of a HathiTrust package from the lab
+-------------------------------------------------
+Use the --list-profiles argument to list available profiles to check.
 
 For example:
 
-    :command:`qcpkg "Y:\\DCC Unprocessed Files\\20170523_CavagnaCollectionRBML_rj"`
+    :command:`qcpkg --list-profiles"`
+
+.. code-block:: console
+
+    C:\Users\hborcher.UOFI>qcpkg --list-profiles
+
+    hathilab
+    hathisubmit
 
 
 
