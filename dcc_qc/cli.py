@@ -78,14 +78,17 @@ def main():
             sys.exit(1)
 
         runner = Runner(args.path, profile)
-        logger.debug("Running HathiQCRunner()")
+        logger.debug("Starting runner")
         runner.run()
+        logger.debug("Runner finished")
         report_results(runner, file=args.report_name)
     else:
         parser.print_help()
 
 
 def report_results(runner, file=None):
+    logger = logging.getLogger(__name__)
+    logger.debug("Saving report to {}".format(file))
     manager = reports.ReportManager()
 
     console_reporter = reports.ConsoleHandler()
