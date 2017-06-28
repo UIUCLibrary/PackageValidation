@@ -1,5 +1,6 @@
 from inspect import getmembers, isclass, isabstract
 from dcc_qc import packages
+from . import abs_package
 
 
 class PackageFactory:
@@ -12,7 +13,7 @@ class PackageFactory:
 
         classes = getmembers(packages, lambda m: isclass(m) and not isabstract(m))
         for name, _type in classes:
-            if isclass(_type) and issubclass(_type, packages.abs_package.AbsPackage):
+            if isclass(_type) and issubclass(_type, abs_package.AbsPackage):
                 self.packages.update([[name, _type]])
 
     def create_instance(self, package_name, root):

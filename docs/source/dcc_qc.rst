@@ -6,9 +6,12 @@ Subpackages
 
 .. toctree::
 
+    dcc_qc.checkers
     dcc_qc.packages
+    dcc_qc.profiles
+    dcc_qc.reports
     dcc_qc.task_states
-    dcc_qc.validators
+    dcc_qc.validator
 
 Submodules
 ----------
@@ -76,6 +79,7 @@ dcc\_qc\.validation\_processors module
     :members:
     :undoc-members:
     :show-inheritance:
+
 
 
 Module contents

@@ -3,6 +3,7 @@ This will become a script but for now it's just a sample implementation.
 I'm using it to check that my validators work and my package API make 
 sense when it is consumed by a script.
 """
+
 import os
 import typing
 import functools
@@ -14,8 +15,8 @@ from dcc_qc import task_manager, tasks, packages
 from dcc_qc import validation_processors
 from dcc_qc.abs_runner import AbsRunner
 from dcc_qc.task_states import TaskStatus
-from dcc_qc.validators import error_message
-
+from dcc_qc.checkers import error_message
+warnings.warn("{} is deprecated. Use runner.py".format(__name__), DeprecationWarning)
 
 class HathiQCRunner(AbsRunner):
     @staticmethod

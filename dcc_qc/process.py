@@ -1,10 +1,12 @@
 import abc
 
-from dcc_qc import validators
+from dcc_qc import checkers
 
 
 class AbsProcess(metaclass=abc.ABCMeta):
     """Implement this abstract class to to use a process with the task manager."""
+
+    suite = None
 
     @abc.abstractmethod
     def setup(self):
@@ -41,5 +43,6 @@ class AbsProcessorResults(metaclass=abc.ABCMeta):
 
     @property
     @abc.abstractmethod
-    def result(self) -> validators.Results:
+    def result(self) -> checkers.Results:
         pass
+

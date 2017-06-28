@@ -2,7 +2,7 @@ import typing
 
 import logging
 
-from dcc_qc.validators import results
+from dcc_qc.checkers import results
 from dcc_qc import task_states
 from dcc_qc import process
 from dcc_qc.task_states import statuses

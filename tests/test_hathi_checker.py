@@ -2,10 +2,10 @@ import os
 
 import pytest
 
-import dcc_qc.validators.hathi_lab_factory
+import dcc_qc.checkers.hathi_lab_factory
 import pathlib
-from dcc_qc.validators import error_message
-from dcc_qc import validators
+from dcc_qc.checkers import error_message
+from dcc_qc import checkers
 
 BASE_ROOT = "T://"
 
@@ -494,7 +494,7 @@ def files_preservation_good(tmpdir):
 def test_access_job_identifier_bad(access_7209692):
     invalid_files = ["00000004.tif", '00000008.tif']
 
-    validator_factory = dcc_qc.validators.hathi_lab_factory.AccessValidators()
+    validator_factory = dcc_qc.checkers.hathi_lab_factory.AccessCheckers()
     validator = validator_factory.metadata_checker()
 
     for root, dirs, files in os.walk(access_7209692):
@@ -512,7 +512,7 @@ def test_access_job_identifier_bad(access_7209692):
 def test_access_metadata_title_incorrect(access_7209692):
     invalid_files = ["00000014.tif", '00000022.tif']
 
-    validator_factory = dcc_qc.validators.hathi_lab_factory.AccessValidators()
+    validator_factory = dcc_qc.checkers.hathi_lab_factory.AccessCheckers()
     validator = validator_factory.metadata_checker()
 
     for root, dirs, files in os.walk(access_7209692):
@@ -530,7 +530,7 @@ def test_access_metadata_title_incorrect(access_7209692):
 def test_access_metadata_credit_line_missing(access_7209692):
     invalid_files = ["00000023.tif"]
 
-    validator_factory = dcc_qc.validators.hathi_lab_factory.AccessValidators()
+    validator_factory = dcc_qc.checkers.hathi_lab_factory.AccessCheckers()
     validator = validator_factory.metadata_checker()
 
     for root, dirs, files in os.walk(access_7209692):
@@ -548,7 +548,7 @@ def test_access_metadata_credit_line_missing(access_7209692):
 def test_access_metadata_creator_missing(access_7209692):
     invalid_files = ["00000026.tif"]
 
-    validator_factory = dcc_qc.validators.hathi_lab_factory.AccessValidators()
+    validator_factory = dcc_qc.checkers.hathi_lab_factory.AccessCheckers()
     validator = validator_factory.metadata_checker()
 
     for root, dirs, files in os.walk(access_7209692):
@@ -569,7 +569,7 @@ def test_access_specs_incorrect(access_7210012):
                      "00000027.tif",
                      "00000033.tif"]
 
-    validator_factory = dcc_qc.validators.hathi_lab_factory.AccessValidators()
+    validator_factory = dcc_qc.checkers.hathi_lab_factory.AccessCheckers()
     validator = validator_factory.technical_checker()
 
     for root, dirs, files in os.walk(access_7210012):
@@ -585,7 +585,7 @@ def test_access_specs_incorrect(access_7210012):
 
 @pytest.mark.skip(reason="No way to test this currently")
 def test_access_specs_correct(access_good):
-    validator_factory = dcc_qc.validators.hathi_lab_factory.AccessValidators()
+    validator_factory = dcc_qc.checkers.hathi_lab_factory.AccessCheckers()
     validator = validator_factory.technical_checker()
 
     for root, dirs, files in os.walk(access_good):
@@ -597,7 +597,7 @@ def test_access_specs_correct(access_good):
 def test_access_file_naming_incorrect(access_7210012):
     invalid_files = ["0000020.tif", "0000020.txt"]
 
-    validator_factory = dcc_qc.validators.hathi_lab_factory.AccessValidators()
+    validator_factory = dcc_qc.checkers.hathi_lab_factory.AccessCheckers()
     validator = validator_factory.naming_checker()
 
     for root, dirs, files in os.walk(access_7210012):
@@ -617,7 +617,7 @@ def test_access_file_naming_incorrect(access_7210012):
 
 
 def test_access_file_naming_correct(access_good):
-    validator_factory = dcc_qc.validators.hathi_lab_factory.AccessValidators()
+    validator_factory = dcc_qc.checkers.hathi_lab_factory.AccessCheckers()
     validator = validator_factory.naming_checker()
 
     for root, dirs, files in os.walk(access_good):
@@ -632,7 +632,7 @@ def test_access_file_naming_correct(access_good):
 
 
 def test_preservation_file_naming_correct(preservation_good):
-    validator_factory = dcc_qc.validators.hathi_lab_factory.PreservationValidators()
+    validator_factory = dcc_qc.checkers.hathi_lab_factory.PreservationCheckers()
     validator = validator_factory.naming_checker()
 
     for root, dirs, files in os.walk(preservation_good):
@@ -649,75 +649,14 @@ def test_preservation_file_naming_correct(preservation_good):
 def test_access_files_found_all(access_good):
     path = os.path.join(access_good, "access", "7212907")
 
-    validator_factory = dcc_qc.validators.hathi_lab_factory.AccessValidators()
+    validator_factory = dcc_qc.checkers.hathi_lab_factory.AccessCheckers()
     validator = validator_factory.completeness_checker()
     result = validator.check(path)
     assert result.valid
 
 
-# def test_access_files_text_missing(access_7210438):
-#     def has_missing_textfile_error(errors):
-#         for error in errors:
-#             if "is missing " in error and ".txt" in error:
-#                 return True
-#         else:
-#             return False
-#
-#     validator_factory = dcc_qc.validators.hathi_lab_factory.AccessValidators()
-#     validator = validator_factory.completeness_checker()
-#
-#     path = next(access_7210438)[0]
-#     result = validator.check(path)
-#     assert not result.valid
-#     assert has_missing_textfile_error(result.errors)
-#     assert result.result_type == "Access Directory Completeness Test"
-
-
-# def test_access_files_checksum_missing(access_7210438):
-#     def has_missing_checksum_error(errors):
-#         for error in errors:
-#             if "is missing checksum.md5" in error:
-#                 return True
-#         else:
-#             return False
-#
-#     validator_factory = dcc_qc.validators.hathi_lab_factory.AccessValidators()
-#     validator = validator_factory.completeness_checker()
-#     path = next(access_7210438)[0]
-#     result = validator.check(path)
-#     assert not result.valid
-#     assert has_missing_checksum_error(result.errors) is True
-
-
-# def test_access_files_marc_missing(access_7210438):
-#     def has_missing_marc_error(errors):
-#         for error in errors:
-#             if "is missing marc.xml" in error:
-#                 return True
-#         else:
-#             return False
-#
-#     validator_factory = dcc_qc.validators.hathi_lab_factory.AccessValidators()
-#     validator = validator_factory.completeness_checker()
-#
-#     path = next(access_7210438)[0]
-#     result = validator.check(path)
-#
-#     assert not result.valid
-#     assert has_missing_marc_error(result.errors) is True
-#
-#
-# def test_access_files_meta_missing(access_7210438):
-#     validator_factory = dcc_qc.validators.hathi_lab_factory.AccessValidators()
-#     validator = validator_factory.completeness_checker()
-#
-#     path = next(access_7210438)[0]
-#     result = validator.check(path)
-#     assert not result.valid
-
-
 def test_preservation_files_targets_missing(preservation_7208772):
-    validator_factory = dcc_qc.validators.hathi_lab_factory.PreservationValidators()
+    validator_factory = dcc_qc.checkers.hathi_lab_factory.PreservationCheckers()
     validator = validator_factory.completeness_checker()
 
     result = validator.check(preservation_7208772)
@@ -730,7 +669,7 @@ def test_preservation_files_targets_missing(preservation_7208772):
 def test_preservation_incorrect_specs(preservation_7209934):
     invalid_files = ["6895567.tif", "7210439.tif"]
 
-    validator_factory = dcc_qc.validators.hathi_lab_factory.PreservationValidators()
+    validator_factory = dcc_qc.checkers.hathi_lab_factory.PreservationCheckers()
     validator = validator_factory.technical_checker()
 
     for root, dirs, files in os.walk(preservation_7209934):
@@ -742,3 +681,9 @@ def test_preservation_incorrect_specs(preservation_7209934):
                 assert not result.valid
             else:
                 assert result.valid is True
+
+
+def test_get_suite():
+    suite = dcc_qc.checkers.get_check_suite("HathiLab")
+    assert isinstance(suite, dcc_qc.checkers.check_suite.HathiLab)
+    pass
