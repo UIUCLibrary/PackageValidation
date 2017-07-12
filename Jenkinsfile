@@ -223,6 +223,18 @@ pipeline {
                 sh "rsync -rv ./ \"${env.SCCM_STAGING_FOLDER}/${params.PROJECT_NAME}/\""
                 input("Deploy to production?")
             }
+        }
+
+        stage("Deploy - SCCM upload") {
+            agent any
+            when {
+                expression { params.DEPLOY == true && params.PACKAGE == true }
+            }
+            steps {
+                deleteDir()
+                unstash "msi"
+                sh "rsync -rv ./ ${env.SCCM_UPLOAD_FOLDER}/"
+            }
             post {
                 success {
                     git url: 'https://github.com/UIUCLibrary/sccm_deploy_message_generator.git'
@@ -237,18 +249,6 @@ pipeline {
                     archiveArtifacts artifacts: "deployment_request.txt"
                     echo(readFile('deployment_request.txt'))
                 }
-            }
-        }
-
-        stage("Deploy - SCCM upload") {
-            agent any
-            when {
-                expression { params.DEPLOY == true && params.PACKAGE == true }
-            }
-            steps {
-                deleteDir()
-                unstash "msi"
-                sh "rsync -rv ./ ${env.SCCM_UPLOAD_FOLDER}/"
             }
         }
     }
