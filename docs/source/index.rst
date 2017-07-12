@@ -31,6 +31,7 @@ Extras
    :maxdepth: 1
 
    dependencies
+   changelog
 
 Indices and tables
 ==================
