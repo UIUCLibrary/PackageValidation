@@ -75,6 +75,7 @@ setup(
             "packages":['six', "appdirs", "packaging"],
         },
         "bdist_msi": {
+            "upgrade-code": "{2FB4B947-68DA-45EC-956B-6A9B85D1E060}",
             "data": {
                 "Shortcut": shortcut_table,
                 "Directory": directory_table
