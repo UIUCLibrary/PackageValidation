@@ -9,20 +9,30 @@ from dcc_qc import hathi_qc_runner
 from dcc_qc.runner import Runner
 from dcc_qc import configure_logging, reports, profiles
 
+class ListProfilesAction(argparse.Action):
+    def __init__(self, option_strings, dest, nargs=0, const=None, default=None, type=None, choices=None,
+                 required=False, help=None, metavar=None):
+        super().__init__(option_strings, dest, nargs, const, default, type, choices, required, help, metavar)
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        profiles = dcc_qc.profiles.get_available()
+
+        print("Available profiles:\n")
+        for profile in profiles:
+            print(profile)
+        parser.exit()
+
 
 def get_parser():
     parser = argparse.ArgumentParser()
+    parser.add_argument("--version", action="version", version=dcc_qc.__version__)
+    parser.add_argument("--list-profiles", action=ListProfilesAction)
 
-    command_group = parser.add_mutually_exclusive_group()
-
-    command_group.add_argument("--list-profiles", dest="list_profiles", action="store_true", help="List available package profiles")
-    command_group.add_argument("--version", action="version", version=dcc_qc.__version__)
-
-    process_group = command_group.add_argument_group()
-    # process_group = command_group.add_argument_group()
-    process_group.add_argument("profile", nargs="?", help="Type of package to validate")
-    process_group.add_argument("path", nargs="?", help="Directory of packages to be validated")
+    process_group = parser.add_argument_group()
+    process_group.add_argument("profile", choices=dcc_qc.profiles.get_available(), help="Type of package to validate")
+    process_group.add_argument("path", help="Directory of packages to be validated")
     process_group.add_argument("--save-report", dest="report_name", help="Save report to a file")
+
     debug_group = process_group.add_argument_group("Debug")
     debug_group.add_argument(
         '--debug',
@@ -31,10 +41,10 @@ def get_parser():
     debug_group.add_argument("--log-debug", dest="log_debug", help="Save debug information to a file")
     return parser
 
+
 def get_args(parser):
 
     args = parser.parse_args()
-
     return args
 
 
@@ -47,11 +57,6 @@ def find_arg_errors(args):
         yield "Error missing path"
 
 
-def list_profiles():
-    profiles = dcc_qc.profiles.get_available()
-    for profile in profiles:
-        print(profile)
-
 
 def main():
     logger = logging.getLogger(__name__)
@@ -63,27 +68,17 @@ def main():
         for er in arg_errors:
             print(er, file=sys.stderr)
         sys.exit(1)
-    if args.list_profiles:
-        list_profiles()
-        sys.exit()
     configure_logging.configure_logger(debug_mode=args.debug, log_file=args.log_debug)
     logger.debug("Using args: {}".format(args))
 
     ###################################################
     if args.profile:
-        try:
-            profile = profiles.get_profile(args.profile)
-        except KeyError as e:
-            logger.error("Invalid profile {}".format(e))
-            sys.exit(1)
-
+        profile = profiles.get_profile(args.profile)
         runner = Runner(args.path, profile)
         logger.debug("Starting runner")
         runner.run()
         logger.debug("Runner finished")
         report_results(runner, file=args.report_name)
-    else:
-        parser.print_help()
 
 
 def report_results(runner, file=None):
