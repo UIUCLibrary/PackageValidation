@@ -22,7 +22,7 @@ setup(
     test_suite="tests",
     tests_require=['pytest'],
     url=metadata["__url__"],
-    entry_points={"console_scripts": ["qcpkg = dcc_qc.cli:main"]},
+    entry_points={"console_scripts": ["qcpkg = dcc_qc.__main__:main"]},
     license='University of Illinois/NCSA Open Source License',
     author=metadata["__author__"],
     author_email=metadata["__author_email__"],
