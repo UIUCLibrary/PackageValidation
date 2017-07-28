@@ -1,8 +1,15 @@
 from setuptools import setup
-import dcc_qc
+import os
+
+metadata = dict()
+metadata_file = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'dcc_qc', '__version__.py')
+with open(metadata_file, 'r', encoding='utf-8') as f:
+    exec(f.read(), metadata)
+
+
 setup(
-    name=dcc_qc.__title__,
-    version=dcc_qc.__version__,
+    name=metadata["__title__"],
+    version=metadata["__version__"],
     packages=[
         'dcc_qc',
         'dcc_qc.packages',
@@ -14,10 +21,10 @@ setup(
     ],
     test_suite="tests",
     tests_require=['pytest'],
-    url=dcc_qc.__url__,
+    url=metadata["__url__"],
     entry_points={"console_scripts": ["qcpkg = dcc_qc.cli:main"]},
-    license='',
-    author=dcc_qc.__author__,
-    author_email=dcc_qc.__author_email__,
-    description=dcc_qc.__description__
+    license='University of Illinois/NCSA Open Source License',
+    author=metadata["__author__"],
+    author_email=metadata["__author_email__"],
+    description=metadata["__description__"]
 )
