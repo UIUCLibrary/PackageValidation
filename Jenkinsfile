@@ -27,7 +27,7 @@ pipeline {
             steps {
                 echo "Cloning source"
                 stash includes: "**", name: "Source", useDefaultExcludes: false
-                stash includes: 'deployment.yml', name: "Deployment"
+//                stash includes: 'deployment.yml', name: "Deployment"
             }
         }
         stage("Unit tests") {
