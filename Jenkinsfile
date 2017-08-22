@@ -205,17 +205,7 @@ pipeline {
                 )
             }
         }
-        stage("Update online documentation") {
-            agent any
-            when {
-                expression { params.UPDATE_DOCS == true}
-            }
 
-            steps {
-                updateOnlineDocs url_subdomain: params.URL_SUBFOLDER, stash_name: "HTML Documentation"
-
-            }
-        }
         stage("Deploy - Staging") {
             agent any
             when {
@@ -246,6 +236,17 @@ pipeline {
                     }
 
                 }
+            }
+        }
+        stage("Update online documentation") {
+            agent any
+            when {
+                expression { params.UPDATE_DOCS == true}
+            }
+
+            steps {
+                updateOnlineDocs url_subdomain: params.URL_SUBFOLDER, stash_name: "HTML Documentation"
+
             }
         }
     }
