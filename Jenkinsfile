@@ -11,10 +11,10 @@ pipeline {
     parameters {
         string(name: "PROJECT_NAME", defaultValue: "Package Qc", description: "Name given to the project")
         booleanParam(name: "UNIT_TESTS", defaultValue: true, description: "Run Automated Unit Tests")
+        booleanParam(name: "ADDITIONAL_TESTS", defaultValue: true, description: "Run additional tests")
         booleanParam(name: "PACKAGE", defaultValue: true, description: "Create a Packages")
         booleanParam(name: "DEPLOY", defaultValue: false, description: "Deploy to SCCM")
 //        booleanParam(name: "BUILD_DOCS", defaultValue: true, description: "Build documentation")
-        booleanParam(name: "ADDITIONAL_TESTS", defaultValue: true, description: "Run additional tests")
         booleanParam(name: "UPDATE_DOCS", defaultValue: false, description: "Update the documentation")
         string(name: 'URL_SUBFOLDER', defaultValue: "package_qc", description: 'The directory that the docs should be saved under')
 
@@ -158,7 +158,7 @@ pipeline {
         stage("Packaging") {
             agent any
             when {
-                expression { params.PACKAGE == true }
+                expression { params.PACKAGE == true || params.DEPLOY == true }
             }
             steps {
                 parallel(
