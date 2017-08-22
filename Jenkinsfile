@@ -1,4 +1,7 @@
 #!/usr/bin/env groovy
+@Library("ds-utils")
+import org.ds.*
+
 pipeline {
     agent any
     parameters {
