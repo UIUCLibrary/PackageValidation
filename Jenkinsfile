@@ -63,30 +63,6 @@ pipeline {
                                 runner.run()
                             }
                         }
-//                        "Windows": {
-//                            node(label: 'Windows') {
-//                                deleteDir()
-//                                unstash "source"
-//                                bat "${env.TOX}  --skip-missing-interpreters"
-//                                junit 'reports/junit-*.xml'
-//
-//                            }
-//                        },
-//                        "Linux": {
-//                            node(label: "!Windows") {
-//                                deleteDir()
-//                                unstash "source"
-//                                withEnv(["PATH=${env.PYTHON3}/..:${env.PATH}"]) {
-//                                    sh """
-//                            ${env.PYTHON3} -m venv .env
-//                            . .env/bin/activate
-//                            pip install -r requirements.txt
-//                            tox  --skip-missing-interpreters -e py35 || true
-//                            """
-//                                }
-//                                junit 'reports/junit-*.xml'
-//                            }
-//                        }
                 )
             }
         }
@@ -131,29 +107,6 @@ pipeline {
             }
 
         }
-//        stage("Documentation") {
-//            agent any
-//            when {
-//                expression { params.BUILD_DOCS == true }
-//            }
-//
-//            steps {
-//                deleteDir()
-//                unstash "Source"
-//                withEnv(['PYTHON=${env.PYTHON3}']) {
-//                    dir('docs') {
-//                        sh 'make html SPHINXBUILD=$SPHINXBUILD'
-//                    }
-//                    stash includes: '**', name: "Documentation source", useDefaultExcludes: false
-//                }
-//            }
-//            post {
-//                success {
-//                    sh 'tar -czvf sphinx_html_docs.tar.gz -C docs/build/html .'
-//                    archiveArtifacts artifacts: 'sphinx_html_docs.tar.gz'
-//                }
-//            }
-//        }
 
         stage("Packaging") {
             agent any
@@ -164,21 +117,6 @@ pipeline {
                 parallel(
                         "Source Package": {
                             createSourceRelease(env.PYTHON3, "Source")
-//                            node(label: "!Windows") {
-//                                deleteDir()
-//                                unstash "Source"
-//                                withEnv(["PATH=${env.PYTHON3}/..:${env.PATH}"]) {
-//                                    sh """
-//                ${env.PYTHON3} -m venv .env
-//                . .env/bin/activate
-//                pip install -r requirements.txt
-//                python setup.py sdist
-//                """
-//                                    dir("dist") {
-//                                        archiveArtifacts artifacts: "*.tar.gz", fingerprint: true
-//                                    }
-//                                }
-//                            }
                         },
                         "Python Wheel:": {
                             node(label: "Windows") {
@@ -275,18 +213,7 @@ pipeline {
 
             steps {
                 updateOnlineDocs url_subdomain: params.URL_SUBFOLDER, stash_name: "HTML Documentation"
-//                deleteDir()
-//                script {
-//                    echo "Updating online documentation"
-//                    unstash "Documentation source"
-//                    try {
-//                        sh("rsync -rv -e \"ssh -i ${env.DCC_DOCS_KEY}\" docs/build/html/ ${env.DCC_DOCS_SERVER}/${params.URL_SUBFOLDER}/ --delete")
-//                    } catch (error) {
-//                        echo "Error with uploading docs"
-//                        throw error
-//                    }
-//
-//                }
+
             }
         }
         stage("Deploy - Staging") {
@@ -296,9 +223,6 @@ pipeline {
             }
             steps {
                 deployStash("msi", "${env.SCCM_STAGING_FOLDER}/${params.PROJECT_NAME}/")
-//                deleteDir()
-//                unstash "msi"
-//                sh "rsync -rv ./ \"${env.SCCM_STAGING_FOLDER}/${params.PROJECT_NAME}/\""
                 input("Deploy to production?")
             }
         }
@@ -310,9 +234,6 @@ pipeline {
             }
             steps {
                 deployStash("msi", "${env.SCCM_UPLOAD_FOLDER}")
-//                deleteDir()
-//                unstash "msi"
-//                sh "rsync -rv ./ ${env.SCCM_UPLOAD_FOLDER}/"
             }
             post {
                 success {
@@ -323,17 +244,7 @@ pipeline {
                         writeFile file: "deployment_request.txt", text: deployment_request
                         archiveArtifacts artifacts: "deployment_request.txt"
                     }
-//                    git url: 'https://github.com/UIUCLibrary/sccm_deploy_message_generator.git'
-//                    unstash "Deployment"
-//                    sh """${env.PYTHON3} -m venv .env
-//                      . .env/bin/activate
-//                      pip install --upgrade pip
-//                      pip install setuptools --upgrade
-//                      python setup.py install
-//                      deploymessage deployment.yml --save=deployment_request.txt
-//                  """
-//                    archiveArtifacts artifacts: "deployment_request.txt"
-//                    echo(readFile('deployment_request.txt'))
+
                 }
             }
         }
