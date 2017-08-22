@@ -103,7 +103,7 @@ html_theme = 'alabaster'
 # documentation.
 #
 html_theme_options = {
-    'logo': 'full_mark_horz_bw.png',
+    'logo': '_static/full_mark_horz_bw.png',
     'github_user': 'uiuclibrary',
     'github_repo': 'PackageValidation',
     'github_button': True,
@@ -111,7 +111,7 @@ html_theme_options = {
     'description': dcc_qc.__description__
 }
 
-html_logo = 'full_mark_horz_bw.gif'
+html_logo = '_static/full_mark_horz_bw.gif'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
