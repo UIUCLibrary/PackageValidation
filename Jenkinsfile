@@ -89,29 +89,70 @@ pipeline {
                 )
             }
         }
-        stage("Documentation") {
-            agent any
+        stage("Additional tests") {
             when {
-                expression { params.BUILD_DOCS == true }
+                expression { params.ADDITIONAL_TESTS == true }
             }
 
             steps {
-                deleteDir()
-                unstash "Source"
-                withEnv(['PYTHON=${env.PYTHON3}']) {
-                    dir('docs') {
-                        sh 'make html SPHINXBUILD=$SPHINXBUILD'
-                    }
-                    stash includes: '**', name: "Documentation source", useDefaultExcludes: false
-                }
+                parallel(
+                        "Documentation": {
+                            script {
+                                def runner = new Tox(this)
+                                runner.env = "docs"
+                                runner.windows = false
+                                runner.stash = "Source"
+                                runner.label = "!Windows"
+                                runner.post = {
+                                    dir('.tox/dist/html/') {
+                                        stash includes: '**', name: "HTML Documentation", useDefaultExcludes: false
+                                    }
+                                }
+                                runner.run()
+
+                            }
+                        },
+                        "MyPy": {
+                            script {
+                                def runner = new Tox(this)
+                                runner.env = "mypy"
+                                runner.windows = false
+                                runner.stash = "Source"
+                                runner.label = "!Windows"
+                                runner.post = {
+                                    junit 'mypy.xml'
+                                }
+                                runner.run()
+
+                            }
+                        }
+                )
             }
-            post {
-                success {
-                    sh 'tar -czvf sphinx_html_docs.tar.gz -C docs/build/html .'
-                    archiveArtifacts artifacts: 'sphinx_html_docs.tar.gz'
-                }
-            }
+
         }
+//        stage("Documentation") {
+//            agent any
+//            when {
+//                expression { params.BUILD_DOCS == true }
+//            }
+//
+//            steps {
+//                deleteDir()
+//                unstash "Source"
+//                withEnv(['PYTHON=${env.PYTHON3}']) {
+//                    dir('docs') {
+//                        sh 'make html SPHINXBUILD=$SPHINXBUILD'
+//                    }
+//                    stash includes: '**', name: "Documentation source", useDefaultExcludes: false
+//                }
+//            }
+//            post {
+//                success {
+//                    sh 'tar -czvf sphinx_html_docs.tar.gz -C docs/build/html .'
+//                    archiveArtifacts artifacts: 'sphinx_html_docs.tar.gz'
+//                }
+//            }
+//        }
 
         stage("Packaging") {
             agent any
