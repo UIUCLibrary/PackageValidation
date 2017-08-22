@@ -26,7 +26,7 @@ pipeline {
 
             steps {
                 echo "Cloning source"
-                stash includes: "**", name: "source", useDefaultExcludes: false
+                stash includes: "**", name: "Source", useDefaultExcludes: false
                 stash includes: 'deployment.yml', name: "Deployment"
             }
         }
@@ -37,29 +37,55 @@ pipeline {
             steps {
                 parallel(
                         "Windows": {
-                            node(label: 'Windows') {
-                                deleteDir()
-                                unstash "source"
-                                bat "${env.TOX}  --skip-missing-interpreters"
-                                junit 'reports/junit-*.xml'
-
+                            script {
+                                def runner = new Tox(this)
+                                runner.env = "pytest"
+                                runner.windows = true
+                                runner.stash = "Source"
+                                runner.label = "Windows"
+                                runner.post = {
+                                    junit 'reports/junit-*.xml'
+                                }
+                                runner.run()
                             }
                         },
                         "Linux": {
-                            node(label: "!Windows") {
-                                deleteDir()
-                                unstash "source"
-                                withEnv(["PATH=${env.PYTHON3}/..:${env.PATH}"]) {
-                                    sh """
-                            ${env.PYTHON3} -m venv .env
-                            . .env/bin/activate
-                            pip install -r requirements.txt
-                            tox  --skip-missing-interpreters -e py35 || true
-                            """
+                            script {
+                                def runner = new Tox(this)
+                                runner.env = "pytest"
+                                runner.windows = false
+                                runner.stash = "Source"
+                                runner.label = "!Windows"
+                                runner.post = {
+                                    junit 'reports/junit-*.xml'
                                 }
-                                junit 'reports/junit-*.xml'
+                                runner.run()
                             }
                         }
+//                        "Windows": {
+//                            node(label: 'Windows') {
+//                                deleteDir()
+//                                unstash "source"
+//                                bat "${env.TOX}  --skip-missing-interpreters"
+//                                junit 'reports/junit-*.xml'
+//
+//                            }
+//                        },
+//                        "Linux": {
+//                            node(label: "!Windows") {
+//                                deleteDir()
+//                                unstash "source"
+//                                withEnv(["PATH=${env.PYTHON3}/..:${env.PATH}"]) {
+//                                    sh """
+//                            ${env.PYTHON3} -m venv .env
+//                            . .env/bin/activate
+//                            pip install -r requirements.txt
+//                            tox  --skip-missing-interpreters -e py35 || true
+//                            """
+//                                }
+//                                junit 'reports/junit-*.xml'
+//                            }
+//                        }
                 )
             }
         }
@@ -71,7 +97,7 @@ pipeline {
 
             steps {
                 deleteDir()
-                unstash "source"
+                unstash "Source"
                 withEnv(['PYTHON=${env.PYTHON3}']) {
                     dir('docs') {
                         sh 'make html SPHINXBUILD=$SPHINXBUILD'
@@ -97,7 +123,7 @@ pipeline {
                         "Source Package": {
                             node(label: "!Windows") {
                                 deleteDir()
-                                unstash "source"
+                                unstash "Source"
                                 withEnv(["PATH=${env.PYTHON3}/..:${env.PATH}"]) {
                                     sh """
                 ${env.PYTHON3} -m venv .env
@@ -114,7 +140,7 @@ pipeline {
                         "Python Wheel:": {
                             node(label: "Windows") {
                                 deleteDir()
-                                unstash "source"
+                                unstash "Source"
                                 withEnv(["PATH=${env.PYTHON3}/..:${env.PATH}"]) {
                                     bat """
                   ${env.PYTHON3} -m venv .env
@@ -131,7 +157,7 @@ pipeline {
                         "Python CX_Freeze Windows": {
                             node(label: "Windows") {
                                 deleteDir()
-                                unstash "source"
+                                unstash "Source"
 
                                 withEnv(["PATH=${env.PYTHON3}/..:${env.PATH}"]) {
 
