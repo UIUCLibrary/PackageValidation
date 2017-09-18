@@ -4,7 +4,7 @@ from dcc_qc import profiles
 from . import profile
 
 class ProfileFactory:
-    profiles = {}
+    profiles = {}  # type: ignore
 
     def __init__(self):
         self.load_packages()

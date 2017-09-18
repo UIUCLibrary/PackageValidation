@@ -180,10 +180,10 @@ class AccessCompletenessChecker(AbsChecker):
         Returns: list of errors
 
         """
-        required_files = set()
+        required_files = set()  # type: ignore
         # required_files = {"checksum.md5", "marc.xml", "meta.yml"}
         valid_image_extensions = [".tif"]
-        valid_text_extensions = []
+        valid_text_extensions = []  # type: ignore
         errors = []
         valid = True
         image_files = set()
@@ -223,7 +223,7 @@ class AccessCompletenessChecker(AbsChecker):
             valid = False
             new_error = error_message.ValidationError(
                 "Missing expected file(s), [{}]".format(", ".join(required_files)))
-            new_error.source(path)
+            new_error.source = path
             errors.append(new_error)
             # errors.append("{} is missing {}".format(path, _file))
 

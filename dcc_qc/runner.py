@@ -7,7 +7,7 @@ from dcc_qc.task_states import TaskStatus
 
 
 class Runner(abs_runner.AbsRunner):
-    packages = []
+    packages = []  # type: ignore
 
     def run(self):
         logger = logging.getLogger(__name__)
@@ -46,7 +46,7 @@ class Runner(abs_runner.AbsRunner):
         for package in self.packages:
             self.manager.push(self.profile.create_validate_package_task(package))
 
-    def __init__(self, entry_path, profile:AbsProfile):
+    def __init__(self, entry_path, profile:AbsProfile) -> None:
         self.profile = profile
 
         super().__init__(entry_path)

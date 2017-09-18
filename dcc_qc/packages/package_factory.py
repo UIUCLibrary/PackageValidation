@@ -4,7 +4,7 @@ from . import abs_package
 
 
 class PackageFactory:
-    packages = {}
+    packages = {}  # type: ignore
 
     def __init__(self):
         self.load_packages()
