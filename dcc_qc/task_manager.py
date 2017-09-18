@@ -1,11 +1,11 @@
-import collections
+from collections.abc import MutableSequence
 import typing
 
 from dcc_qc import process
 from dcc_qc.tasks import Task
 
 
-class TaskManager(collections.abc.MutableSequence):
+class TaskManager(MutableSequence):
     def __init__(self):
         self._processes = []
 
@@ -18,7 +18,7 @@ class TaskManager(collections.abc.MutableSequence):
     def __len__(self):
         return len(self._processes)
 
-    def __iter__(self) -> typing.Iterable[process.AbsProcess]:
+    def __iter__(self):
         for p in self._processes:
             yield p
 
