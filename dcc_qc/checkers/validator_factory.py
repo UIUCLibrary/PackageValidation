@@ -4,7 +4,7 @@ from dcc_qc import checkers
 
 
 class CheckersFactory:
-    validators = {}
+    validators = {}  # type: ignore
 
     def __init__(self):
         self.load_validators()

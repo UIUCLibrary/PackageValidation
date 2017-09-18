@@ -5,11 +5,11 @@ import os
 import itertools
 from collections import namedtuple
 
-class HathiSubmitPackage(AbsPackage):
 
+class HathiSubmitPackage(AbsPackage):
     @staticmethod
     def get_packages(path):
-        for package_path in filter(lambda x: x.is_dir(),os.scandir(path)):
+        for package_path in filter(lambda x: x.is_dir(), os.scandir(path)):
             yield PackageItem(
                 root=package_path.path,
                 identifier=package_path.name,
@@ -17,4 +17,3 @@ class HathiSubmitPackage(AbsPackage):
                     "access": package_path.path,
                 }
             )
-

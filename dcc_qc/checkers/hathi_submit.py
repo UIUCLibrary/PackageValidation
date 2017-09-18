@@ -140,7 +140,6 @@ class PresTechnicalChecker(AbsChecker):
 
 
 class AccessCompletenessChecker(AbsChecker):
-
     @staticmethod
     def find_missing_by_number(path):
         def check_ext(ext):
@@ -158,16 +157,16 @@ class AccessCompletenessChecker(AbsChecker):
                         raise ValueError("Unable to determine the expected file names based on files in path")
 
                     for i in range(1, highest_value):
-                        expected_file_name = "{}{}".format(str(i).zfill(8),ext)
+                        expected_file_name = "{}{}".format(str(i).zfill(8), ext)
                         if expected_file_name not in os.listdir(path):
                             yield expected_file_name
                 except IndexError as e:
                     raise
+
         for r in check_ext(".jp2"):
             yield r
         for r in check_ext(".txt"):
             yield r
-
 
     @staticmethod
     def checker_name():
@@ -184,7 +183,7 @@ class AccessCompletenessChecker(AbsChecker):
         Returns: list of errors
 
         """
-        required_files = set()
+        required_files = set()  # type: ignore
         required_files = {"checksum.md5", "marc.xml", "meta.yml"}
         valid_image_extensions = [".jp2"]
         valid_text_extensions = [".txt", ".xml", ".yml"]
@@ -292,7 +291,6 @@ class PackageComponentChecker(AbsChecker):
     def checker_name():
         return "Package component checker"
 
-
     def check(self, path):
         # NOTE: this uses the package because of the way hathi packages are formatted
         valid = True
@@ -301,12 +299,10 @@ class PackageComponentChecker(AbsChecker):
         return checkers.Results(self.checker_name(), valid=valid, errors=errors)
 
 
-
 class PackageStructureChecker(AbsChecker):
     @staticmethod
     def checker_name():
         return "Package structure checker"
-
 
     def check(self, path):
         valid = True

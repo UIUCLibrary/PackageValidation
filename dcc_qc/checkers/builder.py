@@ -11,8 +11,6 @@ class Checkers:
         self.package_checker = None
 
 
-
-
 class AbsBuilder(metaclass=abc.ABCMeta):
     def create_new(self):
         pass
@@ -30,12 +28,11 @@ class AbsBuilder(metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def get_checker(self)->Checkers:
+    def get_checker(self) -> Checkers:
         pass
 
 
 class HathiLabBuilder(AbsBuilder):
-
     def create_new(self):
         return Checkers("HathiLab")
 
@@ -50,13 +47,12 @@ class HathiLabBuilder(AbsBuilder):
 
 
 class Director:
-    def __init__(self, builder: AbsBuilder):
+    def __init__(self, builder: AbsBuilder) -> None:
         self.builder = builder
 
-    def construct(self)->Checkers:
+    def construct(self) -> Checkers:
         new_checkers = self.builder.create_new()
         new_checkers.access_checker = self.builder.create_access_checkers()
         new_checkers.preservation_checker = self.builder.create_package_checkers()
         new_checkers.package_checker = self.builder.create_preservation_checkers()
         return new_checkers
-

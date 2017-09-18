@@ -67,7 +67,7 @@ class Null(AbsCheckSuite):
 
 
 class CheckSuiteFactory:
-    suits = {}
+    suits = {}  # type: ignore
 
     def __init__(self):
         self.load_suites()

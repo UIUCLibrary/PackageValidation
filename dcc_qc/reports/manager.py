@@ -3,7 +3,7 @@ from .handler import AbsHandler
 
 
 class ReportManager(metaclass=abc.ABCMeta):
-    _handlers = set()
+    _handlers = set()  # type: ignore
 
     def add_handler(self, handler: AbsHandler):
         self._handlers.add(handler)
