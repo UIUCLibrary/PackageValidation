@@ -32,7 +32,7 @@ class Task:
         return len(self.processes)
 
     @property
-    def results(self) -> typing.List[results.Results]:
+    def results(self):
         """List of public result produced during the run() method, if any."""
         return self._results
 
