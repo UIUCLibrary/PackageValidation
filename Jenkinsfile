@@ -132,7 +132,7 @@ pipeline {
                             }
                         }
 
-                        bat "venv\\Scripts\\pip.exe install -r source\\requirements.txt -r source\\requirements-dev.txt -r source\\requirements-freeze.txt --upgrade-strategy only-if-needed"
+                        bat "venv\\Scripts\\pip.exe install -r source\\requirements.txt -r --upgrade-strategy only-if-needed"
                         bat "venv\\Scripts\\pip.exe install devpi-client lxml pytest-cov --upgrade-strategy only-if-needed"
 
 
