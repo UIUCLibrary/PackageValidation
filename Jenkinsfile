@@ -132,7 +132,7 @@ pipeline {
                             }
                         }
 
-                        bat "venv\\Scripts\\pip.exe install -r source\\requirements.txt -r --upgrade-strategy only-if-needed"
+                        bat "venv\\Scripts\\pip.exe install -r source\\requirements.txt --upgrade-strategy only-if-needed"
                         bat "venv\\Scripts\\pip.exe install devpi-client lxml pytest-cov --upgrade-strategy only-if-needed"
 
 
@@ -291,15 +291,6 @@ junit_filename                  = ${junit_filename}
                 }
             }
         }
-//         stage("Cloning source") {
-//             agent any
-
-//             steps {
-//                 echo "Cloning source"
-//                 stash includes: "**", name: "Source", useDefaultExcludes: false
-// //                stash includes: 'deployment.yml', name: "Deployment"
-//             }
-//         }
         stage("Unit tests") {
             when {
                 expression { params.UNIT_TESTS == true }
