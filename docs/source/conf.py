@@ -108,11 +108,11 @@ html_theme = 'alabaster'
 # documentation.
 #
 html_theme_options = {
-    'logo': '_static/full_mark_horz_bw.png',
+    # 'logo': '_static/full_mark_horz_bw.png',
     'github_user': 'uiuclibrary',
     'github_repo': 'PackageValidation',
     'github_button': True,
-    'logo_name': True,
+    # 'logo_name': True,
     'description': dcc_qc.__description__
 }
 
