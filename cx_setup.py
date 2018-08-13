@@ -3,7 +3,7 @@ import platform
 import pytest
 import dcc_qc
 
-includes = ['pkg_resources'] + pytest.freeze_includes()
+includes = ['pkg_resources', "appdirs"] + pytest.freeze_includes()
 
 
 def create_msi_tablename(python_name, fullname):
