@@ -138,7 +138,7 @@ pipeline {
                         }
 
                         bat "venv\\Scripts\\pip.exe install -r source\\requirements.txt --upgrade-strategy only-if-needed"
-                        bat "venv\\Scripts\\pip.exe install devpi-client lxml pytest-cov --upgrade-strategy only-if-needed"
+                        bat "venv\\Scripts\\pip.exe install devpi-client lxml pytest-cov mypy flake8 --upgrade-strategy only-if-needed"
 
 
 
