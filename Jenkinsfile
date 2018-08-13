@@ -242,9 +242,6 @@ junit_filename                  = ${junit_filename}
                     }
                 }
                 stage("Building Sphinx Documentation"){
-                    when {
-                        equals expected: true, actual: params.BUILD_DOCS
-                    }
                     steps {
                         dir("build/docs/html"){
                             deleteDir()
@@ -777,32 +774,8 @@ junit_filename                  = ${junit_filename}
                         ]
                     )
                 }
-                // updateOnlineDocs stash_name: "HTML Documentation", url_subdomain: params.URL_SUBFOLDER
             }
         }
-
-        // stage("Update online documentation") {
-        //     agent any
-        //     when {
-        //         expression { params.UPDATE_DOCS == true }
-        //     }
-
-        //     steps {
-        //         updateOnlineDocs url_subdomain: params.URL_SUBFOLDER, stash_name: "HTML Documentation"
-        //     }
-        // }
-//    }
-//        stage("Update online documentation") {
-//            agent any
-//            when {
-//                expression { params.UPDATE_DOCS == true}
-//            }
-//
-//            steps {
-//                updateOnlineDocs url_subdomain: params.URL_SUBFOLDER, stash_name: "HTML Documentation"
-//
-//            }
-//        }
     }
     post{
         cleanup{
