@@ -468,6 +468,7 @@ junit_filename                  = ${junit_filename}
                         bat "venv\\Scripts\\python.exe -m pip install -U pip>=18.0"
                         bat "venv\\Scripts\\pip.exe install -U setuptools"
                         bat "venv\\Scripts\\pip.exe install -r requirements.txt"
+                        bat "venv\\Scripts\\pip.exe install appdirs"
                         bat "venv\\Scripts\\python.exe cx_setup.py bdist_msi --add-to-path=true -k --bdist-dir build/msi"                        // bat "make freeze"
                     }
                     post{
