@@ -431,104 +431,159 @@ junit_filename                  = ${junit_filename}
         //     }
 
         // }
-
         stage("Packaging") {
-            agent any
-            when {
-                expression { params.PACKAGE == true || params.DEPLOY == true }
-            }
-            steps {
-                parallel(
-                        "Source Package": {
-                            createSourceRelease(env.PYTHON3, "Source")
-                        },
-                        "Python Wheel:": {
-                            node(label: "Windows") {
-                                deleteDir()
-                                unstash "Source"
-                                withEnv(["PATH=${env.PYTHON3}/..:${env.PATH}"]) {
-                                    bat """
-                  ${env.PYTHON3} -m venv .env
-                  call .env/Scripts/activate.bat
-                  pip install -r requirements.txt
-                  python setup.py bdist_wheel
-                """
-                                    dir("dist") {
-                                        archiveArtifacts artifacts: "*.whl", fingerprint: true
-                                    }
-                                }
-                            }
-                        },
-                        "Python CX_Freeze Windows": {
-                            node(label: "Windows") {
-                                deleteDir()
-                                unstash "Source"
+            parallel {
+                stage("Source and Wheel formats"){
+                    steps{
+                        dir("source"){
+                            bat "${WORKSPACE}\\venv\\scripts\\python.exe setup.py sdist -d ${WORKSPACE}\\dist bdist_wheel -d ${WORKSPACE}\\dist"
+                        }
 
-                                withEnv(["PATH=${env.PYTHON3}/..:${env.PATH}"]) {
-
-                                    // Build the exe so that pytest can be run
-                                    bat "${env.PYTHON3} cx_setup.py build --build-exe build/tmp"
-                                    script {
-                                        echo("Checking for VCRUNTIME140.dll")
-                                        if (fileExists('build/tmp/VCRUNTIME140.dll')) {
-                                            echo("Found for VCRUNTIME140.dll")
-                                        } else {
-                                            fail("Missing VCRUNTIME140.dll")
-                                        }
-                                    }
-
-                                    // run pytest on exe
-                                    bat """
-                  build\\tmp\\qcpkg.exe --pytest --verbose  --junitxml=reports/junit-frozen.xml --junit-prefix=frozen
-                  if not %errorlevel%==0 (
-                    echo errorlevel=%errorlevel%
-                    exit /b %errorlevel%
-                  )
-                """
-                                    junit 'reports/junit-*.xml'
-
-                                    // Package the exe into MSI
-                                    bat "${env.PYTHON3} cx_setup.py bdist_msi --add-to-path=true"
-                                    dir("dist") {
-                                        archiveArtifacts artifacts: "*.msi", fingerprint: true
-                                        stash includes: "*.msi", name: "msi"
-                                    }
-
-                                    // junit 'reports/junit-*.xml'
-
-                                    // validate MSI contents
-
-                                }
-                            }
-                            node(label: "Windows") {
-                                deleteDir()
-                                git url: 'https://github.com/UIUCLibrary/ValidateMSI.git'
-                                unstash "msi"
-                                // validate_msi.py
-
-                                bat """
-                ${env.PYTHON3} -m venv .env
-                call .env/Scripts/activate.bat
-                pip install -r requirements.txt
-                python setup.py install
-
-                echo Validating msi file(s)
-                FOR %%A IN (*.msi) DO (
-                  python validate_msi.py %%A frozen.yml
-                  if not %errorlevel%==0 (
-                    echo errorlevel=%errorlevel%
-                    exit /b %errorlevel%
-                  )
-                )
-              """
-                                archiveArtifacts artifacts: "*.msi", fingerprint: true
-
-
+                    }
+                    post{
+                        success{
+                            dir("dist"){
+                                archiveArtifacts artifacts: "*.whl", fingerprint: true
+                                archiveArtifacts artifacts: "*.tar.gz", fingerprint: true
                             }
                         }
-                )
+                    }
+                }
+                stage("Windows CX_Freeze MSI"){
+                    agent{
+                        node {
+                            label "Windows"
+                        }
+                    }
+                    options {
+                        skipDefaultCheckout true
+                    }
+                    steps{
+                        bat "dir"
+                        deleteDir()
+                        bat "dir"
+                        checkout scm
+                        bat "dir /s / B"
+                        bat "${tool 'CPython-3.6'} -m venv venv"
+                        bat "venv\\Scripts\\python.exe -m pip install -U pip>=18.0"
+                        bat "venv\\Scripts\\pip.exe install -U setuptools"
+                        bat "venv\\Scripts\\pip.exe install -r requirements.txt"
+                        bat "venv\\Scripts\\python.exe cx_setup.py bdist_msi --add-to-path=true -k --bdist-dir build/msi"                        // bat "make freeze"
+                    }
+                    post{
+                        success{
+                            dir("dist") {
+                                stash includes: "*.msi", name: "msi"
+                                archiveArtifacts artifacts: "*.msi", fingerprint: true
+                            }
+                        }
+                        cleanup{
+                            bat "dir"
+                            deleteDir()
+                            bat "dir"
+                        }
+                    }
+                }
             }
         }
+
+        // stage("Packaging") {
+        //     agent any
+        //     when {
+        //         expression { params.PACKAGE == true || params.DEPLOY == true }
+        //     }
+        //     steps {
+        //         parallel(
+        //                 "Source Package": {
+        //                     createSourceRelease(env.PYTHON3, "Source")
+        //                 },
+        //                 "Python Wheel:": {
+        //                     node(label: "Windows") {
+        //                         deleteDir()
+        //                         unstash "Source"
+        //                         withEnv(["PATH=${env.PYTHON3}/..:${env.PATH}"]) {
+        //                             bat """
+        //           ${env.PYTHON3} -m venv .env
+        //           call .env/Scripts/activate.bat
+        //           pip install -r requirements.txt
+        //           python setup.py bdist_wheel
+        //         """
+        //                             dir("dist") {
+        //                                 archiveArtifacts artifacts: "*.whl", fingerprint: true
+        //                             }
+        //                         }
+        //                     }
+        //                 },
+        //                 "Python CX_Freeze Windows": {
+        //                     node(label: "Windows") {
+        //                         deleteDir()
+        //                         unstash "Source"
+
+        //                         withEnv(["PATH=${env.PYTHON3}/..:${env.PATH}"]) {
+
+        //                             // Build the exe so that pytest can be run
+        //                             bat "${env.PYTHON3} cx_setup.py build --build-exe build/tmp"
+        //                             script {
+        //                                 echo("Checking for VCRUNTIME140.dll")
+        //                                 if (fileExists('build/tmp/VCRUNTIME140.dll')) {
+        //                                     echo("Found for VCRUNTIME140.dll")
+        //                                 } else {
+        //                                     fail("Missing VCRUNTIME140.dll")
+        //                                 }
+        //                             }
+
+        //                             // run pytest on exe
+        //                             bat """
+        //           build\\tmp\\qcpkg.exe --pytest --verbose  --junitxml=reports/junit-frozen.xml --junit-prefix=frozen
+        //           if not %errorlevel%==0 (
+        //             echo errorlevel=%errorlevel%
+        //             exit /b %errorlevel%
+        //           )
+        //         """
+        //                             junit 'reports/junit-*.xml'
+
+        //                             // Package the exe into MSI
+        //                             bat "${env.PYTHON3} cx_setup.py bdist_msi --add-to-path=true"
+        //                             dir("dist") {
+        //                                 archiveArtifacts artifacts: "*.msi", fingerprint: true
+        //                                 stash includes: "*.msi", name: "msi"
+        //                             }
+
+        //                             // junit 'reports/junit-*.xml'
+
+        //                             // validate MSI contents
+
+        //                         }
+        //                     }
+        //                     node(label: "Windows") {
+        //                         deleteDir()
+        //                         git url: 'https://github.com/UIUCLibrary/ValidateMSI.git'
+        //                         unstash "msi"
+        //                         // validate_msi.py
+
+        //                         bat """
+        //         ${env.PYTHON3} -m venv .env
+        //         call .env/Scripts/activate.bat
+        //         pip install -r requirements.txt
+        //         python setup.py install
+
+        //         echo Validating msi file(s)
+        //         FOR %%A IN (*.msi) DO (
+        //           python validate_msi.py %%A frozen.yml
+        //           if not %errorlevel%==0 (
+        //             echo errorlevel=%errorlevel%
+        //             exit /b %errorlevel%
+        //           )
+        //         )
+        //       """
+        //                         archiveArtifacts artifacts: "*.msi", fingerprint: true
+
+
+        //                     }
+        //                 }
+        //         )
+        //     }
+        // }
 
         stage("Deploy - Staging") {
             agent any
