@@ -28,15 +28,9 @@ pipeline {
     parameters {
         booleanParam(name: "FRESH_WORKSPACE", defaultValue: false, description: "Purge workspace before staring and checking out source")
         booleanParam(name: "TEST_RUN_DOCTEST", defaultValue: true, description: "Test documentation")
-//        booleanParam(name: "TEST_RUN_FLAKE8", defaultValue: true, description: "Run Flake8 static analysis")
         booleanParam(name: "TEST_RUN_PYTEST", defaultValue: true, description: "Run unit tests with PyTest")
         booleanParam(name: "TEST_RUN_MYPY", defaultValue: true, description: "Run MyPy static analysis")
         booleanParam(name: "TEST_RUN_TOX", defaultValue: true, description: "Run Tox Tests")
-        // string(name: "PROJECT_NAME", defaultValue: "Package Qc", description: "Name given to the project")
-        // booleanParam(name: "UNIT_TESTS", defaultValue: true, description: "Run Automated Unit Tests")
-        // booleanParam(name: "ADDITIONAL_TESTS", defaultValue: true, description: "Run additional tests")
-        // booleanParam(name: "PACKAGE", defaultValue: true, description: "Create a Packages")
-        // booleanParam(name: "DEPLOY", defaultValue: false, description: "Deploy to SCCM")
         booleanParam(name: "DEPLOY_DEVPI", defaultValue: true, description: "Deploy to devpi on http://devpy.library.illinois.edu/DS_Jenkins/${env.BRANCH_NAME}")
         booleanParam(name: "DEPLOY_DEVPI_PRODUCTION", defaultValue: false, description: "Deploy to https://devpi.library.illinois.edu/production/release")
         booleanParam(name: "UPDATE_DOCS", defaultValue: false, description: "Update the documentation")
@@ -755,14 +749,60 @@ junit_filename                  = ${junit_filename}
         stage("Update online documentation") {
             agent any
             when {
-                expression { params.UPDATE_DOCS == true}
+                expression { params.UPDATE_DOCS == true }
             }
-
             steps {
-                updateOnlineDocs url_subdomain: params.URL_SUBFOLDER, stash_name: "HTML Documentation"
-
+                dir("build/docs/html/"){
+                    bat "dir /s /B"
+                    sshPublisher(
+                        publishers: [
+                            sshPublisherDesc(
+                                configName: 'apache-ns - lib-dccuser-updater',
+                                sshLabel: [label: 'Linux'],
+                                transfers: [sshTransfer(excludes: '',
+                                execCommand: '',
+                                execTimeout: 120000,
+                                flatten: false,
+                                makeEmptyDirs: false,
+                                noDefaultExcludes: false,
+                                patternSeparator: '[, ]+',
+                                remoteDirectory: "${params.URL_SUBFOLDER}",
+                                remoteDirectorySDF: false,
+                                removePrefix: '',
+                                sourceFiles: '**')],
+                            usePromotionTimestamp: false,
+                            useWorkspaceInPromotion: false,
+                            verbose: true
+                            )
+                        ]
+                    )
+                }
+                // updateOnlineDocs stash_name: "HTML Documentation", url_subdomain: params.URL_SUBFOLDER
             }
         }
+
+        // stage("Update online documentation") {
+        //     agent any
+        //     when {
+        //         expression { params.UPDATE_DOCS == true }
+        //     }
+
+        //     steps {
+        //         updateOnlineDocs url_subdomain: params.URL_SUBFOLDER, stash_name: "HTML Documentation"
+        //     }
+        // }
+//    }
+//        stage("Update online documentation") {
+//            agent any
+//            when {
+//                expression { params.UPDATE_DOCS == true}
+//            }
+//
+//            steps {
+//                updateOnlineDocs url_subdomain: params.URL_SUBFOLDER, stash_name: "HTML Documentation"
+//
+//            }
+//        }
     }
     post{
         cleanup{
