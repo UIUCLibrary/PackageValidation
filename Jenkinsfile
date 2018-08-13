@@ -2,8 +2,25 @@
 @Library("ds-utils")
 import org.ds.*
 
+
+def PKG_NAME = "unknown"
+def PKG_VERSION = "unknown"
+def DOC_ZIP_FILENAME = "doc.zip"
+def junit_filename = "junit.xml"
+def REPORT_DIR = ""
+def VENV_ROOT = ""
+def VENV_PYTHON = ""
+def VENV_PIP = ""
+
 pipeline {
-    agent any
+    agent {
+        label "Windows && Python3"
+    }
+    options {
+        disableConcurrentBuilds()  //each branch has 1 job running at a time
+        timeout(60)  // Timeout after 60 minutes. This shouldn't take this long but it hangs for some reason
+        checkoutToSubdirectory("source")
+    }
     environment {
         mypy_args = "--junit-xml=mypy.xml"
         pytest_args = "--junitxml=reports/junit-{env:OS:UNKNOWN_OS}-{envname}.xml --junit-prefix={env:OS:UNKNOWN_OS}  --basetemp={envtmpdir}"
@@ -43,7 +60,7 @@ pipeline {
                                 runner.windows = true
                                 runner.stash = "Source"
                                 runner.label = "Windows"
-                                runner.post = {
+                                runner.p ost = {
                                     junit 'reports/junit-*.xml'
                                 }
                                 runner.run()
