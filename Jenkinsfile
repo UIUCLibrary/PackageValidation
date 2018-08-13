@@ -27,9 +27,14 @@ pipeline {
     }
     parameters {
         booleanParam(name: "FRESH_WORKSPACE", defaultValue: false, description: "Purge workspace before staring and checking out source")
-        string(name: "PROJECT_NAME", defaultValue: "Package Qc", description: "Name given to the project")
-        booleanParam(name: "UNIT_TESTS", defaultValue: true, description: "Run Automated Unit Tests")
-        booleanParam(name: "ADDITIONAL_TESTS", defaultValue: true, description: "Run additional tests")
+        booleanParam(name: "TEST_RUN_DOCTEST", defaultValue: true, description: "Test documentation")
+//        booleanParam(name: "TEST_RUN_FLAKE8", defaultValue: true, description: "Run Flake8 static analysis")
+        booleanParam(name: "TEST_RUN_PYTEST", defaultValue: true, description: "Run unit tests with PyTest")
+        booleanParam(name: "TEST_RUN_MYPY", defaultValue: true, description: "Run MyPy static analysis")
+        booleanParam(name: "TEST_RUN_TOX", defaultValue: true, description: "Run Tox Tests")
+        // string(name: "PROJECT_NAME", defaultValue: "Package Qc", description: "Name given to the project")
+        // booleanParam(name: "UNIT_TESTS", defaultValue: true, description: "Run Automated Unit Tests")
+        // booleanParam(name: "ADDITIONAL_TESTS", defaultValue: true, description: "Run additional tests")
         booleanParam(name: "PACKAGE", defaultValue: true, description: "Create a Packages")
         booleanParam(name: "DEPLOY", defaultValue: false, description: "Deploy to SCCM")
         booleanParam(name: "UPDATE_DOCS", defaultValue: false, description: "Update the documentation")
@@ -291,82 +296,141 @@ junit_filename                  = ${junit_filename}
                 }
             }
         }
-        stage("Unit tests") {
-            when {
-                expression { params.UNIT_TESTS == true }
-            }
-            steps {
-                parallel(
-                        "Windows": {
-                            script {
-                                def runner = new Tox(this)
-                                runner.env = "pytest"
-                                runner.windows = true
-                                runner.stash = "Source"
-                                runner.label = "Windows"
-                                runner.p ost = {
-                                    junit 'reports/junit-*.xml'
-                                }
-                                runner.run()
-                            }
-                        },
-                        "Linux": {
-                            script {
-                                def runner = new Tox(this)
-                                runner.env = "pytest"
-                                runner.windows = false
-                                runner.stash = "Source"
-                                runner.label = "!Windows"
-                                runner.post = {
-                                    junit 'reports/junit-*.xml'
-                                }
-                                runner.run()
-                            }
+        stage("Tests") {
+            parallel {
+                stage("PyTest"){
+                    when {
+                        equals expected: true, actual: params.TEST_RUN_PYTEST
+                    }
+                    steps{
+                        dir("source"){
+                            bat "${WORKSPACE}\\venv\\Scripts\\pytest.exe --junitxml=${WORKSPACE}/reports/junit-${env.NODE_NAME}-pytest.xml --junit-prefix=${env.NODE_NAME}-pytest --cov-report html:${WORKSPACE}/reports/coverage/ --cov=dcc_qc" //  --basetemp={envtmpdir}"
                         }
-                )
-            }
-        }
-        stage("Additional tests") {
-            when {
-                expression { params.ADDITIONAL_TESTS == true }
-            }
 
-            steps {
-                parallel(
-                        "Documentation": {
-                            script {
-                                def runner = new Tox(this)
-                                runner.env = "docs"
-                                runner.windows = true
-                                runner.stash = "Source"
-                                runner.label = "Windows"
-                                runner.post = {
-                                    dir('.tox/dist/html/') {
-                                        stash includes: '**', name: "HTML Documentation", useDefaultExcludes: false
+                    }
+                    post {
+                        always{
+                            dir("reports"){
+                                script{
+                                    def report_files = findFiles glob: '**/*.pytest.xml'
+                                    report_files.each { report_file ->
+                                        echo "Found ${report_file}"
+                                        // archiveArtifacts artifacts: "${log_file}"
+                                        junit "${report_file}"
+                                        bat "del ${report_file}"
                                     }
                                 }
-                                runner.run()
-
                             }
-                        },
-                        "MyPy": {
-                            script {
-                                def runner = new Tox(this)
-                                runner.env = "mypy"
-                                runner.windows = true
-                                runner.stash = "Source"
-                                runner.label = "Windows"
-                                runner.post = {
-                                    junit 'mypy.xml'
-                                }
-                                runner.run()
-
-                            }
+                            // junit "reports/junit-${env.NODE_NAME}-pytest.xml"
+                            publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'reports/coverage', reportFiles: 'index.html', reportName: 'Coverage', reportTitles: ''])
                         }
-                )
-            }
+                    }
+                }
+                stage("Documentation"){
+                    when{
+                        equals expected: true, actual: params.TEST_RUN_DOCTEST
+                    }
+                    steps{
+                        dir("source"){
+                            bat "${WORKSPACE}\\venv\\Scripts\\sphinx-build.exe -b doctest docs\\source ${WORKSPACE}\\build\\docs -d ${WORKSPACE}\\build\\docs\\doctrees -v"
+                        }
+                    }
 
+                }
+                stage("MyPy"){
+                    when{
+                        equals expected: true, actual: params.TEST_RUN_MYPY
+                    }
+                    steps{
+                        dir("source") {
+                            bat "${WORKSPACE}\\venv\\Scripts\\mypy.exe -p dcc_qc --junit-xml=${WORKSPACE}/junit-${env.NODE_NAME}-mypy.xml --html-report ${WORKSPACE}/reports/mypy_html"
+                        }
+                    }
+                    post{
+                        always {
+                            junit "junit-${env.NODE_NAME}-mypy.xml"
+                            publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'reports/mypy_html', reportFiles: 'index.html', reportName: 'MyPy', reportTitles: ''])
+                        }
+                    }
+                }
+            }
         }
+        // stage("Unit tests") {
+        //     when {
+        //         expression { params.UNIT_TESTS == true }
+        //     }
+        //     steps {
+        //         parallel(
+        //                 "Windows": {
+        //                     script {
+        //                         def runner = new Tox(this)
+        //                         runner.env = "pytest"
+        //                         runner.windows = true
+        //                         runner.stash = "Source"
+        //                         runner.label = "Windows"
+        //                         runner.p ost = {
+        //                             junit 'reports/junit-*.xml'
+        //                         }
+        //                         runner.run()
+        //                     }
+        //                 },
+        //                 "Linux": {
+        //                     script {
+        //                         def runner = new Tox(this)
+        //                         runner.env = "pytest"
+        //                         runner.windows = false
+        //                         runner.stash = "Source"
+        //                         runner.label = "!Windows"
+        //                         runner.post = {
+        //                             junit 'reports/junit-*.xml'
+        //                         }
+        //                         runner.run()
+        //                     }
+        //                 }
+        //         )
+        //     }
+        // }
+        // stage("Additional tests") {
+        //     when {
+        //         expression { params.ADDITIONAL_TESTS == true }
+        //     }
+
+        //     steps {
+        //         parallel(
+        //                 "Documentation": {
+        //                     script {
+        //                         def runner = new Tox(this)
+        //                         runner.env = "docs"
+        //                         runner.windows = true
+        //                         runner.stash = "Source"
+        //                         runner.label = "Windows"
+        //                         runner.post = {
+        //                             dir('.tox/dist/html/') {
+        //                                 stash includes: '**', name: "HTML Documentation", useDefaultExcludes: false
+        //                             }
+        //                         }
+        //                         runner.run()
+
+        //                     }
+        //                 },
+        //                 "MyPy": {
+        //                     script {
+        //                         def runner = new Tox(this)
+        //                         runner.env = "mypy"
+        //                         runner.windows = true
+        //                         runner.stash = "Source"
+        //                         runner.label = "Windows"
+        //                         runner.post = {
+        //                             junit 'mypy.xml'
+        //                         }
+        //                         runner.run()
+
+        //                     }
+        //                 }
+        //         )
+        //     }
+
+        // }
 
         stage("Packaging") {
             agent any
