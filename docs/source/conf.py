@@ -32,8 +32,13 @@ import dcc_qc
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['sphinx.ext.autodoc',
-              'sphinx.ext.githubpages', 'sphinx.ext.napoleon']
+extensions = [
+    'sphinx.ext.autodoc',
+    'sphinx.ext.doctest',
+    'sphinx.ext.coverage',
+    'sphinx.ext.githubpages',
+    'sphinx.ext.napoleon'
+]
 
 napoleon_google_docstring = True
 napoleon_numpy_docstring = True
@@ -103,11 +108,11 @@ html_theme = 'alabaster'
 # documentation.
 #
 html_theme_options = {
-    'logo': '_static/full_mark_horz_bw.png',
+    # 'logo': '_static/full_mark_horz_bw.png',
     'github_user': 'uiuclibrary',
     'github_repo': 'PackageValidation',
     'github_button': True,
-    'logo_name': True,
+    # 'logo_name': True,
     'description': dcc_qc.__description__
 }
 
