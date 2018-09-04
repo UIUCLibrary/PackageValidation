@@ -35,10 +35,10 @@ pipeline {
         booleanParam(name: "DEPLOY_DEVPI_PRODUCTION", defaultValue: false, description: "Deploy to https://devpi.library.illinois.edu/production/release")
         booleanParam(name: "UPDATE_DOCS", defaultValue: false, description: "Update the documentation")
         string(name: 'URL_SUBFOLDER', defaultValue: "package_qc", description: 'The directory that the docs should be saved under')
-
-
     }
-
+    triggers {
+        cron('@daily')
+    }
     stages {
         stage("Configure") {
             stages{
