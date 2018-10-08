@@ -92,11 +92,12 @@ pipeline {
                     }
                 }
                 stage("Installing required system level dependencies"){
+                    options{
+                        lock("system_python_${env.NODE_NAME}")
+                    }
                     steps{
-                        lock("system_python"){
-                            bat "${tool 'CPython-3.6'} -m pip install --upgrade pip --quiet"
-                        }
-                        tee("logs/pippackages_system_${NODE_NAME}.log") {
+                        bat "${tool 'CPython-3.6'} -m pip install pip==18.0 --quiet"
+                        tee("logs/pippackages_system_${env.NODE_NAME}.log") {
                             bat "${tool 'CPython-3.6'} -m pip list"
                         }
                     }
