@@ -35,10 +35,10 @@ pipeline {
         booleanParam(name: "DEPLOY_DEVPI_PRODUCTION", defaultValue: false, description: "Deploy to https://devpi.library.illinois.edu/production/release")
         booleanParam(name: "UPDATE_DOCS", defaultValue: false, description: "Update the documentation")
         string(name: 'URL_SUBFOLDER', defaultValue: "package_qc", description: 'The directory that the docs should be saved under')
-
-
     }
-
+    triggers {
+        cron('@daily')
+    }
     stages {
         stage("Configure") {
             stages{
@@ -127,12 +127,12 @@ pipeline {
                         script {
                             try {
 //                                bat "call venv\\Scripts\\python.exe -m pip install -U pip"
-                                bat "venv\\Scripts\\python.exe -m pip install -U pip>=18.0"
+                                bat "venv\\Scripts\\python.exe -m pip install -U pip==18.0"
                             }
                             catch (exc) {
                                 bat "${tool 'CPython-3.6'} -m venv venv"
 //                                bat "call venv\\Scripts\\python.exe -m pip install -U pip --no-cache-dir"
-                                bat "venv\\Scripts\\python.exe -m pip install -U pip>=18.0 --no-cache-dir"
+                                bat "venv\\Scripts\\python.exe -m pip install -U pip==18.0 --no-cache-dir"
                             }
                         }
 
