@@ -126,12 +126,12 @@ pipeline {
                         script {
                             try {
 //                                bat "call venv\\Scripts\\python.exe -m pip install -U pip"
-                                bat "venv\\Scripts\\python.exe -m pip install -U pip>=18.0"
+                                bat "venv\\Scripts\\python.exe -m pip install -U pip==18.0"
                             }
                             catch (exc) {
                                 bat "${tool 'CPython-3.6'} -m venv venv"
 //                                bat "call venv\\Scripts\\python.exe -m pip install -U pip --no-cache-dir"
-                                bat "venv\\Scripts\\python.exe -m pip install -U pip>=18.0 --no-cache-dir"
+                                bat "venv\\Scripts\\python.exe -m pip install -U pip==18.0 --no-cache-dir"
                             }
                         }
 
