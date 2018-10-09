@@ -96,7 +96,7 @@ pipeline {
                         lock("system_python_${env.NODE_NAME}")
                     }
                     steps{
-                        bat "${tool 'CPython-3.6'} -m pip install pip==18.0 --quiet"
+                        bat "${tool 'CPython-3.6'} -m pip install pip --upgrade --quiet"
                         tee("logs/pippackages_system_${env.NODE_NAME}.log") {
                             bat "${tool 'CPython-3.6'} -m pip list"
                         }
@@ -127,12 +127,12 @@ pipeline {
                         script {
                             try {
 //                                bat "call venv\\Scripts\\python.exe -m pip install -U pip"
-                                bat "venv\\Scripts\\python.exe -m pip install -U pip==18.0"
+                                bat "venv\\Scripts\\python.exe -m pip install -U pip
                             }
                             catch (exc) {
                                 bat "${tool 'CPython-3.6'} -m venv venv"
 //                                bat "call venv\\Scripts\\python.exe -m pip install -U pip --no-cache-dir"
-                                bat "venv\\Scripts\\python.exe -m pip install -U pip==18.0 --no-cache-dir"
+                                bat "venv\\Scripts\\python.exe -m pip install -U pip --no-cache-dir"
                             }
                         }
 
