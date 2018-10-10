@@ -96,7 +96,7 @@ pipeline {
                         lock("system_python_${env.NODE_NAME}")
                     }
                     steps{
-                        bat "${tool 'CPython-3.6'} -m pip install pip==18.0 --quiet"
+                        bat "${tool 'CPython-3.6'} -m pip install pip --upgrade --quiet"
                         tee("logs/pippackages_system_${env.NODE_NAME}.log") {
                             bat "${tool 'CPython-3.6'} -m pip list"
                         }
