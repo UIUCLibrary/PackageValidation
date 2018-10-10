@@ -461,7 +461,7 @@ junit_filename                  = ${junit_filename}
                         checkout scm
                         bat "dir /s / B"
                         bat "${tool 'CPython-3.6'} -m venv venv"
-                        bat "venv\\Scripts\\python.exe -m pip install -U pip>=18.0"
+                        bat "venv\\Scripts\\python.exe -m pip install -U pip>=18.1"
                         bat "venv\\Scripts\\pip.exe install -U setuptools"
                         bat "venv\\Scripts\\pip.exe install -r requirements.txt"
                         bat "venv\\Scripts\\pip.exe install appdirs"
