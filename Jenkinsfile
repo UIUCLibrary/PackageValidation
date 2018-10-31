@@ -91,39 +91,70 @@ pipeline {
                         }
                     }
                 }
-                stage("Installing required system level dependencies"){
-                    options{
-                        lock("system_python_${env.NODE_NAME}")
-                    }
+                stage("Install Python system dependencies"){
                     steps{
-                        bat "${tool 'CPython-3.6'} -m pip install pip --upgrade --quiet"
-                        tee("logs/pippackages_system_${env.NODE_NAME}.log") {
-                            bat "${tool 'CPython-3.6'} -m pip list"
+
+                        lock("system_python_${env.NODE_NAME}"){
+                            bat "${tool 'CPython-3.6'} -m pip install pip --upgrade --quiet"
+//                            tee("") {
+                            bat "${tool 'CPython-3.6'} -m pip list > logs/pippackages_system_${env.NODE_NAME}.log"
+//                            }
                         }
                     }
                     post{
                         always{
-                            dir("logs"){
-                                script{
-                                    def log_files = findFiles glob: '**/pippackages_system_*.log'
-                                    log_files.each { log_file ->
-                                        echo "Found ${log_file}"
-                                        archiveArtifacts artifacts: "${log_file}"
-                                        bat "del ${log_file}"
-                                    }
-                                }
-                            }
+                            archiveArtifacts artifacts: "logs/pippackages_system_${env.NODE_NAME}.log"
+//                            dir("logs"){
+//                            script{
+//                                def log_files = findFiles glob: 'logs/pippackages_system_*.log'
+//                                log_files.each { log_file ->
+//                                    echo "Found ${log_file}"
+//                                    archiveArtifacts artifacts: "${log_file}"
+//                                    bat "del ${log_file}"
+//                                }
+////                            }
+//                            }
                         }
                         failure {
                             deleteDir()
                         }
+                        cleanup{
+                            cleanWs(patterns: [[pattern: "logs/pippackages_system_*.log", type: 'INCLUDE']])
+                        }
                     }
-
                 }
+//                stage("Installing required system level dependencies"){
+//                    options{
+//                        lock("system_python_${env.NODE_NAME}")
+//                    }
+//                    steps{
+//                        bat "${tool 'CPython-3.6'} -m pip install pip --upgrade --quiet"
+//                        tee("logs/pippackages_system_${env.NODE_NAME}.log") {
+//                            bat "${tool 'CPython-3.6'} -m pip list"
+//                        }
+//                    }
+//                    post{
+//                        always{
+//                            dir("logs"){
+//                                script{
+//                                    def log_files = findFiles glob: '**/pippackages_system_*.log'
+//                                    log_files.each { log_file ->
+//                                        echo "Found ${log_file}"
+//                                        archiveArtifacts artifacts: "${log_file}"
+//                                        bat "del ${log_file}"
+//                                    }
+//                                }
+//                            }
+//                        }
+//                        failure {
+//                            deleteDir()
+//                        }
+//                    }
+//
+//                }
                 stage("Creating virtualenv for building"){
                     steps {
                         bat "${tool 'CPython-3.6'} -m venv venv"
-
                         script {
                             try {
 //                                bat "call venv\\Scripts\\python.exe -m pip install -U pip"
@@ -137,29 +168,23 @@ pipeline {
                         }
 
                         bat "venv\\Scripts\\pip.exe install -r source\\requirements.txt --upgrade-strategy only-if-needed"
-                        bat "venv\\Scripts\\pip.exe install devpi-client lxml pytest-cov mypy flake8 --upgrade-strategy only-if-needed"
+                        bat "venv\\Scripts\\pip.exe install devpi-client lxml pytest-cov mypy flake8 tox --upgrade-strategy only-if-needed"
 
 
 
-                        tee("logs/pippackages_venv_${NODE_NAME}.log") {
-                            bat "venv\\Scripts\\pip.exe list"
-                        }
+//                        tee("logs/pippackages_venv_${NODE_NAME}.log") {
+                        bat "venv\\Scripts\\pip.exe list > ${WORKSPACE}/logs/pippackages_venv_${NODE_NAME}.log"
+//                        }
                     }
                     post{
-                        always{
-                            dir("logs"){
-                                script{
-                                    def log_files = findFiles glob: '**/pippackages_venv_*.log'
-                                    log_files.each { log_file ->
-                                        echo "Found ${log_file}"
-                                        archiveArtifacts artifacts: "${log_file}"
-                                        bat "del ${log_file}"
-                                    }
-                                }
-                            }
+                        success{
+                            archiveArtifacts artifacts: "logs/pippackages_venv_${NODE_NAME}.log"
                         }
                         failure {
                             deleteDir()
+                        }
+                        cleanup{
+                            cleanWs(patterns: [[pattern: 'logs/pippackages_venv_*.log', type: 'INCLUDE']])
                         }
                     }
                 }
@@ -223,24 +248,21 @@ junit_filename                  = ${junit_filename}
             stages{
                 stage("Building Python Package"){
                     steps {
-                        tee("logs/build.log") {
-                            dir("source"){
-                                bat "${WORKSPACE}\\venv\\Scripts\\python.exe setup.py build -b ${WORKSPACE}\\build"
-                            }
-
+//                        tee("logs/build.log") {
+                        dir("source"){
+                            powershell "& ${WORKSPACE}\\venv\\Scripts\\python.exe setup.py build -b ${WORKSPACE}\\build | tee ${WORKSPACE}\\logs\\build.log"
                         }
+
+//                        }
                     }
                     post{
                         always{
-                            script{
-                                def log_files = findFiles glob: '**/*.log'
-                                log_files.each { log_file ->
-                                    echo "Found ${log_file}"
-                                    archiveArtifacts artifacts: "${log_file}"
-                                    warnings canRunOnFailed: true, parserConfigurations: [[parserName: 'MSBuild', pattern: "${log_file}"]]
-                                    bat "del ${log_file}"
-                                }
-                            }
+                            archiveArtifacts artifacts: "logs/build.log"
+                            warnings canRunOnFailed: true, parserConfigurations: [[parserName: 'Pep8', pattern: 'logs/build.log']]
+                            // bat "dir build"
+                        }
+                        cleanup{
+                            cleanWs(patterns: [[pattern: 'logs/build.log', type: 'INCLUDE']])
                         }
                     }
                 }
@@ -262,32 +284,51 @@ junit_filename                  = ${junit_filename}
 
                         }
                         echo "Building docs on ${env.NODE_NAME}"
-                        tee("logs/build_sphinx.log") {
-                            dir("build/lib"){
-                                bat "${WORKSPACE}\\venv\\Scripts\\sphinx-build.exe -b html ${WORKSPACE}\\source\\docs\\source ${WORKSPACE}\\build\\docs\\html -d ${WORKSPACE}\\build\\docs\\doctrees"
-                            }
+                        dir("source"){
+                            powershell "& ${WORKSPACE}\\venv\\Scripts\\python.exe setup.py build_sphinx --build-dir ${WORKSPACE}\\build\\docs | tee ${WORKSPACE}\\logs\\build_sphinx.log"
                         }
+//                        tee("logs/build_sphinx.log") {
+//                            dir("build/lib"){
+//                                bat "${WORKSPACE}\\venv\\Scripts\\sphinx-build.exe -b html ${WORKSPACE}\\source\\docs\\source ${WORKSPACE}\\build\\docs\\html -d ${WORKSPACE}\\build\\docs\\doctrees"
+//                            }
+//                        }
                     }
                     post{
                         always {
-                            dir("logs"){
-                                script{
-                                    def log_files = findFiles glob: '**/*.log'
-                                    log_files.each { log_file ->
-                                        echo "Found ${log_file}"
-                                        archiveArtifacts artifacts: "${log_file}"
-                                        bat "del ${log_file}"
-                                    }
-                                }
-                            }
+                            warnings canRunOnFailed: true, parserConfigurations: [[parserName: 'Pep8', pattern: 'logs/build_sphinx.log']]
+                            archiveArtifacts artifacts: 'logs/build_sphinx.log'
                         }
                         success{
                             publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'build/docs/html', reportFiles: 'index.html', reportName: 'Documentation', reportTitles: ''])
-                            dir("${WORKSPACE}/dist"){
-                                zip archive: true, dir: "${WORKSPACE}/build/docs/html", glob: '', zipFile: "${DOC_ZIP_FILENAME}"
-                            }
+                            zip archive: true, dir: "${WORKSPACE}/build/docs/html", glob: '', zipFile: "dist/${DOC_ZIP_FILENAME}"
+                            stash includes: "dist/${DOC_ZIP_FILENAME},build/docs/html/**", name: 'DOCS_ARCHIVE'
+
+                        }
+                        cleanup{
+                            cleanWs(patterns: [[pattern: 'logs/build_sphinx.log', type: 'INCLUDE']])
+                            cleanWs(patterns: [[pattern: "dist/${DOC_ZIP_FILENAME}", type: 'INCLUDE']])
                         }
                     }
+//                    post{
+//                        always {
+//                            dir("logs"){
+//                                script{
+//                                    def log_files = findFiles glob: '**/*.log'
+//                                    log_files.each { log_file ->
+//                                        echo "Found ${log_file}"
+//                                        archiveArtifacts artifacts: "${log_file}"
+//                                        bat "del ${log_file}"
+//                                    }
+//                                }
+//                            }
+//                        }
+//                        success{
+//                            publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'build/docs/html', reportFiles: 'index.html', reportName: 'Documentation', reportTitles: ''])
+//                            dir("${WORKSPACE}/dist"){
+//                                zip archive: true, dir: "${WORKSPACE}/build/docs/html", glob: '', zipFile: "${DOC_ZIP_FILENAME}"
+//                            }
+//                        }
+//                    }
 
                 }
             }
@@ -338,9 +379,17 @@ junit_filename                  = ${junit_filename}
                         equals expected: true, actual: params.TEST_RUN_MYPY
                     }
                     steps{
-                        dir("source") {
-                            bat "${WORKSPACE}\\venv\\Scripts\\mypy.exe -p dcc_qc --junit-xml=${WORKSPACE}/junit-${env.NODE_NAME}-mypy.xml --html-report ${WORKSPACE}/reports/mypy_html"
+                        script{
+                            try{
+                                dir("source") {
+                                    bat "${WORKSPACE}\\venv\\Scripts\\mypy.exe -p dcc_qc --junit-xml=${WORKSPACE}/junit-${env.NODE_NAME}-mypy.xml --html-report ${WORKSPACE}/reports/mypy_html"
+                                }
+                            }
+                            catch (exc) {
+                                    echo "MyPy found some warnings"
+                            }
                         }
+
                     }
                     post{
                         always {
