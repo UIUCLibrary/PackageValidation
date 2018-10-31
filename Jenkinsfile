@@ -251,12 +251,9 @@ junit_filename                  = ${junit_filename}
             stages{
                 stage("Building Python Package"){
                     steps {
-//                        tee("logs/build.log") {
                         dir("source"){
                             powershell "& ${WORKSPACE}\\venv\\Scripts\\python.exe setup.py build -b ${WORKSPACE}\\build | tee ${WORKSPACE}\\logs\\build.log"
                         }
-
-//                        }
                     }
                     post{
                         always{
@@ -290,11 +287,6 @@ junit_filename                  = ${junit_filename}
                         dir("source"){
                             powershell "& ${WORKSPACE}\\venv\\Scripts\\python.exe setup.py build_sphinx --build-dir ${WORKSPACE}\\build\\docs | tee ${WORKSPACE}\\logs\\build_sphinx.log"
                         }
-//                        tee("logs/build_sphinx.log") {
-//                            dir("build/lib"){
-//                                bat "${WORKSPACE}\\venv\\Scripts\\sphinx-build.exe -b html ${WORKSPACE}\\source\\docs\\source ${WORKSPACE}\\build\\docs\\html -d ${WORKSPACE}\\build\\docs\\doctrees"
-//                            }
-//                        }
                     }
                     post{
                         always {
@@ -312,27 +304,6 @@ junit_filename                  = ${junit_filename}
                             cleanWs(patterns: [[pattern: "dist/${DOC_ZIP_FILENAME}", type: 'INCLUDE']])
                         }
                     }
-//                    post{
-//                        always {
-//                            dir("logs"){
-//                                script{
-//                                    def log_files = findFiles glob: '**/*.log'
-//                                    log_files.each { log_file ->
-//                                        echo "Found ${log_file}"
-//                                        archiveArtifacts artifacts: "${log_file}"
-//                                        bat "del ${log_file}"
-//                                    }
-//                                }
-//                            }
-//                        }
-//                        success{
-//                            publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'build/docs/html', reportFiles: 'index.html', reportName: 'Documentation', reportTitles: ''])
-//                            dir("${WORKSPACE}/dist"){
-//                                zip archive: true, dir: "${WORKSPACE}/build/docs/html", glob: '', zipFile: "${DOC_ZIP_FILENAME}"
-//                            }
-//                        }
-//                    }
-
                 }
             }
         }
@@ -420,82 +391,6 @@ junit_filename                  = ${junit_filename}
                 }
             }
         }
-        // stage("Unit tests") {
-        //     when {
-        //         expression { params.UNIT_TESTS == true }
-        //     }
-        //     steps {
-        //         parallel(
-        //                 "Windows": {
-        //                     script {
-        //                         def runner = new Tox(this)
-        //                         runner.env = "pytest"
-        //                         runner.windows = true
-        //                         runner.stash = "Source"
-        //                         runner.label = "Windows"
-        //                         runner.p ost = {
-        //                             junit 'reports/junit-*.xml'
-        //                         }
-        //                         runner.run()
-        //                     }
-        //                 },
-        //                 "Linux": {
-        //                     script {
-        //                         def runner = new Tox(this)
-        //                         runner.env = "pytest"
-        //                         runner.windows = false
-        //                         runner.stash = "Source"
-        //                         runner.label = "!Windows"
-        //                         runner.post = {
-        //                             junit 'reports/junit-*.xml'
-        //                         }
-        //                         runner.run()
-        //                     }
-        //                 }
-        //         )
-        //     }
-        // }
-        // stage("Additional tests") {
-        //     when {
-        //         expression { params.ADDITIONAL_TESTS == true }
-        //     }
-
-        //     steps {
-        //         parallel(
-        //                 "Documentation": {
-        //                     script {
-        //                         def runner = new Tox(this)
-        //                         runner.env = "docs"
-        //                         runner.windows = true
-        //                         runner.stash = "Source"
-        //                         runner.label = "Windows"
-        //                         runner.post = {
-        //                             dir('.tox/dist/html/') {
-        //                                 stash includes: '**', name: "HTML Documentation", useDefaultExcludes: false
-        //                             }
-        //                         }
-        //                         runner.run()
-
-        //                     }
-        //                 },
-        //                 "MyPy": {
-        //                     script {
-        //                         def runner = new Tox(this)
-        //                         runner.env = "mypy"
-        //                         runner.windows = true
-        //                         runner.stash = "Source"
-        //                         runner.label = "Windows"
-        //                         runner.post = {
-        //                             junit 'mypy.xml'
-        //                         }
-        //                         runner.run()
-
-        //                     }
-        //                 }
-        //         )
-        //     }
-
-        // }
         stage("Packaging") {
             failFast true
             parallel {
@@ -569,131 +464,6 @@ junit_filename                  = ${junit_filename}
             }
         }
 
-        // stage("Packaging") {
-        //     agent any
-        //     when {
-        //         expression { params.PACKAGE == true || params.DEPLOY == true }
-        //     }
-        //     steps {
-        //         parallel(
-        //                 "Source Package": {
-        //                     createSourceRelease(env.PYTHON3, "Source")
-        //                 },
-        //                 "Python Wheel:": {
-        //                     node(label: "Windows") {
-        //                         deleteDir()
-        //                         unstash "Source"
-        //                         withEnv(["PATH=${env.PYTHON3}/..:${env.PATH}"]) {
-        //                             bat """
-        //           ${env.PYTHON3} -m venv .env
-        //           call .env/Scripts/activate.bat
-        //           pip install -r requirements.txt
-        //           python setup.py bdist_wheel
-        //         """
-        //                             dir("dist") {
-        //                                 archiveArtifacts artifacts: "*.whl", fingerprint: true
-        //                             }
-        //                         }
-        //                     }
-        //                 },
-        //                 "Python CX_Freeze Windows": {
-        //                     node(label: "Windows") {
-        //                         deleteDir()
-        //                         unstash "Source"
-
-        //                         withEnv(["PATH=${env.PYTHON3}/..:${env.PATH}"]) {
-
-        //                             // Build the exe so that pytest can be run
-        //                             bat "${env.PYTHON3} cx_setup.py build --build-exe build/tmp"
-        //                             script {
-        //                                 echo("Checking for VCRUNTIME140.dll")
-        //                                 if (fileExists('build/tmp/VCRUNTIME140.dll')) {
-        //                                     echo("Found for VCRUNTIME140.dll")
-        //                                 } else {
-        //                                     fail("Missing VCRUNTIME140.dll")
-        //                                 }
-        //                             }
-
-        //                             // run pytest on exe
-        //                             bat """
-        //           build\\tmp\\qcpkg.exe --pytest --verbose  --junitxml=reports/junit-frozen.xml --junit-prefix=frozen
-        //           if not %errorlevel%==0 (
-        //             echo errorlevel=%errorlevel%
-        //             exit /b %errorlevel%
-        //           )
-        //         """
-        //                             junit 'reports/junit-*.xml'
-
-        //                             // Package the exe into MSI
-        //                             bat "${env.PYTHON3} cx_setup.py bdist_msi --add-to-path=true"
-        //                             dir("dist") {
-        //                                 archiveArtifacts artifacts: "*.msi", fingerprint: true
-        //                                 stash includes: "*.msi", name: "msi"
-        //                             }
-
-        //                             // junit 'reports/junit-*.xml'
-
-        //                             // validate MSI contents
-
-        //                         }
-        //                     }
-        //                     node(label: "Windows") {
-        //                         deleteDir()
-        //                         git url: 'https://github.com/UIUCLibrary/ValidateMSI.git'
-        //                         unstash "msi"
-        //                         // validate_msi.py
-
-        //                         bat """
-        //         ${env.PYTHON3} -m venv .env
-        //         call .env/Scripts/activate.bat
-        //         pip install -r requirements.txt
-        //         python setup.py install
-
-        //         echo Validating msi file(s)
-        //         FOR %%A IN (*.msi) DO (
-        //           python validate_msi.py %%A frozen.yml
-        //           if not %errorlevel%==0 (
-        //             echo errorlevel=%errorlevel%
-        //             exit /b %errorlevel%
-        //           )
-        //         )
-        //       """
-        //                         archiveArtifacts artifacts: "*.msi", fingerprint: true
-
-
-        //                     }
-        //                 }
-        //         )
-        //     }
-        // }
-//        stage("Deploying to Devpi") {
-//            when {
-//                allOf{
-//                    equals expected: true, actual: params.DEPLOY_DEVPI
-//                    anyOf {
-//                        equals expected: "master", actual: env.BRANCH_NAME
-//                        equals expected: "dev", actual: env.BRANCH_NAME
-//                    }
-//                }
-//            }
-//            steps {
-//                bat "venv\\Scripts\\devpi.exe use http://devpy.library.illinois.edu"
-//                withCredentials([usernamePassword(credentialsId: 'DS_devpi', usernameVariable: 'DEVPI_USERNAME', passwordVariable: 'DEVPI_PASSWORD')]) {
-//                    bat "venv\\Scripts\\devpi.exe login ${DEVPI_USERNAME} --password ${DEVPI_PASSWORD}"
-//                    bat "venv\\Scripts\\devpi.exe use /${DEVPI_USERNAME}/${env.BRANCH_NAME}_staging"
-//                    script {
-//                        bat "venv\\Scripts\\devpi.exe upload --from-dir dist"
-//                        try {
-////                            bat "venv\\Scripts\\devpi.exe upload --only-docs"
-//                            bat "venv\\Scripts\\devpi.exe upload --only-docs ${WORKSPACE}\\dist\\${DOC_ZIP_FILENAME}"
-//                        } catch (exc) {
-//                            echo "Unable to upload to devpi with docs."
-//                        }
-//                    }
-//                }
-//
-//            }
-//        }
         stage("Deploy to Devpi Staging") {
             when {
                 allOf{
@@ -801,27 +571,6 @@ junit_filename                  = ${junit_filename}
                         }
                     }
                 }
-//                        echo "Testing Whl package in devpi"
-//                        bat "${tool 'CPython-3.6'} -m venv venv"
-//                        bat "venv\\Scripts\\pip.exe install tox devpi-client"
-//                        withCredentials([usernamePassword(credentialsId: 'DS_devpi', usernameVariable: 'DEVPI_USERNAME', passwordVariable: 'DEVPI_PASSWORD')]) {
-//                            bat "venv\\Scripts\\devpi.exe login ${DEVPI_USERNAME} --password ${DEVPI_PASSWORD}"
-//                        }
-//                        bat "venv\\Scripts\\devpi.exe use /DS_Jenkins/${env.BRANCH_NAME}_staging"
-//                        script{
-//                            def devpi_test_return_code = bat returnStatus: true, script: "venv\\Scripts\\devpi.exe test --index https://devpi.library.illinois.edu/DS_Jenkins/${env.BRANCH_NAME}_staging ${PKG_NAME} -s whl  --verbose"
-//                            if(devpi_test_return_code != 0){
-//                                error "Devpi exit code for whl was ${devpi_test_return_code}"
-//                            }
-//                        }
-//                        echo "Finished testing Built Distribution: .whl"
-//                    }
-//                    post {
-//                        failure {
-//                            echo "Tests for whl on DevPi failed."
-//                        }
-//                    }
-//                }
             }
 
             post {
@@ -939,7 +688,6 @@ junit_filename                  = ${junit_filename}
                     echo "Devpi remove exited with code ${devpi_remove_return_code}."
                 }
             }
-//            bat "dir /s / B"
         }
     }
 }
