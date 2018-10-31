@@ -346,7 +346,8 @@ junit_filename                  = ${junit_filename}
                     }
                     steps{
                         dir("source"){
-                            powershell returnStatus: true, script: "& ${WORKSPACE}\\venv\\Scripts\\mypy.exe -p dcc_qc --html-report ${WORKSPACE}\\reports\\mypy\\html | tee ${WORKSPACE}\\logs\\mypy.log"
+                            powershell returnStatus: true, script: "& ${WORKSPACE}\\venv\\Scripts\\mypy.exe -p dcc_qc | tee ${WORKSPACE}\\logs\\mypy.log"
+                            powershell returnStatus: true, script: "& ${WORKSPACE}\\venv\\Scripts\\mypy.exe -p dcc_qc --html-report ${WORKSPACE}\\reports\\mypy\\html"
                         }
 //                        dir("source") {
 //                            bat returnStatus: true, script: "${WORKSPACE}\\venv\\Scripts\\mypy.exe -p dcc_qc --junit-xml=${WORKSPACE}/junit-${env.NODE_NAME}-mypy.xml --html-report ${WORKSPACE}/reports/mypy_html"
