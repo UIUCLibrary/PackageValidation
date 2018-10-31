@@ -32,6 +32,8 @@ pipeline {
         booleanParam(name: "TEST_RUN_PYTEST", defaultValue: true, description: "Run unit tests with PyTest")
         booleanParam(name: "TEST_RUN_MYPY", defaultValue: true, description: "Run MyPy static analysis")
         booleanParam(name: "TEST_RUN_TOX", defaultValue: true, description: "Run Tox Tests")
+        booleanParam(name: "PACKAGE_PYTHON_FORMATS", defaultValue: true, description: "Create native Python packages")
+        booleanParam(name: "PACKAGE_CX_FREEZE", defaultValue: false, description: "Create standalone install with CX_Freeze")
         booleanParam(name: "DEPLOY_DEVPI", defaultValue: true, description: "Deploy to devpi on http://devpy.library.illinois.edu/DS_Jenkins/${env.BRANCH_NAME}")
         booleanParam(name: "DEPLOY_DEVPI_PRODUCTION", defaultValue: false, description: "Deploy to https://devpi.library.illinois.edu/production/release")
         booleanParam(name: "UPDATE_DOCS", defaultValue: false, description: "Update the documentation")
@@ -371,17 +373,9 @@ junit_filename                  = ${junit_filename}
                         equals expected: true, actual: params.TEST_RUN_MYPY
                     }
                     steps{
-                        script{
-                            try{
-                                dir("source") {
-                                    bat "${WORKSPACE}\\venv\\Scripts\\mypy.exe -p dcc_qc --junit-xml=${WORKSPACE}/junit-${env.NODE_NAME}-mypy.xml --html-report ${WORKSPACE}/reports/mypy_html"
-                                }
-                            }
-                            catch (exc) {
-                                    echo "MyPy found some warnings"
-                            }
+                        dir("source") {
+                            bat returnStatus: true, script: "${WORKSPACE}\\venv\\Scripts\\mypy.exe -p dcc_qc --junit-xml=${WORKSPACE}/junit-${env.NODE_NAME}-mypy.xml --html-report ${WORKSPACE}/reports/mypy_html"
                         }
-
                     }
                     post{
                         always {
@@ -519,27 +513,15 @@ junit_filename                  = ${junit_filename}
                         }
                     }
                 }
-//                stage("Source and Wheel formats"){
-//                    steps{
-//                        dir("source"){
-//                            bat "${WORKSPACE}\\venv\\scripts\\python.exe setup.py sdist -d ${WORKSPACE}\\dist bdist_wheel -d ${WORKSPACE}\\dist"
-//                        }
-//
-//                    }
-//                    post{
-//                        success{
-//                            dir("dist"){
-//                                archiveArtifacts artifacts: "*.whl", fingerprint: true
-//                                archiveArtifacts artifacts: "*.tar.gz", fingerprint: true
-//                            }
-//                        }
-//                    }
-//                }
+
                 stage("Windows CX_Freeze MSI"){
                     agent{
                         node {
                             label "Windows"
                         }
+                    }
+                    when {
+                        equals expected: true, actual: params.PACKAGE_CX_FREEZE
                     }
                     options {
                         skipDefaultCheckout true
