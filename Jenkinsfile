@@ -341,16 +341,13 @@ junit_filename                  = ${junit_filename}
                     }
                     steps{
                         dir("source"){
-                            bat "${WORKSPACE}\\venv\\Scripts\\coverage run --parallel-mode --source=dcc_qc -m pytest --junitxml=${WORKSPACE}/reports/junit-${env.NODE_NAME}-pytest.xml --junit-prefix=${env.NODE_NAME}-pytest" //  --basetemp={envtmpdir}"
+                            bat "${WORKSPACE}\\venv\\Scripts\\coverage run --parallel-mode --source=dcc_qc -m pytest --junitxml=${WORKSPACE}/reports/pytest/junit-${env.NODE_NAME}-pytest.xml --junit-prefix=${env.NODE_NAME}-pytest" //  --basetemp={envtmpdir}"
                         }
 
                     }
                     post {
                         always{
                             junit "reports/pytest/junit-*.xml"
-                            // junit "reports/junit-${env.NODE_NAME}-pytest.xml"
-//                            TODO: put below
-
                         }
                         cleanup{
                             cleanWs(patterns: [[pattern: 'reports/pytest/junit-*.xml', type: 'INCLUDE']])
