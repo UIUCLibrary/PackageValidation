@@ -373,14 +373,24 @@ junit_filename                  = ${junit_filename}
                         equals expected: true, actual: params.TEST_RUN_MYPY
                     }
                     steps{
-                        dir("source") {
-                            bat returnStatus: true, script: "${WORKSPACE}\\venv\\Scripts\\mypy.exe -p dcc_qc --junit-xml=${WORKSPACE}/junit-${env.NODE_NAME}-mypy.xml --html-report ${WORKSPACE}/reports/mypy_html"
+                        dir("source"){
+                            powershell returnStatus: true, script: "& ${WORKSPACE}\\venv\\Scripts\\mypy.exe -p dcc_qc --html-report ${WORKSPACE}\\reports\\mypy\\html | tee ${WORKSPACE}\\logs\\mypy.log"
                         }
+//                        dir("source") {
+//                            bat returnStatus: true, script: "${WORKSPACE}\\venv\\Scripts\\mypy.exe -p dcc_qc --junit-xml=${WORKSPACE}/junit-${env.NODE_NAME}-mypy.xml --html-report ${WORKSPACE}/reports/mypy_html"
+//                        }
                     }
                     post{
                         always {
-                            junit "junit-${env.NODE_NAME}-mypy.xml"
-                            publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'reports/mypy_html', reportFiles: 'index.html', reportName: 'MyPy', reportTitles: ''])
+                            archiveArtifacts "logs\\mypy.log"
+                            dir("logs"){
+                                warnings canRunOnFailed: true, parserConfigurations: [[parserName: 'MyPy', pattern: 'mypy.log']], unHealthy: ''
+                            }
+    //                            junit "junit-${env.NODE_NAME}-mypy.xml"
+                            publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'reports/mypy/html', reportFiles: 'index.html', reportName: 'MyPy', reportTitles: ''])
+                        }
+                        cleanup{
+                            cleanWs(patterns: [[pattern: 'logs/mypy.log', type: 'INCLUDE']])
                         }
                     }
                 }
