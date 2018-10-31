@@ -2,6 +2,7 @@
 @Library("ds-utils")
 import org.ds.*
 
+@Library("devpi") _
 
 def PKG_NAME = "unknown"
 def PKG_VERSION = "unknown"
@@ -858,7 +859,15 @@ junit_filename                  = ${junit_filename}
                         }
                     }
                 }
-                bat "tree /A"
+            }
+            cleanWs deleteDirs: true, patterns: [
+                [pattern: 'certs', type: 'INCLUDE'],
+                [pattern: 'build', type: 'INCLUDE'],
+                [pattern: 'dist', type: 'INCLUDE'],
+                [pattern: 'logs', type: 'INCLUDE'],
+                ]
+            bat "tree /A"
+            script{
                 if (env.BRANCH_NAME == "master" || env.BRANCH_NAME == "dev"){
                     withCredentials([usernamePassword(credentialsId: 'DS_devpi', usernameVariable: 'DEVPI_USERNAME', passwordVariable: 'DEVPI_PASSWORD')]) {
                         bat "venv\\Scripts\\devpi.exe login DS_Jenkins --password ${DEVPI_PASSWORD}"
