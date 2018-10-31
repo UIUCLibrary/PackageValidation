@@ -497,7 +497,7 @@ junit_filename                  = ${junit_filename}
 
                             steps{
                                 dir("source"){
-                                    bat script: "${WORKSPACE}\\venv\\scripts\\python.exe run python setup.py sdist -d ${WORKSPACE}\\dist bdist_wheel -d ${WORKSPACE}\\dist"
+                                    bat script: "${WORKSPACE}\\venv\\scripts\\python.exe setup.py sdist -d ${WORKSPACE}\\dist bdist_wheel -d ${WORKSPACE}\\dist"
                                 }
                             }
                             post {
