@@ -386,7 +386,10 @@ junit_filename                  = ${junit_filename}
                     }
                     post {
                         always {
-                            warnings canRunOnFailed: true, parserConfigurations: [[parserName: 'PyLint', pattern: 'logs/flake8.log']], unHealthy: ''
+                            dir("logs"){
+                                bat "dir"
+                            }
+                            warnings canRunOnFailed: true, parserConfigurations: [[parserName: 'PyLint', pattern: 'logs/*.log']], unHealthy: ''
                             archiveArtifacts "logs/flake8.log"
                         }
                         cleanup{
