@@ -373,6 +373,9 @@ junit_filename                  = ${junit_filename}
                         equals expected: true, actual: params.TEST_RUN_FLAKE8
                     }
                     steps{
+                        dir("logs"){
+                            bat "dir"
+                        }
                         script{
                             try{
                                 dir("source"){
