@@ -377,13 +377,8 @@ junit_filename                  = ${junit_filename}
                             bat "dir"
                         }
                         script{
-                            try{
-                                dir("source"){
-                                    bat returnStatus: true, script: "${WORKSPACE}\\venv\\Scripts\\flake8.exe dcc_qc --format=pylint --tee ${WORKSPACE}\\logs\\flake8.log"
-                                }
-//                                }
-                            } catch (exc) {
-                                echo "flake8 found some warnings"
+                            dir("source"){
+                                bat returnStatus: true, script: "${WORKSPACE}\\venv\\Scripts\\flake8.exe dcc_qc --format=pylint --tee --output-file=${WORKSPACE}\\logs\\flake8.log"
                             }
                         }
                     }
