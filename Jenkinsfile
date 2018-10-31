@@ -379,7 +379,9 @@ junit_filename                  = ${junit_filename}
                         script{
                             try{
                                 dir("source"){
-                                    bat "${WORKSPACE}\\venv\\Scripts\\flake8.exe dcc_qc --format=pylint --tee ${WORKSPACE}\\logs\\flake8.log"
+                                    bat "${WORKSPACE}\\venv\\Scripts\\flake8.exe dcc_qc --format=pylint --tee flake8.log"
+                                    bat "dir"
+                                    bat "move flake8.log ${WORKSPACE}\\logs\\"
                                 }
 //                                }
                             } catch (exc) {
