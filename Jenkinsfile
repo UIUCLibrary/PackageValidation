@@ -491,23 +491,50 @@ junit_filename                  = ${junit_filename}
 
         // }
         stage("Packaging") {
+            failFast true
             parallel {
                 stage("Source and Wheel formats"){
-                    steps{
-                        dir("source"){
-                            bat "${WORKSPACE}\\venv\\scripts\\python.exe setup.py sdist -d ${WORKSPACE}\\dist bdist_wheel -d ${WORKSPACE}\\dist"
-                        }
-
+                    when {
+                        equals expected: true, actual: params.PACKAGE_PYTHON_FORMATS
                     }
-                    post{
-                        success{
-                            dir("dist"){
-                                archiveArtifacts artifacts: "*.whl", fingerprint: true
-                                archiveArtifacts artifacts: "*.tar.gz", fingerprint: true
+                    stages{
+
+                        stage("Packaging sdist and wheel"){
+
+                            steps{
+                                dir("source"){
+                                    bat script: "${WORKSPACE}\\venv\\scripts\\python.exe run python setup.py sdist -d ${WORKSPACE}\\dist bdist_wheel -d ${WORKSPACE}\\dist"
+                                }
+                            }
+                            post {
+                                success {
+                                    archiveArtifacts artifacts: "dist/*.whl,dist/*.tar.gz,dist/*.zip", fingerprint: true
+                                    stash includes: "dist/*.whl,dist/*.tar.gz,dist/*.zip", name: 'PYTHON_PACKAGES'
+                                }
+                                cleanup{
+                                    cleanWs deleteDirs: true, patterns: [[pattern: 'dist/*.whl,dist/*.tar.gz,dist/*.zip', type: 'INCLUDE']]
+//                                    remove_files("dist/*.whl,dist/*.tar.gz,dist/*.zip")
+                                }
                             }
                         }
                     }
                 }
+//                stage("Source and Wheel formats"){
+//                    steps{
+//                        dir("source"){
+//                            bat "${WORKSPACE}\\venv\\scripts\\python.exe setup.py sdist -d ${WORKSPACE}\\dist bdist_wheel -d ${WORKSPACE}\\dist"
+//                        }
+//
+//                    }
+//                    post{
+//                        success{
+//                            dir("dist"){
+//                                archiveArtifacts artifacts: "*.whl", fingerprint: true
+//                                archiveArtifacts artifacts: "*.tar.gz", fingerprint: true
+//                            }
+//                        }
+//                    }
+//                }
                 stage("Windows CX_Freeze MSI"){
                     agent{
                         node {
