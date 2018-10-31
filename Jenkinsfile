@@ -501,7 +501,7 @@ junit_filename                  = ${junit_filename}
                                 }
                             }
                             post {
-                                success {
+                                always {
                                     archiveArtifacts artifacts: "dist/*.whl,dist/*.tar.gz,dist/*.zip", fingerprint: true
                                     stash includes: "dist/*.whl,dist/*.tar.gz,dist/*.zip", name: 'PYTHON_PACKAGES'
                                 }
@@ -654,7 +654,35 @@ junit_filename                  = ${junit_filename}
         //         )
         //     }
         // }
-        stage("Deploying to Devpi") {
+//        stage("Deploying to Devpi") {
+//            when {
+//                allOf{
+//                    equals expected: true, actual: params.DEPLOY_DEVPI
+//                    anyOf {
+//                        equals expected: "master", actual: env.BRANCH_NAME
+//                        equals expected: "dev", actual: env.BRANCH_NAME
+//                    }
+//                }
+//            }
+//            steps {
+//                bat "venv\\Scripts\\devpi.exe use http://devpy.library.illinois.edu"
+//                withCredentials([usernamePassword(credentialsId: 'DS_devpi', usernameVariable: 'DEVPI_USERNAME', passwordVariable: 'DEVPI_PASSWORD')]) {
+//                    bat "venv\\Scripts\\devpi.exe login ${DEVPI_USERNAME} --password ${DEVPI_PASSWORD}"
+//                    bat "venv\\Scripts\\devpi.exe use /${DEVPI_USERNAME}/${env.BRANCH_NAME}_staging"
+//                    script {
+//                        bat "venv\\Scripts\\devpi.exe upload --from-dir dist"
+//                        try {
+////                            bat "venv\\Scripts\\devpi.exe upload --only-docs"
+//                            bat "venv\\Scripts\\devpi.exe upload --only-docs ${WORKSPACE}\\dist\\${DOC_ZIP_FILENAME}"
+//                        } catch (exc) {
+//                            echo "Unable to upload to devpi with docs."
+//                        }
+//                    }
+//                }
+//
+//            }
+//        }
+        stage("Deploy to Devpi Staging") {
             when {
                 allOf{
                     equals expected: true, actual: params.DEPLOY_DEVPI
@@ -665,21 +693,24 @@ junit_filename                  = ${junit_filename}
                 }
             }
             steps {
-                bat "venv\\Scripts\\devpi.exe use http://devpy.library.illinois.edu"
-                withCredentials([usernamePassword(credentialsId: 'DS_devpi', usernameVariable: 'DEVPI_USERNAME', passwordVariable: 'DEVPI_PASSWORD')]) {
-                    bat "venv\\Scripts\\devpi.exe login ${DEVPI_USERNAME} --password ${DEVPI_PASSWORD}"
-                    bat "venv\\Scripts\\devpi.exe use /${DEVPI_USERNAME}/${env.BRANCH_NAME}_staging"
+                unstash 'DOCS_ARCHIVE'
+                unstash 'PYTHON_PACKAGES'
+                unstash 'STANDALONE_INSTALLERS'
+                dir("source"){
+                    bat "devpi use https://devpi.library.illinois.edu"
+                    withCredentials([usernamePassword(credentialsId: 'DS_devpi', usernameVariable: 'DEVPI_USERNAME', passwordVariable: 'DEVPI_PASSWORD')]) {
+                        bat "${tool 'CPython-3.6'} -m devpi login ${DEVPI_USERNAME} --password ${DEVPI_PASSWORD} && ${tool 'CPython-3.6'} -m devpi use /${DEVPI_USERNAME}/${env.BRANCH_NAME}_staging"
+                    }
                     script {
-                        bat "venv\\Scripts\\devpi.exe upload --from-dir dist"
+                        bat "${tool 'CPython-3.6'} -m devpi upload --from-dir ${WORKSPACE}\\dist"
                         try {
-//                            bat "venv\\Scripts\\devpi.exe upload --only-docs"
-                            bat "venv\\Scripts\\devpi.exe upload --only-docs ${WORKSPACE}\\dist\\${DOC_ZIP_FILENAME}"
+                            bat "${tool 'CPython-3.6'} -m devpi upload --only-docs --from-dir ${WORKSPACE}\\dist\\${DOC_ZIP_FILENAME}"
                         } catch (exc) {
                             echo "Unable to upload to devpi with docs."
                         }
                     }
+//                    }
                 }
-
             }
         }
         stage("Test Devpi packages") {
@@ -694,7 +725,7 @@ junit_filename                  = ${junit_filename}
             }
 //            steps {
             parallel {
-                stage("Source Distribution: .tar.gz") {
+                stage("Source Distribution") {
                     steps {
                         bat "venv\\Scripts\\python.exe -m pip install pip --upgrade && venv\\Scripts\\pip.exe install setuptools --upgrade && venv\\Scripts\\pip.exe install tox devpi-client"
                             timeout(10){
