@@ -695,7 +695,6 @@ junit_filename                  = ${junit_filename}
             steps {
                 unstash 'DOCS_ARCHIVE'
                 unstash 'PYTHON_PACKAGES'
-                unstash 'STANDALONE_INSTALLERS'
                 dir("source"){
                     bat "devpi use https://devpi.library.illinois.edu"
                     withCredentials([usernamePassword(credentialsId: 'DS_devpi', usernameVariable: 'DEVPI_USERNAME', passwordVariable: 'DEVPI_PASSWORD')]) {
