@@ -591,7 +591,7 @@ junit_filename                  = ${junit_filename}
                         }
                         bat "venv\\Scripts\\python.exe -m pip install pip --upgrade && venv\\Scripts\\pip.exe install setuptools --upgrade && venv\\Scripts\\pip.exe install tox devpi-client"
 
-                        timeout(5){
+                        timeout(10){
                             devpiTest(
                                 devpiExecutable: "venv\\Scripts\\devpi.exe",
                                 url: "https://devpi.library.illinois.edu",
