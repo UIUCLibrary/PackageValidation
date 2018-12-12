@@ -99,9 +99,9 @@ pipeline {
                     steps{
 
                         lock("system_python_${env.NODE_NAME}"){
-                            bat "${tool 'CPython-3.6'} -m pip install pip --upgrade --quiet"
+                            bat "${tool 'CPython-3.6'}\\python -m pip install pip --upgrade --quiet"
 //                            tee("") {
-                            bat "${tool 'CPython-3.6'} -m pip list > logs/pippackages_system_${env.NODE_NAME}.log"
+                            bat "${tool 'CPython-3.6'}\\python -m pip list > logs/pippackages_system_${env.NODE_NAME}.log"
 //                            }
                         }
                     }
@@ -132,9 +132,9 @@ pipeline {
 //                        lock("system_python_${env.NODE_NAME}")
 //                    }
 //                    steps{
-//                        bat "${tool 'CPython-3.6'} -m pip install pip --upgrade --quiet"
+//                        bat "${tool 'CPython-3.6'}\\python -m pip install pip --upgrade --quiet"
 //                        tee("logs/pippackages_system_${env.NODE_NAME}.log") {
-//                            bat "${tool 'CPython-3.6'} -m pip list"
+//                            bat "${tool 'CPython-3.6'}\\python -m pip list"
 //                        }
 //                    }
 //                    post{
@@ -158,14 +158,14 @@ pipeline {
 //                }
                 stage("Creating virtualenv for building"){
                     steps {
-                        bat "${tool 'CPython-3.6'} -m venv venv"
+                        bat "${tool 'CPython-3.6'}\\python -m venv venv"
                         script {
                             try {
 //                                bat "call venv\\Scripts\\python.exe -m pip install -U pip"
                                 bat "venv\\Scripts\\python.exe -m pip install -U pip>=18.1"
                             }
                             catch (exc) {
-                                bat "${tool 'CPython-3.6'} -m venv venv"
+                                bat "${tool 'CPython-3.6'}\\python -m venv venv"
 //                                bat "call venv\\Scripts\\python.exe -m pip install -U pip --no-cache-dir"
                                 bat "venv\\Scripts\\python.exe -m pip install -U pip>=18.1 --no-cache-dir"
                             }
@@ -199,8 +199,8 @@ pipeline {
                             // Set up the reports directory variable
                             REPORT_DIR = "${WORKSPACE}\\reports"
                             dir("source"){
-                                PKG_NAME = bat(returnStdout: true, script: "@${tool 'CPython-3.6'}  setup.py --name").trim()
-                                PKG_VERSION = bat(returnStdout: true, script: "@${tool 'CPython-3.6'} setup.py --version").trim()
+                                PKG_NAME = bat(returnStdout: true, script: "@${tool 'CPython-3.6'}\\python  setup.py --name").trim()
+                                PKG_VERSION = bat(returnStdout: true, script: "@${tool 'CPython-3.6'}\\python setup.py --version").trim()
                             }
                         }
 
@@ -471,7 +471,7 @@ junit_filename                  = ${junit_filename}
                         bat "dir"
                         checkout scm
                         bat "dir /s / B"
-                        bat "${tool 'CPython-3.6'} -m venv venv"
+                        bat "${tool 'CPython-3.6'}\\python -m venv venv"
                         bat "venv\\Scripts\\python.exe -m pip install -U pip>=18.1"
                         bat "venv\\Scripts\\pip.exe install -U setuptools"
                         bat "venv\\Scripts\\pip.exe install -r requirements.txt"
@@ -512,12 +512,12 @@ junit_filename                  = ${junit_filename}
                 dir("source"){
                     bat "devpi use https://devpi.library.illinois.edu"
                     withCredentials([usernamePassword(credentialsId: 'DS_devpi', usernameVariable: 'DEVPI_USERNAME', passwordVariable: 'DEVPI_PASSWORD')]) {
-                        bat "${tool 'CPython-3.6'} -m devpi login ${DEVPI_USERNAME} --password ${DEVPI_PASSWORD} && ${tool 'CPython-3.6'} -m devpi use /${DEVPI_USERNAME}/${env.BRANCH_NAME}_staging"
+                        bat "${tool 'CPython-3.6'}\\python -m devpi login ${DEVPI_USERNAME} --password ${DEVPI_PASSWORD} && ${tool 'CPython-3.6'}\\python -m devpi use /${DEVPI_USERNAME}/${env.BRANCH_NAME}_staging"
                     }
                     script {
-                        bat "${tool 'CPython-3.6'} -m devpi upload --from-dir ${WORKSPACE}\\dist"
+                        bat "${tool 'CPython-3.6'}\\python -m devpi upload --from-dir ${WORKSPACE}\\dist"
                         try {
-                            bat "${tool 'CPython-3.6'} -m devpi upload --only-docs --from-dir ${WORKSPACE}\\dist\\${DOC_ZIP_FILENAME}"
+                            bat "${tool 'CPython-3.6'}\\python -m devpi upload --only-docs --from-dir ${WORKSPACE}\\dist\\${DOC_ZIP_FILENAME}"
                         } catch (exc) {
                             echo "Unable to upload to devpi with docs."
                         }
@@ -587,7 +587,7 @@ junit_filename                  = ${junit_filename}
                     }
                     steps {
                         lock("system_python_${NODE_NAME}"){
-                            bat "${tool 'CPython-3.6'} -m pip install pip --upgrade && ${tool 'CPython-3.6'} -m venv venv "
+                            bat "${tool 'CPython-3.6'}\\python -m pip install pip --upgrade && ${tool 'CPython-3.6'}\\python -m venv venv "
                         }
                         bat "venv\\Scripts\\python.exe -m pip install pip --upgrade && venv\\Scripts\\pip.exe install setuptools --upgrade && venv\\Scripts\\pip.exe install tox devpi-client"
 
@@ -603,6 +603,27 @@ junit_filename                  = ${junit_filename}
                         }
                     }
                 }
+//                        echo "Testing Whl package in devpi"
+//                        bat "${tool 'CPython-3.6'}\\python -m venv venv"
+//                        bat "venv\\Scripts\\pip.exe install tox devpi-client"
+//                        withCredentials([usernamePassword(credentialsId: 'DS_devpi', usernameVariable: 'DEVPI_USERNAME', passwordVariable: 'DEVPI_PASSWORD')]) {
+//                            bat "venv\\Scripts\\devpi.exe login ${DEVPI_USERNAME} --password ${DEVPI_PASSWORD}"
+//                        }
+//                        bat "venv\\Scripts\\devpi.exe use /DS_Jenkins/${env.BRANCH_NAME}_staging"
+//                        script{
+//                            def devpi_test_return_code = bat returnStatus: true, script: "venv\\Scripts\\devpi.exe test --index https://devpi.library.illinois.edu/DS_Jenkins/${env.BRANCH_NAME}_staging ${PKG_NAME} -s whl  --verbose"
+//                            if(devpi_test_return_code != 0){
+//                                error "Devpi exit code for whl was ${devpi_test_return_code}"
+//                            }
+//                        }
+//                        echo "Finished testing Built Distribution: .whl"
+//                    }
+//                    post {
+//                        failure {
+//                            echo "Tests for whl on DevPi failed."
+//                        }
+//                    }
+//                }
             }
 
             post {
