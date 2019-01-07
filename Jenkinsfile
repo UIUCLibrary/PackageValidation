@@ -552,6 +552,14 @@ junit_filename                  = ${junit_filename}
                                     )
                                 }
                             }
+                            post{
+                                cleanup{
+                                    cleanWs deleteDirs: true, patterns: [
+                                        [pattern: 'certs', type: 'INCLUDE'],
+                                        [pattern: '*@tmp', type: 'INCLUDE']
+                                    ]
+                                }
+                            }
                         }
                         stage("Built Distribution: .whl") {
                             agent {
@@ -577,6 +585,14 @@ junit_filename                  = ${junit_filename}
                                         pkgVersion: "${PKG_VERSION}",
                                         pkgRegex: "whl"
                                     )
+                                }
+                            }
+                            post{
+                                cleanup{
+                                    cleanWs deleteDirs: true, patterns: [
+                                        [pattern: 'certs', type: 'INCLUDE'],
+                                        [pattern: '*@tmp', type: 'INCLUDE']
+                                    ]
                                 }
                             }
                         }
