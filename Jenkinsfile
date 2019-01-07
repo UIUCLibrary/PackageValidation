@@ -35,7 +35,7 @@ pipeline {
         booleanParam(name: "TEST_RUN_TOX", defaultValue: true, description: "Run Tox Tests")
         booleanParam(name: "PACKAGE_PYTHON_FORMATS", defaultValue: true, description: "Create native Python packages")
         booleanParam(name: "PACKAGE_CX_FREEZE", defaultValue: false, description: "Create standalone install with CX_Freeze")
-        booleanParam(name: "DEPLOY_DEVPI", defaultValue: true, description: "Deploy to devpi on http://devpy.library.illinois.edu/DS_Jenkins/${env.BRANCH_NAME}")
+        booleanParam(name: "DEPLOY_DEVPI", defaultValue: false, description: "Deploy to devpi on http://devpy.library.illinois.edu/DS_Jenkins/${env.BRANCH_NAME}")
         booleanParam(name: "DEPLOY_DEVPI_PRODUCTION", defaultValue: false, description: "Deploy to https://devpi.library.illinois.edu/production/release")
         booleanParam(name: "UPDATE_DOCS", defaultValue: false, description: "Update the documentation")
         string(name: 'URL_SUBFOLDER', defaultValue: "package_qc", description: 'The directory that the docs should be saved under')
@@ -48,7 +48,10 @@ pipeline {
             stages{
                 stage("Purge all existing data in workspace"){
                     when{
-                        equals expected: true, actual: params.FRESH_WORKSPACE
+                        anyOf{
+                            equals expected: true, actual: params.FRESH_WORKSPACE
+                            triggeredBy "TimerTriggerCause"
+                        }
                     }
                     steps{
                         deleteDir()
@@ -496,134 +499,89 @@ junit_filename                  = ${junit_filename}
             }
         }
 
-        stage("Deploy to Devpi Staging") {
+        stage("Deploying to DevPi") {
             when {
                 allOf{
-                    equals expected: true, actual: params.DEPLOY_DEVPI
+                    anyOf{
+                        equals expected: true, actual: params.DEPLOY_DEVPI
+                        triggeredBy "TimerTriggerCause"
+                    }
                     anyOf {
                         equals expected: "master", actual: env.BRANCH_NAME
                         equals expected: "dev", actual: env.BRANCH_NAME
                     }
                 }
             }
-            steps {
-                unstash 'DOCS_ARCHIVE'
-                unstash 'PYTHON_PACKAGES'
-                dir("source"){
-                    bat "devpi use https://devpi.library.illinois.edu"
-                    withCredentials([usernamePassword(credentialsId: 'DS_devpi', usernameVariable: 'DEVPI_USERNAME', passwordVariable: 'DEVPI_PASSWORD')]) {
-                        bat "${tool 'CPython-3.6'}\\python -m devpi login ${DEVPI_USERNAME} --password ${DEVPI_PASSWORD} && ${tool 'CPython-3.6'}\\python -m devpi use /${DEVPI_USERNAME}/${env.BRANCH_NAME}_staging"
-                    }
-                    script {
-                        bat "${tool 'CPython-3.6'}\\python -m devpi upload --from-dir ${WORKSPACE}\\dist"
-                        try {
-                            bat "${tool 'CPython-3.6'}\\python -m devpi upload --only-docs --from-dir ${WORKSPACE}\\dist\\${DOC_ZIP_FILENAME}"
-                        } catch (exc) {
-                            echo "Unable to upload to devpi with docs."
+            stages{
+                stage("Upload to Devpi staging") {
+
+                    steps {
+                        unstash 'DOCS_ARCHIVE'
+                        unstash 'PYTHON_PACKAGES'
+                        dir("source"){
+                            bat "devpi use https://devpi.library.illinois.edu"
+                            withCredentials([usernamePassword(credentialsId: 'DS_devpi', usernameVariable: 'DEVPI_USERNAME', passwordVariable: 'DEVPI_PASSWORD')]) {
+                                bat "${tool 'CPython-3.6'}\\python -m devpi login ${DEVPI_USERNAME} --password ${DEVPI_PASSWORD} && ${tool 'CPython-3.6'}\\python -m devpi use /${DEVPI_USERNAME}/${env.BRANCH_NAME}_staging"
+                            }
+                            script {
+                                bat "${tool 'CPython-3.6'}\\python -m devpi upload --from-dir ${WORKSPACE}\\dist"
+                                try {
+                                    bat "${tool 'CPython-3.6'}\\python -m devpi upload --only-docs --from-dir ${WORKSPACE}\\dist\\${DOC_ZIP_FILENAME}"
+                                } catch (exc) {
+                                    echo "Unable to upload to devpi with docs."
+                                }
+                            }
+        //                    }
                         }
                     }
-//                    }
                 }
-            }
-        }
-        stage("Test Devpi packages") {
-            when {
-                allOf{
-                    equals expected: true, actual: params.DEPLOY_DEVPI
-                    anyOf {
-                        equals expected: "master", actual: env.BRANCH_NAME
-                        equals expected: "dev", actual: env.BRANCH_NAME
-                    }
-                }
-            }
-//            steps {
-            parallel {
-                stage("Source Distribution") {
-                    steps {
-                        bat "venv\\Scripts\\python.exe -m pip install pip --upgrade && venv\\Scripts\\pip.exe install setuptools --upgrade && venv\\Scripts\\pip.exe install tox devpi-client"
-                            timeout(10){
-                                bat "venv\\Scripts\\devpi.exe use https://devpi.library.illinois.edu/${env.BRANCH_NAME}_staging"
-                                devpiTest(
-                                    devpiExecutable: "venv\\Scripts\\devpi.exe",
-                                    url: "https://devpi.library.illinois.edu",
-                                    index: "${env.BRANCH_NAME}_staging",
-                                    pkgName: "${PKG_NAME}",
-                                    pkgVersion: "${PKG_VERSION}",
-                                    pkgRegex: "tar.gz"
-                                )
+                stage("Test Devpi packages") {
+                    parallel {
+                        stage("Source Distribution") {
+                            steps {
+                                bat "venv\\Scripts\\python.exe -m pip install pip --upgrade && venv\\Scripts\\pip.exe install setuptools --upgrade && venv\\Scripts\\pip.exe install tox devpi-client"
+                                timeout(10){
+                                    bat "venv\\Scripts\\devpi.exe use https://devpi.library.illinois.edu/${env.BRANCH_NAME}_staging"
+                                    devpiTest(
+                                        devpiExecutable: "venv\\Scripts\\devpi.exe",
+                                        url: "https://devpi.library.illinois.edu",
+                                        index: "${env.BRANCH_NAME}_staging",
+                                        pkgName: "${PKG_NAME}",
+                                        pkgVersion: "${PKG_VERSION}",
+                                        pkgRegex: "tar.gz"
+                                    )
+                                }
+                            }
+                        }
+                        stage("Built Distribution: .whl") {
+                            agent {
+                                node {
+                                    label "Windows && Python3"
+                                }
+                            }
+                            options {
+                                skipDefaultCheckout()
+                            }
+                            steps {
+                                lock("system_python_${NODE_NAME}"){
+                                    bat "${tool 'CPython-3.6'}\\python -m pip install pip --upgrade && ${tool 'CPython-3.6'}\\python -m venv venv "
+                                }
+                                bat "venv\\Scripts\\python.exe -m pip install pip --upgrade && venv\\Scripts\\pip.exe install setuptools --upgrade && venv\\Scripts\\pip.exe install tox devpi-client"
+
+                                timeout(10){
+                                    devpiTest(
+                                        devpiExecutable: "venv\\Scripts\\devpi.exe",
+                                        url: "https://devpi.library.illinois.edu",
+                                        index: "${env.BRANCH_NAME}_staging",
+                                        pkgName: "${PKG_NAME}",
+                                        pkgVersion: "${PKG_VERSION}",
+                                        pkgRegex: "whl"
+                                    )
+                                }
                             }
                         }
                     }
-//                        echo "Testing Source tar.gz package in devpi"
-//                        withCredentials([usernamePassword(credentialsId: 'DS_devpi', usernameVariable: 'DEVPI_USERNAME', passwordVariable: 'DEVPI_PASSWORD')]) {
-//                            bat "venv\\Scripts\\devpi.exe login ${DEVPI_USERNAME} --password ${DEVPI_PASSWORD}"
-//
-//                        }
-//                        bat "venv\\Scripts\\devpi.exe use /DS_Jenkins/${env.BRANCH_NAME}_staging"
-//
-//                        script {
-//                            def devpi_test_return_code = bat returnStatus: true, script: "venv\\Scripts\\devpi.exe test --index https://devpi.library.illinois.edu/DS_Jenkins/${env.BRANCH_NAME}_staging ${PKG_NAME} -s tar.gz  --verbose"
-//                            if(devpi_test_return_code != 0){
-//                                error "Devpi exit code for tar.gz was ${devpi_test_return_code}"
-//                            }
-//                        }
-//                        echo "Finished testing Source Distribution: .tar.gz"
-//                    }
-//                    post {
-//                        failure {
-//                            echo "Tests for .tar.gz source on DevPi failed."
-//                        }
-//                    }
-
-//                }
-                stage("Built Distribution: .whl") {
-                    agent {
-                        node {
-                            label "Windows && Python3"
-                        }
-                    }
-                    options {
-                        skipDefaultCheckout()
-                    }
-                    steps {
-                        lock("system_python_${NODE_NAME}"){
-                            bat "${tool 'CPython-3.6'}\\python -m pip install pip --upgrade && ${tool 'CPython-3.6'}\\python -m venv venv "
-                        }
-                        bat "venv\\Scripts\\python.exe -m pip install pip --upgrade && venv\\Scripts\\pip.exe install setuptools --upgrade && venv\\Scripts\\pip.exe install tox devpi-client"
-
-                        timeout(10){
-                            devpiTest(
-                                devpiExecutable: "venv\\Scripts\\devpi.exe",
-                                url: "https://devpi.library.illinois.edu",
-                                index: "${env.BRANCH_NAME}_staging",
-                                pkgName: "${PKG_NAME}",
-                                pkgVersion: "${PKG_VERSION}",
-                                pkgRegex: "whl"
-                            )
-                        }
-                    }
                 }
-//                        echo "Testing Whl package in devpi"
-//                        bat "${tool 'CPython-3.6'}\\python -m venv venv"
-//                        bat "venv\\Scripts\\pip.exe install tox devpi-client"
-//                        withCredentials([usernamePassword(credentialsId: 'DS_devpi', usernameVariable: 'DEVPI_USERNAME', passwordVariable: 'DEVPI_PASSWORD')]) {
-//                            bat "venv\\Scripts\\devpi.exe login ${DEVPI_USERNAME} --password ${DEVPI_PASSWORD}"
-//                        }
-//                        bat "venv\\Scripts\\devpi.exe use /DS_Jenkins/${env.BRANCH_NAME}_staging"
-//                        script{
-//                            def devpi_test_return_code = bat returnStatus: true, script: "venv\\Scripts\\devpi.exe test --index https://devpi.library.illinois.edu/DS_Jenkins/${env.BRANCH_NAME}_staging ${PKG_NAME} -s whl  --verbose"
-//                            if(devpi_test_return_code != 0){
-//                                error "Devpi exit code for whl was ${devpi_test_return_code}"
-//                            }
-//                        }
-//                        echo "Finished testing Built Distribution: .whl"
-//                    }
-//                    post {
-//                        failure {
-//                            echo "Tests for whl on DevPi failed."
-//                        }
-//                    }
-//                }
             }
 
             post {
