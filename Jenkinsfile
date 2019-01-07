@@ -687,6 +687,7 @@ junit_filename                  = ${junit_filename}
                 [pattern: 'dist', type: 'INCLUDE'],
                 [pattern: 'reports', type: 'INCLUDE'],
                 [pattern: 'logs', type: 'INCLUDE'],
+                [pattern: '*@tmp', type: 'INCLUDE']
                 ]
             bat "tree /A"
             script{
