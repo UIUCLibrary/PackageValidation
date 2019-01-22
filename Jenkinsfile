@@ -102,7 +102,7 @@ pipeline {
                                 bat "venv\\Scripts\\python.exe -m pip install -U pip>=18.1"
                             }
                             catch (exc) {
-                                bat "${tool 'CPython-3.6'}\\python -m venv venv"
+                                bat "python -m venv venv"
                                 bat "venv\\Scripts\\python.exe -m pip install -U pip>=18.1 --no-cache-dir"
                             }
                         }
@@ -349,7 +349,7 @@ pipeline {
                         bat "dir"
                         checkout scm
                         bat "dir /s / B"
-                        bat "${tool 'CPython-3.6'}\\python -m venv venv"
+                        bat "python -m venv venv"
                         bat "venv\\Scripts\\python.exe -m pip install -U pip>=18.1"
                         bat "venv\\Scripts\\pip.exe install -U setuptools"
                         bat "venv\\Scripts\\pip.exe install -r requirements.txt"
