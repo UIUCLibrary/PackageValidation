@@ -140,7 +140,12 @@ pipeline {
                     post{
                         always{
                             archiveArtifacts artifacts: "logs/build.log"
-                            warnings canRunOnFailed: true, parserConfigurations: [[parserName: 'Pep8', pattern: 'logs/build.log']]
+                            recordIssues(tools: [
+                                        pyLint(name: 'Setuptools Build: PyLint', pattern: 'logs/build.log'),
+                                        msBuild(name: 'Setuptools Build: MSBuild', pattern: 'logs/build.log')
+                                    ]
+                                )
+//                            warnings canRunOnFailed: true, parserConfigurations: [[parserName: 'Pep8', pattern: 'logs/build.log']]
                         }
                         cleanup{
                             cleanWs(patterns: [[pattern: 'logs/build.log', type: 'INCLUDE']])
@@ -171,7 +176,8 @@ pipeline {
                     }
                     post{
                         always {
-                            warnings canRunOnFailed: true, parserConfigurations: [[parserName: 'Pep8', pattern: 'logs/build_sphinx.log']]
+                            recordIssues(tools: [sphinxBuild(name: 'Sphinx Documentation Build', pattern: 'logs/build_sphinx.log', id: 'sphinx_build')])
+//                            warnings canRunOnFailed: true, parserConfigurations: [[parserName: 'Pep8', pattern: 'logs/build_sphinx.log']]
                             archiveArtifacts artifacts: 'logs/build_sphinx.log'
                         }
                         success{
@@ -236,9 +242,10 @@ pipeline {
                     post{
                         always {
                             archiveArtifacts "logs\\mypy.log"
+                            recordIssues(tools: [myPy(name: 'MyPy', pattern: 'logs/mypy.log')])
 //                            dir("logs"){
 //                                warnings canRunOnFailed: true, parserConfigurations: [[parserName: 'MyPy', pattern: 'mypy.log']], unHealthy: ''
-                                warnings canComputeNew: false, canRunOnFailed: true, categoriesPattern: '', defaultEncoding: '', excludePattern: '', healthy: '', includePattern: '', messagesPattern: '', parserConfigurations: [[parserName: 'MyPy', pattern: 'logs/mypy.log']], unHealthy: ''
+//                                warnings canComputeNew: false, canRunOnFailed: true, categoriesPattern: '', defaultEncoding: '', excludePattern: '', healthy: '', includePattern: '', messagesPattern: '', parserConfigurations: [[parserName: 'MyPy', pattern: 'logs/mypy.log']], unHealthy: ''
 
 //                            }
     //                            junit "junit-${env.NODE_NAME}-mypy.xml"
@@ -265,10 +272,8 @@ pipeline {
                     }
                     post {
                         always {
-                            dir("logs"){
-                                bat "dir"
-                            }
-                            warnings canRunOnFailed: true, parserConfigurations: [[parserName: 'PyLint', pattern: 'logs/*.log']], unHealthy: ''
+                            recordIssues(tools: [flake8(name: 'Flake8', pattern: 'logs/flake8.log')])
+//                            warnings canRunOnFailed: true, parserConfigurations: [[parserName: 'PyLint', pattern: 'logs/*.log']], unHealthy: ''
                             archiveArtifacts "logs/flake8.log"
                         }
                         cleanup{
