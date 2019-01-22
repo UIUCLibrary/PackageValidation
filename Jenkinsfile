@@ -18,15 +18,7 @@ def remove_from_devpi(devpiExecutable, pkgName, pkgVersion, devpiIndex, devpiUse
     }
 }
 
-
-def PKG_NAME = "unknown"
-def PKG_VERSION = "unknown"
-def DOC_ZIP_FILENAME = "doc.zip"
-def junit_filename = "junit.xml"
-def REPORT_DIR = ""
-def VENV_ROOT = ""
-def VENV_PYTHON = ""
-def VENV_PIP = ""
+//def junit_filename = "junit.xml"
 
 pipeline {
     agent {
@@ -218,34 +210,10 @@ pipeline {
                 stage("Setting variables used by the rest of the build"){
                     steps{
 
-                        script {
-                            // Set up the reports directory variable
-                            REPORT_DIR = "${WORKSPACE}\\reports"
-                            dir("source"){
-                                PKG_NAME = bat(returnStdout: true, script: "@${tool 'CPython-3.6'}\\python  setup.py --name").trim()
-                                PKG_VERSION = bat(returnStdout: true, script: "@${tool 'CPython-3.6'}\\python setup.py --version").trim()
-                            }
-                        }
 
-                        script{
-                            DOC_ZIP_FILENAME = "${PKG_NAME}-${PKG_VERSION}.doc.zip"
-                            junit_filename = "junit-${env.NODE_NAME}-${env.GIT_COMMIT.substring(0,7)}-pytest.xml"
-                        }
-
-
-
-
-                        script{
-                            VENV_ROOT = "${WORKSPACE}\\venv\\"
-
-                            VENV_PYTHON = "${WORKSPACE}\\venv\\Scripts\\python.exe"
-                            bat "${VENV_PYTHON} --version"
-
-                            VENV_PIP = "${WORKSPACE}\\venv\\Scripts\\pip.exe"
-                            bat "${VENV_PIP} --version"
-                        }
-
-
+//                        script{
+//                            junit_filename = "junit-${env.NODE_NAME}-${env.GIT_COMMIT.substring(0,7)}-pytest.xml"
+//                        }
                         bat "venv\\Scripts\\devpi use https://devpi.library.illinois.edu"
                         withCredentials([usernamePassword(credentialsId: 'DS_devpi', usernameVariable: 'DEVPI_USERNAME', passwordVariable: 'DEVPI_PASSWORD')]) {
                             bat "venv\\Scripts\\devpi.exe login ${DEVPI_USERNAME} --password ${DEVPI_PASSWORD}"
@@ -255,17 +223,8 @@ pipeline {
                 }
             }
             post{
-                always{
-                    echo """Name                            = ${PKG_NAME}
-Version                         = ${PKG_VERSION}
-Report Directory                = ${REPORT_DIR}
-documentation zip file          = ${DOC_ZIP_FILENAME}
-Python virtual environment path = ${VENV_ROOT}
-VirtualEnv Python executable    = ${VENV_PYTHON}
-VirtualEnv Pip executable       = ${VENV_PIP}
-junit_filename                  = ${junit_filename}
-"""
-
+                success{
+                    echo "Configured ${env.PKG_NAME}, version ${env.PKG_VERSION}, for testing."
                 }
 
             }
@@ -566,8 +525,8 @@ junit_filename                  = ${junit_filename}
                                         devpiExecutable: "venv\\Scripts\\devpi.exe",
                                         url: "https://devpi.library.illinois.edu",
                                         index: "${env.BRANCH_NAME}_staging",
-                                        pkgName: "${PKG_NAME}",
-                                        pkgVersion: "${PKG_VERSION}",
+                                        pkgName: "${env.PKG_NAME}",
+                                        pkgVersion: "${env.PKG_VERSION}",
                                         pkgRegex: "tar.gz"
                                     )
                                 }
@@ -601,8 +560,8 @@ junit_filename                  = ${junit_filename}
                                         devpiExecutable: "venv\\Scripts\\devpi.exe",
                                         url: "https://devpi.library.illinois.edu",
                                         index: "${env.BRANCH_NAME}_staging",
-                                        pkgName: "${PKG_NAME}",
-                                        pkgVersion: "${PKG_VERSION}",
+                                        pkgName: "${env.PKG_NAME}",
+                                        pkgVersion: "${env.PKG_VERSION}",
                                         pkgRegex: "whl"
                                     )
                                 }
@@ -627,7 +586,7 @@ junit_filename                  = ${junit_filename}
                         withCredentials([usernamePassword(credentialsId: 'DS_devpi', usernameVariable: 'DEVPI_USERNAME', passwordVariable: 'DEVPI_PASSWORD')]) {
                             bat "venv\\Scripts\\devpi.exe login ${DEVPI_USERNAME} --password ${DEVPI_PASSWORD}"
                             bat "venv\\Scripts\\devpi.exe use /${DEVPI_USERNAME}/${env.BRANCH_NAME}_staging"
-                            bat "venv\\Scripts\\devpi.exe push ${PKG_NAME}==${PKG_VERSION} ${DEVPI_USERNAME}/${env.BRANCH_NAME}"
+                            bat "venv\\Scripts\\devpi.exe push ${env.PKG_NAME}==${env.PKG_VERSION} ${DEVPI_USERNAME}/${env.BRANCH_NAME}"
                         }
                     }
                 }
