@@ -1,6 +1,5 @@
 pytest
 tox
-cx_Freeze
 wheel
 setuptools
 sphinx
