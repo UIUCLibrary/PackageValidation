@@ -491,6 +491,9 @@ pipeline {
                     }
                 }
             }
+            environment{
+                PATH = "${WORKSPACE}\\venv\\Scripts;${tool 'CPython-3.6'};${tool 'CPython-3.6'}\\Scripts;${PATH}"
+            }
             stages{
                 stage("Upload to Devpi staging") {
 
