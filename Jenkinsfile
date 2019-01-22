@@ -182,7 +182,7 @@ pipeline {
                         }
 
                         bat "venv\\Scripts\\pip.exe install -r source\\requirements.txt --upgrade-strategy only-if-needed"
-                        bat "venv\\Scripts\\pip.exe install devpi-client lxml pytest-cov mypy coverage flake8 tox --upgrade-strategy only-if-needed"
+                        bat "venv\\Scripts\\pip.exe install lxml pytest-cov mypy coverage flake8 tox --upgrade-strategy only-if-needed"
 
 
 
@@ -202,20 +202,20 @@ pipeline {
                         }
                     }
                 }
-                stage("Setting variables used by the rest of the build"){
-                    steps{
-
-
-//                        script{
-//                            junit_filename = "junit-${env.NODE_NAME}-${env.GIT_COMMIT.substring(0,7)}-pytest.xml"
+//                stage("Setting variables used by the rest of the build"){
+//                    steps{
+//
+//
+////                        script{
+////                            junit_filename = "junit-${env.NODE_NAME}-${env.GIT_COMMIT.substring(0,7)}-pytest.xml"
+////                        }
+//                        bat "venv\\Scripts\\devpi use https://devpi.library.illinois.edu"
+//                        withCredentials([usernamePassword(credentialsId: 'DS_devpi', usernameVariable: 'DEVPI_USERNAME', passwordVariable: 'DEVPI_PASSWORD')]) {
+//                            bat "venv\\Scripts\\devpi.exe login ${DEVPI_USERNAME} --password ${DEVPI_PASSWORD}"
 //                        }
-                        bat "venv\\Scripts\\devpi use https://devpi.library.illinois.edu"
-                        withCredentials([usernamePassword(credentialsId: 'DS_devpi', usernameVariable: 'DEVPI_USERNAME', passwordVariable: 'DEVPI_PASSWORD')]) {
-                            bat "venv\\Scripts\\devpi.exe login ${DEVPI_USERNAME} --password ${DEVPI_PASSWORD}"
-                        }
-                        bat "dir"
-                    }
-                }
+//                        bat "dir"
+//                    }
+//                }
             }
             post{
                 success{
@@ -493,6 +493,7 @@ pipeline {
                 stage("Upload to Devpi staging") {
 
                     steps {
+                        bat "${WORKSPACE}\\venv\\Scripts\\pip install devpi-client"
                         unstash 'DOCS_ARCHIVE'
                         unstash 'PYTHON_PACKAGES'
                         dir("source"){
