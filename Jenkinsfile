@@ -38,6 +38,11 @@ pipeline {
         checkoutToSubdirectory("source")
     }
     environment {
+        PATH = "${tool 'CPython-3.6'};${tool 'CPython-3.7'};$PATH"
+        PKG_NAME = pythonPackageName(toolName: "CPython-3.6")
+        PKG_VERSION = pythonPackageVersion(toolName: "CPython-3.6")
+        DOC_ZIP_FILENAME = "${env.PKG_NAME}-${env.PKG_VERSION}.doc.zip"
+        DEVPI = credentials("DS_devpi")
         mypy_args = "--junit-xml=mypy.xml"
         pytest_args = "--junitxml=reports/junit-{env:OS:UNKNOWN_OS}-{envname}.xml --junit-prefix={env:OS:UNKNOWN_OS}  --basetemp={envtmpdir}"
     }
@@ -90,11 +95,11 @@ pipeline {
                             bat "dir"
                         }
 
-                        dir("build"){
-                            deleteDir()
-                            echo "Cleaned out build directory"
-                            bat "dir"
-                        }
+//                        dir("build"){
+//                            deleteDir()
+//                            echo "Cleaned out build directory"
+//                            bat "dir"
+//                        }
                         dir("dist"){
                             deleteDir()
                             echo "Cleaned out dist directory"
@@ -714,7 +719,7 @@ junit_filename                  = ${junit_filename}
             }
             cleanWs deleteDirs: true, patterns: [
                 [pattern: 'certs', type: 'INCLUDE'],
-                [pattern: 'build', type: 'INCLUDE'],
+//                [pattern: 'build', type: 'INCLUDE'],
                 [pattern: 'dist', type: 'INCLUDE'],
                 [pattern: 'reports', type: 'INCLUDE'],
                 [pattern: 'logs', type: 'INCLUDE'],
@@ -723,14 +728,16 @@ junit_filename                  = ${junit_filename}
             bat "tree /A"
             script{
                 if (env.BRANCH_NAME == "master" || env.BRANCH_NAME == "dev"){
-                    withCredentials([usernamePassword(credentialsId: 'DS_devpi', usernameVariable: 'DEVPI_USERNAME', passwordVariable: 'DEVPI_PASSWORD')]) {
-                        bat "venv\\Scripts\\devpi.exe login DS_Jenkins --password ${DEVPI_PASSWORD}"
-                        bat "venv\\Scripts\\devpi.exe use /DS_Jenkins/${env.BRANCH_NAME}_staging"
-                    }
-
-                    def devpi_remove_return_code = bat returnStatus: true, script:"venv\\Scripts\\devpi.exe remove -y ${PKG_NAME}==${PKG_VERSION}"
-                    echo "Devpi remove exited with code ${devpi_remove_return_code}."
+                    remove_from_devpi("venv\\Scripts\\Scripts\\devpi.exe", "${env.PKG_NAME}", "${env.PKG_VERSION}", "/${env.DEVPI_USR}/${env.BRANCH_NAME}_staging", "${env.DEVPI_USR}", "${env.DEVPI_PSW}")
                 }
+//                    withCredentials([usernamePassword(credentialsId: 'DS_devpi', usernameVariable: 'DEVPI_USERNAME', passwordVariable: 'DEVPI_PASSWORD')]) {
+//                        bat "venv\\Scripts\\devpi.exe login DS_Jenkins --password ${DEVPI_PASSWORD}"
+//                        bat "venv\\Scripts\\devpi.exe use /DS_Jenkins/${env.BRANCH_NAME}_staging"
+//                    }
+//
+//                    def devpi_remove_return_code = bat returnStatus: true, script:"venv\\Scripts\\devpi.exe remove -y ${PKG_NAME}==${PKG_VERSION}"
+//                    echo "Devpi remove exited with code ${devpi_remove_return_code}."
+//                }
             }
         }
     }
