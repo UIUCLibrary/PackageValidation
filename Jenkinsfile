@@ -71,11 +71,6 @@ pipeline {
                             checkout scm
                         }
                     }
-                    post{
-                        success{
-                            bat "dir /s /B"
-                        }
-                    }
                 }
 //                stage("Cleanup"){
 //                    steps {
@@ -114,9 +109,9 @@ pipeline {
                     steps{
 
                         lock("system_python_${env.NODE_NAME}"){
-                            bat "${tool 'CPython-3.6'}\\python -m pip install pip --upgrade --quiet"
+                            bat "python -m pip install pip --upgrade --quiet"
 //                            tee("") {
-                            bat "${tool 'CPython-3.6'}\\python -m pip list > logs/pippackages_system_${env.NODE_NAME}.log"
+                            bat "(if not exist logs mkdir logs) && python -m pip list > logs/pippackages_system_${env.NODE_NAME}.log"
 //                            }
                         }
                     }
