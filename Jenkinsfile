@@ -18,8 +18,6 @@ def remove_from_devpi(devpiExecutable, pkgName, pkgVersion, devpiIndex, devpiUse
     }
 }
 
-//def junit_filename = "junit.xml"
-
 pipeline {
     agent {
         label "Windows && Python3"
@@ -72,62 +70,17 @@ pipeline {
                         }
                     }
                 }
-//                stage("Cleanup"){
-//                    steps {
-//
-//
-//                        dir("logs"){
-//                            deleteDir()
-//                            echo "Cleaned out logs directory"
-//                            bat "dir"
-//                        }
-//
-////                        dir("build"){
-////                            deleteDir()
-////                            echo "Cleaned out build directory"
-////                            bat "dir"
-////                        }
-//                        dir("dist"){
-//                            deleteDir()
-//                            echo "Cleaned out dist directory"
-//                            bat "dir"
-//                        }
-//
-//                        dir("reports"){
-//                            deleteDir()
-//                            echo "Cleaned out reports directory"
-//                            bat "dir"
-//                        }
-//                    }
-//                    post{
-//                        failure {
-//                            deleteDir()
-//                        }
-//                    }
-//                }
                 stage("Install Python system dependencies"){
                     steps{
 
                         lock("system_python_${env.NODE_NAME}"){
                             bat "python -m pip install pip --upgrade --quiet"
-//                            tee("") {
                             bat "(if not exist logs mkdir logs) && python -m pip list > logs/pippackages_system_${env.NODE_NAME}.log"
-//                            }
                         }
                     }
                     post{
                         always{
                             archiveArtifacts artifacts: "logs/pippackages_system_${env.NODE_NAME}.log"
-//                            dir("logs"){
-//                            script{
-//                                def log_files = findFiles glob: 'logs/pippackages_system_*.log'
-//                                log_files.each { log_file ->
-//                                    echo "Found ${log_file}"
-//                                    archiveArtifacts artifacts: "${log_file}"
-//                                    bat "del ${log_file}"
-//                                }
-////                            }
-//                            }
                         }
                         failure {
                             deleteDir()
@@ -137,35 +90,6 @@ pipeline {
                         }
                     }
                 }
-//                stage("Installing required system level dependencies"){
-//                    options{
-//                        lock("system_python_${env.NODE_NAME}")
-//                    }
-//                    steps{
-//                        bat "${tool 'CPython-3.6'}\\python -m pip install pip --upgrade --quiet"
-//                        tee("logs/pippackages_system_${env.NODE_NAME}.log") {
-//                            bat "${tool 'CPython-3.6'}\\python -m pip list"
-//                        }
-//                    }
-//                    post{
-//                        always{
-//                            dir("logs"){
-//                                script{
-//                                    def log_files = findFiles glob: '**/pippackages_system_*.log'
-//                                    log_files.each { log_file ->
-//                                        echo "Found ${log_file}"
-//                                        archiveArtifacts artifacts: "${log_file}"
-//                                        bat "del ${log_file}"
-//                                    }
-//                                }
-//                            }
-//                        }
-//                        failure {
-//                            deleteDir()
-//                        }
-//                    }
-//
-//                }
                 stage("Creating virtualenv for building"){
                     steps {
                         bat "${tool 'CPython-3.6'}\\python -m venv venv"
@@ -176,19 +100,13 @@ pipeline {
                             }
                             catch (exc) {
                                 bat "${tool 'CPython-3.6'}\\python -m venv venv"
-//                                bat "call venv\\Scripts\\python.exe -m pip install -U pip --no-cache-dir"
                                 bat "venv\\Scripts\\python.exe -m pip install -U pip>=18.1 --no-cache-dir"
                             }
                         }
 
                         bat "venv\\Scripts\\pip.exe install -r source\\requirements.txt --upgrade-strategy only-if-needed"
                         bat "venv\\Scripts\\pip.exe install lxml pytest-cov mypy coverage flake8 tox --upgrade-strategy only-if-needed"
-
-
-
-//                        tee("logs/pippackages_venv_${NODE_NAME}.log") {
                         bat "venv\\Scripts\\pip.exe list > ${WORKSPACE}/logs/pippackages_venv_${NODE_NAME}.log"
-//                        }
                     }
                     post{
                         success{
@@ -202,20 +120,6 @@ pipeline {
                         }
                     }
                 }
-//                stage("Setting variables used by the rest of the build"){
-//                    steps{
-//
-//
-////                        script{
-////                            junit_filename = "junit-${env.NODE_NAME}-${env.GIT_COMMIT.substring(0,7)}-pytest.xml"
-////                        }
-//                        bat "venv\\Scripts\\devpi use https://devpi.library.illinois.edu"
-//                        withCredentials([usernamePassword(credentialsId: 'DS_devpi', usernameVariable: 'DEVPI_USERNAME', passwordVariable: 'DEVPI_PASSWORD')]) {
-//                            bat "venv\\Scripts\\devpi.exe login ${DEVPI_USERNAME} --password ${DEVPI_PASSWORD}"
-//                        }
-//                        bat "dir"
-//                    }
-//                }
             }
             post{
                 success{
@@ -237,7 +141,6 @@ pipeline {
                         always{
                             archiveArtifacts artifacts: "logs/build.log"
                             warnings canRunOnFailed: true, parserConfigurations: [[parserName: 'Pep8', pattern: 'logs/build.log']]
-                            // bat "dir build"
                         }
                         cleanup{
                             cleanWs(patterns: [[pattern: 'logs/build.log', type: 'INCLUDE']])
@@ -509,7 +412,6 @@ pipeline {
                                     echo "Unable to upload to devpi with docs."
                                 }
                             }
-        //                    }
                         }
                     }
                 }
@@ -548,7 +450,6 @@ pipeline {
                                         bat "devpi.exe use https://devpi.library.illinois.edu/${env.BRANCH_NAME}_staging"
                                         devpiTest(
                                             devpiExecutable: "${powershell(script: '(Get-Command devpi).path', returnStdout: true).trim()}",
-//                                            devpiExecutable: "venv\\Scripts\\devpi.exe",
                                             url: "https://devpi.library.illinois.edu",
                                             index: "${env.BRANCH_NAME}_staging",
                                             pkgName: "${env.PKG_NAME}",
@@ -597,7 +498,6 @@ pipeline {
                                     steps{
                                         devpiTest(
                                             devpiExecutable: "${powershell(script: '(Get-Command devpi).path', returnStdout: true).trim()}",
-//                                            devpiExecutable: "venv\\Scripts\\devpi.exe",
                                             url: "https://devpi.library.illinois.edu",
                                             index: "${env.BRANCH_NAME}_staging",
                                             pkgName: "${env.PKG_NAME}",
