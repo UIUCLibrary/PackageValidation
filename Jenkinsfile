@@ -549,7 +549,7 @@ pipeline {
                                         timeout(10)
                                     }
                                     steps {
-                                        bat "venv\\Scripts\\devpi.exe use https://devpi.library.illinois.edu/${env.BRANCH_NAME}_staging"
+                                        bat "devpi.exe use https://devpi.library.illinois.edu/${env.BRANCH_NAME}_staging"
                                         devpiTest(
                                             devpiExecutable: "${powershell(script: '(Get-Command devpi).path', returnStdout: true).trim()}",
 //                                            devpiExecutable: "venv\\Scripts\\devpi.exe",
