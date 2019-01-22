@@ -520,26 +520,57 @@ pipeline {
                 stage("Test Devpi packages") {
                     parallel {
                         stage("Source Distribution") {
-                            steps {
-                                bat "venv\\Scripts\\python.exe -m pip install pip --upgrade && venv\\Scripts\\pip.exe install setuptools --upgrade && venv\\Scripts\\pip.exe install tox devpi-client"
-                                timeout(10){
-                                    bat "venv\\Scripts\\devpi.exe use https://devpi.library.illinois.edu/${env.BRANCH_NAME}_staging"
-                                    devpiTest(
-                                        devpiExecutable: "venv\\Scripts\\devpi.exe",
-                                        url: "https://devpi.library.illinois.edu",
-                                        index: "${env.BRANCH_NAME}_staging",
-                                        pkgName: "${env.PKG_NAME}",
-                                        pkgVersion: "${env.PKG_VERSION}",
-                                        pkgRegex: "tar.gz"
-                                    )
+                            environment {
+                                PATH = "${tool 'CPython-3.7'};${tool 'CPython-3.6'};$PATH"
+                            }
+                            agent {
+                                node {
+                                    label "Windows && Python3 && VS2015"
                                 }
                             }
-                            post{
-                                cleanup{
-                                    cleanWs deleteDirs: true, patterns: [
-                                        [pattern: 'certs', type: 'INCLUDE'],
-                                        [pattern: '*@tmp', type: 'INCLUDE']
-                                    ]
+                            options {
+                                skipDefaultCheckout(true)
+
+                            }
+                            stages{
+                                stage("Creating venv to test sdist"){
+                                    steps {
+                                        lock("system_python_${NODE_NAME}"){
+                                            bat "python -m venv venv\\venv36"
+                                        }
+                                        bat "venv\\venv36\\Scripts\\python.exe -m pip install pip --upgrade && venv\\venv36\\Scripts\\pip.exe install setuptools --upgrade && venv\\venv36\\Scripts\\pip.exe install tox devpi-client"
+                                    }
+                                }
+                                stage("Testing DevPi zip Package"){
+                                    environment {
+                                        PATH = "${WORKSPACE}\\venv\\venv36\\Scripts;${tool 'CPython-3.6'};${tool 'CPython-3.7'};$PATH"
+                                    }
+                                    options{
+                                        timeout(10)
+                                    }
+                                    steps {
+
+//                                        timeout(10){
+                                        bat "venv\\Scripts\\devpi.exe use https://devpi.library.illinois.edu/${env.BRANCH_NAME}_staging"
+                                        devpiTest(
+                                            devpiExecutable: "${powershell(script: '(Get-Command devpi).path', returnStdout: true).trim()}",
+//                                            devpiExecutable: "venv\\Scripts\\devpi.exe",
+                                            url: "https://devpi.library.illinois.edu",
+                                            index: "${env.BRANCH_NAME}_staging",
+                                            pkgName: "${env.PKG_NAME}",
+                                            pkgVersion: "${env.PKG_VERSION}",
+                                            pkgRegex: "tar.gz"
+                                        )
+//                                        }
+                                    }
+                                    post{
+                                        cleanup{
+                                            cleanWs deleteDirs: true, patterns: [
+                                                [pattern: 'certs', type: 'INCLUDE'],
+                                                [pattern: '*@tmp', type: 'INCLUDE']
+                                            ]
+                                        }
+                                    }
                                 }
                             }
                         }
