@@ -235,20 +235,11 @@ pipeline {
                             powershell returnStatus: true, script: "& ${WORKSPACE}\\venv\\Scripts\\mypy.exe -p dcc_qc | tee ${WORKSPACE}\\logs\\mypy.log"
                             powershell returnStatus: true, script: "& ${WORKSPACE}\\venv\\Scripts\\mypy.exe -p dcc_qc --html-report ${WORKSPACE}\\reports\\mypy\\html"
                         }
-//                        dir("source") {
-//                            bat returnStatus: true, script: "${WORKSPACE}\\venv\\Scripts\\mypy.exe -p dcc_qc --junit-xml=${WORKSPACE}/junit-${env.NODE_NAME}-mypy.xml --html-report ${WORKSPACE}/reports/mypy_html"
-//                        }
                     }
                     post{
                         always {
                             archiveArtifacts "logs\\mypy.log"
                             recordIssues(tools: [myPy(name: 'MyPy', pattern: 'logs/mypy.log')])
-//                            dir("logs"){
-//                                warnings canRunOnFailed: true, parserConfigurations: [[parserName: 'MyPy', pattern: 'mypy.log']], unHealthy: ''
-//                                warnings canComputeNew: false, canRunOnFailed: true, categoriesPattern: '', defaultEncoding: '', excludePattern: '', healthy: '', includePattern: '', messagesPattern: '', parserConfigurations: [[parserName: 'MyPy', pattern: 'logs/mypy.log']], unHealthy: ''
-
-//                            }
-    //                            junit "junit-${env.NODE_NAME}-mypy.xml"
                             publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'reports/mypy/html', reportFiles: 'index.html', reportName: 'MyPy', reportTitles: ''])
                         }
                         cleanup{
@@ -273,7 +264,6 @@ pipeline {
                     post {
                         always {
                             recordIssues(tools: [flake8(name: 'Flake8', pattern: 'logs/flake8.log')])
-//                            warnings canRunOnFailed: true, parserConfigurations: [[parserName: 'PyLint', pattern: 'logs/*.log']], unHealthy: ''
                             archiveArtifacts "logs/flake8.log"
                         }
                         cleanup{
@@ -404,20 +394,7 @@ pipeline {
                         bat "${WORKSPACE}\\venv\\Scripts\\pip install devpi-client"
                         unstash 'DOCS_ARCHIVE'
                         unstash 'PYTHON_PACKAGES'
-                        dir("source"){
-                            bat "devpi use https://devpi.library.illinois.edu"
-                            withCredentials([usernamePassword(credentialsId: 'DS_devpi', usernameVariable: 'DEVPI_USERNAME', passwordVariable: 'DEVPI_PASSWORD')]) {
-                                bat "${tool 'CPython-3.6'}\\python -m devpi login ${DEVPI_USERNAME} --password ${DEVPI_PASSWORD} && ${tool 'CPython-3.6'}\\python -m devpi use /${DEVPI_USERNAME}/${env.BRANCH_NAME}_staging"
-                            }
-                            script {
-                                bat "${tool 'CPython-3.6'}\\python -m devpi upload --from-dir ${WORKSPACE}\\dist"
-                                try {
-                                    bat "${tool 'CPython-3.6'}\\python -m devpi upload --only-docs --from-dir ${WORKSPACE}\\dist\\${DOC_ZIP_FILENAME}"
-                                } catch (exc) {
-                                    echo "Unable to upload to devpi with docs."
-                                }
-                            }
-                        }
+                        bat "devpi use https://devpi.library.illinois.edu && devpi login ${env.DEVPI_USR} --password ${env.DEVPI_PSW} && devpi use /${env.DEVPI_USR}/${env.BRANCH_NAME}_staging && devpi upload --from-dir dist"
                     }
                 }
                 stage("Test Devpi packages") {
