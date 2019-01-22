@@ -419,7 +419,7 @@ pipeline {
 
                             steps{
                                 dir("source"){
-                                    bat script: "${WORKSPACE}\\venv\\scripts\\python.exe setup.py sdist -d ${WORKSPACE}\\dist bdist_wheel -d ${WORKSPACE}\\dist"
+                                    bat script: "${WORKSPACE}\\venv\\scripts\\python.exe setup.py sdist -d ${WORKSPACE}\\dist --format=zip bdist_wheel -d ${WORKSPACE}\\dist"
                                 }
                             }
                             post {
@@ -549,8 +549,6 @@ pipeline {
                                         timeout(10)
                                     }
                                     steps {
-
-//                                        timeout(10){
                                         bat "venv\\Scripts\\devpi.exe use https://devpi.library.illinois.edu/${env.BRANCH_NAME}_staging"
                                         devpiTest(
                                             devpiExecutable: "${powershell(script: '(Get-Command devpi).path', returnStdout: true).trim()}",
@@ -559,7 +557,7 @@ pipeline {
                                             index: "${env.BRANCH_NAME}_staging",
                                             pkgName: "${env.PKG_NAME}",
                                             pkgVersion: "${env.PKG_VERSION}",
-                                            pkgRegex: "tar.gz"
+                                            pkgRegex: "zip"
                                         )
 //                                        }
                                     }
