@@ -77,39 +77,39 @@ pipeline {
                         }
                     }
                 }
-                stage("Cleanup"){
-                    steps {
-
-
-                        dir("logs"){
-                            deleteDir()
-                            echo "Cleaned out logs directory"
-                            bat "dir"
-                        }
-
-//                        dir("build"){
+//                stage("Cleanup"){
+//                    steps {
+//
+//
+//                        dir("logs"){
 //                            deleteDir()
-//                            echo "Cleaned out build directory"
+//                            echo "Cleaned out logs directory"
 //                            bat "dir"
 //                        }
-                        dir("dist"){
-                            deleteDir()
-                            echo "Cleaned out dist directory"
-                            bat "dir"
-                        }
-
-                        dir("reports"){
-                            deleteDir()
-                            echo "Cleaned out reports directory"
-                            bat "dir"
-                        }
-                    }
-                    post{
-                        failure {
-                            deleteDir()
-                        }
-                    }
-                }
+//
+////                        dir("build"){
+////                            deleteDir()
+////                            echo "Cleaned out build directory"
+////                            bat "dir"
+////                        }
+//                        dir("dist"){
+//                            deleteDir()
+//                            echo "Cleaned out dist directory"
+//                            bat "dir"
+//                        }
+//
+//                        dir("reports"){
+//                            deleteDir()
+//                            echo "Cleaned out reports directory"
+//                            bat "dir"
+//                        }
+//                    }
+//                    post{
+//                        failure {
+//                            deleteDir()
+//                        }
+//                    }
+//                }
                 stage("Install Python system dependencies"){
                     steps{
 
