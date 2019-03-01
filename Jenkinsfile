@@ -413,17 +413,17 @@ pipeline {
 
                             }
                             stages{
-                                stage("Creating venv to test sdist"){
+                                stage("Creating venv to test sdist DevPi package"){
                                     steps {
                                         lock("system_python_${NODE_NAME}"){
                                             bat "python -m venv venv\\venv36"
                                         }
-                                        bat "venv\\venv36\\Scripts\\python.exe -m pip install pip --upgrade && venv\\venv36\\Scripts\\pip.exe install setuptools --upgrade && venv\\venv36\\Scripts\\pip.exe install tox devpi-client"
+                                        bat "venv\\36\\Scripts\\python.exe -m pip install pip --upgrade && venv\\venv36\\Scripts\\pip.exe install setuptools --upgrade && venv\\venv36\\Scripts\\pip.exe install tox devpi-client"
                                     }
                                 }
                                 stage("Testing DevPi zip Package"){
                                     environment {
-                                        PATH = "${WORKSPACE}\\venv\\venv36\\Scripts;${tool 'CPython-3.6'};${tool 'CPython-3.7'};$PATH"
+                                        PATH = "${WORKSPACE}\\venv\\36\\Scripts;${tool 'CPython-3.6'};${tool 'CPython-3.7'};$PATH"
                                     }
                                     options{
                                         timeout(10)
@@ -461,12 +461,12 @@ pipeline {
                                 skipDefaultCheckout()
                             }
                             stages{
-                                stage("Creating venv to test sdist"){
+                                stage("Creating venv to test wheel"){
                                     steps {
                                         lock("system_python_${NODE_NAME}"){
                                             bat "python -m venv venv\\venv36"
                                         }
-                                        bat "venv\\venv36\\Scripts\\python.exe -m pip install pip --upgrade && venv\\venv36\\Scripts\\pip.exe install setuptools --upgrade && venv\\venv36\\Scripts\\pip.exe install tox devpi-client"
+                                        bat "venv\\36\\Scripts\\python.exe -m pip install pip --upgrade && venv\\36\\Scripts\\pip.exe install setuptools --upgrade && venv\\36\\Scripts\\pip.exe install tox"
                                     }
                                 }
                                 stage("Testing DevPi Whl Package"){
@@ -475,7 +475,7 @@ pipeline {
 
                                     }
                                     environment {
-                                        PATH = "${WORKSPACE}\\venv\\venv36\\Scripts;${tool 'CPython-3.6'};${tool 'CPython-3.7'};$PATH"
+                                        PATH = "${WORKSPACE}\\venv\\36\\Scripts;${tool 'CPython-3.6'};${tool 'CPython-3.7'};$PATH"
                                     }
                                     steps{
                                         devpiTest(
