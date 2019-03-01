@@ -260,7 +260,7 @@ pipeline {
                         }
                         script{
                             dir("source"){
-                                bat returnStatus: true, script: "${WORKSPACE}\\venv\\Scripts\\flake8.exe dcc_qc --format=pylint --tee --output-file=${WORKSPACE}\\logs\\flake8.log"
+                                bat returnStatus: true, script: "${WORKSPACE}\\venv\\Scripts\\flake8.exe dcc_qc --tee --output-file=${WORKSPACE}\\logs\\flake8.log"
                             }
                         }
                     }
