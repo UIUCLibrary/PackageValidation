@@ -366,9 +366,7 @@ pipeline {
                             }
                         }
                         cleanup{
-                            bat "dir"
                             deleteDir()
-                            bat "dir"
                         }
                     }
                 }
