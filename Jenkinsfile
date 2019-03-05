@@ -572,7 +572,7 @@ pipeline {
         stage("Update online documentation") {
             agent any
             when {
-                expression { params.UPDATE_DOCS == true }
+                equals expected: true, actual: params.UPDATE_DOCS
             }
             steps {
                 dir("build/docs/html/"){
