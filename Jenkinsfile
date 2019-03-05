@@ -537,38 +537,38 @@ pipeline {
             }
         }
 
-        stage("Deploy - Staging") {
-            agent any
-            when {
-                expression { params.DEPLOY == true }
-            }
-            steps {
-                deployStash("msi", "${env.SCCM_STAGING_FOLDER}/${params.PROJECT_NAME}/")
-                input("Deploy to production?")
-            }
-        }
-
-        stage("Deploy - SCCM upload") {
-            agent any
-            when {
-                expression { params.DEPLOY == true}
-            }
-            steps {
-                deployStash("msi", "${env.SCCM_UPLOAD_FOLDER}")
-            }
-            post {
-                success {
-                    script{
-                        unstash "Source"
-                        def  deployment_request = requestDeploy this, "deployment.yml"
-                        echo deployment_request
-                        writeFile file: "deployment_request.txt", text: deployment_request
-                        archiveArtifacts artifacts: "deployment_request.txt"
-                    }
-
-                }
-            }
-        }
+//        stage("Deploy - Staging") {
+//            agent any
+//            when {
+//                expression { params.DEPLOY == true }
+//            }
+//            steps {
+//                deployStash("msi", "${env.SCCM_STAGING_FOLDER}/${params.PROJECT_NAME}/")
+//                input("Deploy to production?")
+//            }
+//        }
+//
+//        stage("Deploy - SCCM upload") {
+//            agent any
+//            when {
+//                equals expected: true, actual: params.DEPLOY
+//            }
+//            steps {
+//                deployStash("msi", "${env.SCCM_UPLOAD_FOLDER}")
+//            }
+//            post {
+//                success {
+//                    script{
+//                        unstash "Source"
+//                        def  deployment_request = requestDeploy this, "deployment.yml"
+//                        echo deployment_request
+//                        writeFile file: "deployment_request.txt", text: deployment_request
+//                        archiveArtifacts artifacts: "deployment_request.txt"
+//                    }
+//
+//                }
+//            }
+//        }
         stage("Update online documentation") {
             agent any
             when {
