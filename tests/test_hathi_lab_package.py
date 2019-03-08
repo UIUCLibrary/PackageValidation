@@ -1,5 +1,6 @@
 import os
 import pathlib
+import shutil
 
 import pytest
 from dcc_qc import packages
@@ -257,7 +258,8 @@ def hathi_sample_package(tmpdir):
         full_path = os.path.join(str(tmpdir), short_path)
         os.makedirs(full_path, exist_ok=True)
         pathlib.Path(os.path.join(full_path, filename)).touch()
-    return tmpdir
+    yield tmpdir
+    shutil.rmtree(tmpdir)
     # return packages.create_package("Hathi", root_path=str(tmpdir))
 
 

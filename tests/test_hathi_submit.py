@@ -3,6 +3,7 @@ import pathlib
 
 import pytest
 from dcc_qc import packages
+import shutil
 
 TEST_PATH = r"T:\HenryTest-PSR_2\DCC\ReadyToSubmit\uiu_uiuc-loc_20170606_uiuc_DigitalRareBooksCollections_092"
 
@@ -503,7 +504,8 @@ def hathi_sample_package(tmpdir):
         full_path = os.path.join(str(tmpdir), short_path)
         os.makedirs(full_path, exist_ok=True)
         pathlib.Path(os.path.join(full_path, filename)).touch()
-    return tmpdir
+    yield tmpdir
+    shutil.rmtree(tmpdir)
     # return packages.create_package("Hathi", root_path=str(tmpdir))
 
 

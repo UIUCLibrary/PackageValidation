@@ -6,6 +6,7 @@ import dcc_qc.checkers.hathi_submit_factory
 import pathlib
 from dcc_qc.checkers import error_message
 from dcc_qc import checkers
+import shutil
 
 BASE_ROOT = "T://"
 
@@ -83,7 +84,8 @@ def hathi_2693684_package(tmpdir):
         full_path = os.path.join(str(tmpdir), short_path)
         os.makedirs(full_path, exist_ok=True)
         pathlib.Path(os.path.join(full_path, filename)).touch()
-    return tmpdir @ pytest.fixture
+    yield tmpdir @ pytest.fixture
+    shutil.rmtree(tmpdir)
 
 
 @pytest.fixture
@@ -186,7 +188,9 @@ def hathi_6852190_package(tmpdir):
         full_path = os.path.join(str(tmpdir), short_path)
         os.makedirs(full_path, exist_ok=True)
         pathlib.Path(os.path.join(full_path, filename)).touch()
-    return tmpdir
+    yield tmpdir
+    shutil.rmtree(tmpdir)
+
 
 @pytest.fixture
 def hathi_7213538_package(tmpdir):
@@ -255,7 +259,8 @@ def hathi_7213538_package(tmpdir):
         full_path = os.path.join(str(tmpdir), short_path)
         os.makedirs(full_path, exist_ok=True)
         pathlib.Path(os.path.join(full_path, filename)).touch()
-    return tmpdir
+    yield tmpdir
+    shutil.rmtree(tmpdir)
 
 
 @pytest.fixture
@@ -289,7 +294,8 @@ def hathi_7213857_package(tmpdir):
         full_path = os.path.join(str(tmpdir), short_path)
         os.makedirs(full_path, exist_ok=True)
         pathlib.Path(os.path.join(full_path, filename)).touch()
-    return tmpdir
+    yield tmpdir
+    shutil.rmtree(tmpdir)
 
 
 @pytest.fixture
@@ -339,7 +345,8 @@ def hathi_7213932_package(tmpdir):
         full_path = os.path.join(str(tmpdir), short_path)
         os.makedirs(full_path, exist_ok=True)
         pathlib.Path(os.path.join(full_path, filename)).touch()
-    return tmpdir
+    yield tmpdir
+    shutil.rmtree(tmpdir)
 
 
 @pytest.fixture
@@ -429,7 +436,8 @@ def hathi_7214043_package(tmpdir):
         full_path = os.path.join(str(tmpdir), short_path)
         os.makedirs(full_path, exist_ok=True)
         pathlib.Path(os.path.join(full_path, filename)).touch()
-    return tmpdir@pytest.fixture
+    yield tmpdir@pytest.fixture
+    shutil.rmtree(tmpdir)
 
 @pytest.fixture
 def hathi_7215655_package(tmpdir):
@@ -466,6 +474,7 @@ def hathi_7215655_package(tmpdir):
         pathlib.Path(os.path.join(full_path, filename)).touch()
     return tmpdir
 
+
 @pytest.fixture
 def hathi_7215682_package(tmpdir):
     files = [
@@ -497,7 +506,8 @@ def hathi_7215682_package(tmpdir):
         full_path = os.path.join(str(tmpdir), short_path)
         os.makedirs(full_path, exist_ok=True)
         pathlib.Path(os.path.join(full_path, filename)).touch()
-    return tmpdir
+    yield tmpdir
+    shutil.rmtree(tmpdir)
 
 
 @pytest.fixture
@@ -539,7 +549,8 @@ def hathi_7215700_package(tmpdir):
         full_path = os.path.join(str(tmpdir), short_path)
         os.makedirs(full_path, exist_ok=True)
         pathlib.Path(os.path.join(full_path, filename)).touch()
-    return tmpdir
+    yield tmpdir
+    shutil.rmtree(tmpdir)
 
 @pytest.fixture
 def hathi_7465982_package(tmpdir):
@@ -588,7 +599,8 @@ def hathi_7465982_package(tmpdir):
         full_path = os.path.join(str(tmpdir), short_path)
         os.makedirs(full_path, exist_ok=True)
         pathlib.Path(os.path.join(full_path, filename)).touch()
-    return tmpdir
+    yield tmpdir
+    shutil.rmtree(tmpdir)
 
 @pytest.fixture
 def hathi_8102529_package(tmpdir):
@@ -629,7 +641,8 @@ def hathi_8102529_package(tmpdir):
         full_path = os.path.join(str(tmpdir), short_path)
         os.makedirs(full_path, exist_ok=True)
         pathlib.Path(os.path.join(full_path, filename)).touch()
-    return tmpdir
+    yield tmpdir
+    shutil.rmtree(tmpdir)
 
 
 # =======================

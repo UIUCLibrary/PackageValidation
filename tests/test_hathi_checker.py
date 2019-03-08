@@ -1,5 +1,5 @@
 import os
-
+import shutil
 import pytest
 
 import dcc_qc.checkers.hathi_lab_factory
@@ -44,7 +44,8 @@ def files_access_good(tmpdir):
         os.makedirs(full_path, exist_ok=True)
         pathlib.Path(os.path.join(full_path, filename)).touch()
 
-    return str(tmpdir)
+    yield str(tmpdir)
+    shutil.rmtree(tmpdir)
 
 
 @pytest.fixture(name="access_7209692")
@@ -177,7 +178,8 @@ def files_access_bad_7209692(tmpdir):
         full_path = os.path.join(str(tmpdir), short_path)
         os.makedirs(full_path, exist_ok=True)
         pathlib.Path(os.path.join(full_path, filename)).touch()
-    return str(tmpdir)
+    yield str(tmpdir)
+    shutil.rmtree(tmpdir)
 
 
 @pytest.fixture(name="access_7210012")
@@ -269,7 +271,8 @@ def files_access_bad_7210012(tmpdir):
         full_path = os.path.join(str(tmpdir), short_path)
         os.makedirs(full_path, exist_ok=True)
         pathlib.Path(os.path.join(full_path, filename)).touch()
-    return str(tmpdir)
+    yield str(tmpdir)
+    shutil.rmtree(tmpdir)
 
 
 @pytest.fixture(name="access_7210438")
@@ -337,7 +340,8 @@ def files_preservation_bad_7208772(tmpdir):
         full_path = os.path.join(str(tmpdir), short_path)
         os.makedirs(full_path, exist_ok=True)
         pathlib.Path(os.path.join(full_path, filename)).touch()
-    return str(tmpdir)
+    yield str(tmpdir)
+    shutil.rmtree(tmpdir)
 
 
 @pytest.fixture(name="preservation_7209934")
@@ -389,7 +393,8 @@ def files_preservation_bad_7209934(tmpdir):
         full_path = os.path.join(str(tmpdir), short_path)
         os.makedirs(full_path, exist_ok=True)
         pathlib.Path(os.path.join(full_path, filename)).touch()
-    return str(tmpdir)
+    yield str(tmpdir)
+    shutil.rmtree(tmpdir)
 
 
 @pytest.fixture(name="preservation_good")
@@ -482,7 +487,8 @@ def files_preservation_good(tmpdir):
         full_path = os.path.join(str(tmpdir), short_path)
         os.makedirs(full_path, exist_ok=True)
         pathlib.Path(os.path.join(full_path, filename)).touch()
-    return str(tmpdir)
+    yield str(tmpdir)
+    shutil.rmtree(tmpdir)
 
 
 
