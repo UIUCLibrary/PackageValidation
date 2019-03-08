@@ -366,9 +366,7 @@ pipeline {
                             }
                         }
                         cleanup{
-                            bat "dir"
                             deleteDir()
-                            bat "dir"
                         }
                     }
                 }
@@ -537,42 +535,42 @@ pipeline {
             }
         }
 
-        stage("Deploy - Staging") {
-            agent any
-            when {
-                expression { params.DEPLOY == true }
-            }
-            steps {
-                deployStash("msi", "${env.SCCM_STAGING_FOLDER}/${params.PROJECT_NAME}/")
-                input("Deploy to production?")
-            }
-        }
-
-        stage("Deploy - SCCM upload") {
-            agent any
-            when {
-                expression { params.DEPLOY == true}
-            }
-            steps {
-                deployStash("msi", "${env.SCCM_UPLOAD_FOLDER}")
-            }
-            post {
-                success {
-                    script{
-                        unstash "Source"
-                        def  deployment_request = requestDeploy this, "deployment.yml"
-                        echo deployment_request
-                        writeFile file: "deployment_request.txt", text: deployment_request
-                        archiveArtifacts artifacts: "deployment_request.txt"
-                    }
-
-                }
-            }
-        }
+//        stage("Deploy - Staging") {
+//            agent any
+//            when {
+//                expression { params.DEPLOY == true }
+//            }
+//            steps {
+//                deployStash("msi", "${env.SCCM_STAGING_FOLDER}/${params.PROJECT_NAME}/")
+//                input("Deploy to production?")
+//            }
+//        }
+//
+//        stage("Deploy - SCCM upload") {
+//            agent any
+//            when {
+//                equals expected: true, actual: params.DEPLOY
+//            }
+//            steps {
+//                deployStash("msi", "${env.SCCM_UPLOAD_FOLDER}")
+//            }
+//            post {
+//                success {
+//                    script{
+//                        unstash "Source"
+//                        def  deployment_request = requestDeploy this, "deployment.yml"
+//                        echo deployment_request
+//                        writeFile file: "deployment_request.txt", text: deployment_request
+//                        archiveArtifacts artifacts: "deployment_request.txt"
+//                    }
+//
+//                }
+//            }
+//        }
         stage("Update online documentation") {
             agent any
             when {
-                expression { params.UPDATE_DOCS == true }
+                equals expected: true, actual: params.UPDATE_DOCS
             }
             steps {
                 dir("build/docs/html/"){
@@ -606,23 +604,23 @@ pipeline {
     post{
         cleanup{
 
-            script {
-                if(fileExists('source/setup.py')){
-                    dir("source"){
-                        try{
-                            retry(3) {
-                                bat "${WORKSPACE}\\venv\\Scripts\\python.exe setup.py clean --all"
-                            }
-                        } catch (Exception ex) {
-                            echo "Unable to successfully run clean. Purging source directory."
-                            deleteDir()
-                        }
-                    }
-                }
-            }
+//            script {
+//                if(fileExists('source/setup.py')){
+//                    dir("source"){
+//                        try{
+//                            retry(3) {
+//                                bat "${WORKSPACE}\\venv\\Scripts\\python.exe setup.py clean --all"
+//                            }
+//                        } catch (Exception ex) {
+//                            echo "Unable to successfully run clean. Purging source directory."
+//                            deleteDir()
+//                        }
+//                    }
+//                }
+//            }
             cleanWs deleteDirs: true, patterns: [
                 [pattern: 'certs', type: 'INCLUDE'],
-//                [pattern: 'build', type: 'INCLUDE'],
+                [pattern: 'source', type: 'INCLUDE'],
                 [pattern: 'dist', type: 'INCLUDE'],
                 [pattern: 'reports', type: 'INCLUDE'],
                 [pattern: 'logs', type: 'INCLUDE'],
