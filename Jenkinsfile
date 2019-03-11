@@ -274,7 +274,29 @@ pipeline {
                         }
                     }
                 }
-//                TODO: Create a tox test
+                stage("Run Tox test") {
+                    when {
+                       equals expected: true, actual: params.TEST_RUN_TOX
+                    }
+
+                    environment {
+                        PATH = "${WORKSPACE}\\venv\\Scripts;${tool 'CPython-3.6'};${tool 'CPython-3.7'};$PATH"
+                    }
+                    options{
+                        timeout(15)
+                    }
+                    steps {
+                        dir("source"){
+                            script{
+                                try{
+                                    bat "tox --parallel=auto --parallel-live --workdir ${WORKSPACE}\\.tox -vv"
+                                } catch (exc) {
+                                    bat "tox --recreate --parallel=auto --parallel-live  --workdir ${WORKSPACE}\\.tox -vv"
+                                }
+                            }
+                        }
+                    }
+                }
             }
             post{
                 always{
