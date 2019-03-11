@@ -418,9 +418,9 @@ pipeline {
                                 stage("Creating venv to test sdist DevPi package"){
                                     steps {
                                         lock("system_python_${NODE_NAME}"){
-                                            bat "python -m venv venv\\venv36"
+                                            bat "python -m venv venv\\36"
                                         }
-                                        bat "venv\\36\\Scripts\\python.exe -m pip install pip --upgrade && venv\\venv36\\Scripts\\pip.exe install setuptools --upgrade && venv\\venv36\\Scripts\\pip.exe install tox devpi-client"
+                                        bat "venv\\36\\Scripts\\python.exe -m pip install pip --upgrade && venv\\36\\Scripts\\pip.exe install setuptools --upgrade && venv\\36\\Scripts\\pip.exe install tox devpi-client"
                                     }
                                 }
                                 stage("Testing DevPi zip Package"){
@@ -466,7 +466,7 @@ pipeline {
                                 stage("Creating venv to test wheel"){
                                     steps {
                                         lock("system_python_${NODE_NAME}"){
-                                            bat "python -m venv venv\\venv36"
+                                            bat "python -m venv venv\\36"
                                         }
                                         bat "venv\\36\\Scripts\\python.exe -m pip install pip --upgrade && venv\\36\\Scripts\\pip.exe install setuptools --upgrade && venv\\36\\Scripts\\pip.exe install tox"
                                     }
