@@ -8,8 +8,8 @@ from dcc_qc import packages
 TEST_PATH = "T:\HenryTest-PSR_2\DCC\Package_GOOD\\20170424_CavagnaCollectionRBML_tg"
 
 
-@pytest.fixture
-def hathi_sample_package(tmpdir):
+@pytest.fixture(scope="session")
+def hathi_sample_package(tmpdir_factory):
     files = [
         "access/7212907/00000001.tif", "access/7212907/00000002.tif",
         "access/7212907/00000003.tif", "access/7212907/00000004.tif",
@@ -252,7 +252,8 @@ def hathi_sample_package(tmpdir):
         "preservation/7213184/target_r_002.tif", "preservation/7213184/Thumbs.db",
 
     ]
-
+    # tmpdir = tmpdir_factory.mktemp("hathi_sample_package_1")
+    tmpdir = os.path.join(tmpdir_factory.getbasetemp(), "hathi_sample_package_1")
     for file_ in files:
         short_path, filename = os.path.split(file_)
         full_path = os.path.join(str(tmpdir), short_path)

@@ -15,8 +15,8 @@ BASE_ROOT = "T://"
 # Fixtures
 # =======================
 
-@pytest.fixture
-def hathi_2693684_package(tmpdir):
+@pytest.fixture(scope="session")
+def hathi_2693684_package(tmpdir_factory):
     files = [
         "2693684/00000001.jp2", "2693684/00000001.txt",
         "2693684/00000002.jp2", "2693684/00000002.txt",
@@ -78,7 +78,7 @@ def hathi_2693684_package(tmpdir):
         "2693684/marc.xml",
         "2693684/meta.yml",
     ]
-
+    tmpdir = tmpdir_factory.mkdir("2693684")
     for file_ in files:
         short_path, filename = os.path.split(file_)
         full_path = os.path.join(str(tmpdir), short_path)
@@ -88,8 +88,8 @@ def hathi_2693684_package(tmpdir):
     shutil.rmtree(tmpdir)
 
 
-@pytest.fixture
-def hathi_2942435_package(tmpdir):
+@pytest.fixture(scope="session")
+def hathi_2942435_package(tmpdir_factory):
     files = [
         "2942435/00000001.jp2", "2942435/00000001.txt",
         "2942435/00000002.jp2", "2942435/00000002.txt",
@@ -153,8 +153,8 @@ def hathi_2942435_package(tmpdir):
     ]
 
 
-@pytest.fixture
-def hathi_6852190_package(tmpdir):
+@pytest.fixture(scope="session")
+def hathi_6852190_package(tmpdir_factory):
     files = [
         "6852190/00000001.jp2", "6852190/00000001.txt",
         "6852190/00000002.jp2", "6852190/00000002.txt",
@@ -182,7 +182,7 @@ def hathi_6852190_package(tmpdir):
         "6852190/marc.xml",
         "6852190/meta.yml",
     ]
-
+    tmpdir = tmpdir_factory.mktemp("6852190")
     for file_ in files:
         short_path, filename = os.path.split(file_)
         full_path = os.path.join(str(tmpdir), short_path)
@@ -192,8 +192,8 @@ def hathi_6852190_package(tmpdir):
     shutil.rmtree(tmpdir)
 
 
-@pytest.fixture
-def hathi_7213538_package(tmpdir):
+@pytest.fixture(scope="session")
+def hathi_7213538_package(tmpdir_factory):
     files = [
         "7213538/00000001.jp2", "7213538/00000001.txt",
         "7213538/00000002.jp2", "7213538/00000002.txt",
@@ -254,6 +254,7 @@ def hathi_7213538_package(tmpdir):
         "7213538/meta.yml",
     ]
 
+    tmpdir = tmpdir_factory.mktemp("7213538")
     for file_ in files:
         short_path, filename = os.path.split(file_)
         full_path = os.path.join(str(tmpdir), short_path)
@@ -264,7 +265,7 @@ def hathi_7213538_package(tmpdir):
 
 
 @pytest.fixture
-def hathi_7213857_package(tmpdir):
+def hathi_7213857_package(tmpdir_factory):
     files = [
         "7213857/00000001.jp2", "7213857/00000001.txt",
         "7213857/00000002.jp2", "7213857/00000002.txt",
@@ -288,7 +289,7 @@ def hathi_7213857_package(tmpdir):
         "7213857/marc.xml",
         "7213857/meta.yml",
     ]
-
+    tmpdir = tmpdir_factory.mktemp("7213857")
     for file_ in files:
         short_path, filename = os.path.split(file_)
         full_path = os.path.join(str(tmpdir), short_path)
@@ -298,8 +299,8 @@ def hathi_7213857_package(tmpdir):
     shutil.rmtree(tmpdir)
 
 
-@pytest.fixture
-def hathi_7213932_package(tmpdir):
+@pytest.fixture(scope="session")
+def hathi_7213932_package(tmpdir_factory):
     files = [
         "7213932/00000001.jp2", "7213932/00000001.txt",
         "7213932/00000002.jp2", "7213932/00000002.txt",
@@ -339,7 +340,7 @@ def hathi_7213932_package(tmpdir):
         "7213932/marc.xml",
         "7213932/meta.yml",
     ]
-
+    tmpdir = tmpdir_factory.mktemp("7213932")
     for file_ in files:
         short_path, filename = os.path.split(file_)
         full_path = os.path.join(str(tmpdir), short_path)
@@ -475,8 +476,8 @@ def hathi_7215655_package(tmpdir):
     return tmpdir
 
 
-@pytest.fixture
-def hathi_7215682_package(tmpdir):
+@pytest.fixture(scope="session")
+def hathi_7215682_package(tmpdir_factory):
     files = [
         "7215682/00000001.jp2", "7215682/00000001.txt",
         "7215682/00000002.jp2", "7215682/00000002.txt",
@@ -500,6 +501,8 @@ def hathi_7215682_package(tmpdir):
         # "7215682/marc.xml", # MISSING marc
         "7215682/meta.yml",
     ]
+    # tmpdir = tmpdir_factory.mktemp("7215682")
+    tmpdir = os.path.join(tmpdir_factory.getbasetemp(), "7215682")
 
     for file_ in files:
         short_path, filename = os.path.split(file_)
@@ -510,8 +513,8 @@ def hathi_7215682_package(tmpdir):
     shutil.rmtree(tmpdir)
 
 
-@pytest.fixture
-def hathi_7215700_package(tmpdir):
+@pytest.fixture(scope="session")
+def hathi_7215700_package(tmpdir_factory):
     files = [
         "7215700/00000001.jp2", "7215700/00000001.txt",
         "7215700/00000002.jp2", "7215700/00000002.txt",
@@ -543,6 +546,7 @@ def hathi_7215700_package(tmpdir):
         "7215700/marc.xml",
         "7215700/meta.yml",
     ]
+    tmpdir = os.path.join(tmpdir_factory.getbasetemp(), "7215700")
 
     for file_ in files:
         short_path, filename = os.path.split(file_)
@@ -552,8 +556,8 @@ def hathi_7215700_package(tmpdir):
     yield tmpdir
     shutil.rmtree(tmpdir)
 
-@pytest.fixture
-def hathi_7465982_package(tmpdir):
+@pytest.fixture(scope="session")
+def hathi_7465982_package(tmpdir_factory):
     files = [
         "7465982/00000001.jp2",
         "7465982/00000002.jp2", "7465982/00000002.txt",
@@ -593,7 +597,7 @@ def hathi_7465982_package(tmpdir):
         "7465982/marc.xml",
         "7465982/meta.yml",
     ]
-
+    tmpdir = os.path.join(tmpdir_factory.getbasetemp(), "7465982")
     for file_ in files:
         short_path, filename = os.path.split(file_)
         full_path = os.path.join(str(tmpdir), short_path)
@@ -602,8 +606,9 @@ def hathi_7465982_package(tmpdir):
     yield tmpdir
     shutil.rmtree(tmpdir)
 
-@pytest.fixture
-def hathi_8102529_package(tmpdir):
+
+@pytest.fixture(scope="session")
+def hathi_8102529_package(tmpdir_factory):
     files = [
         "8102529/00000001.jp2", "8102529/00000001.txt",
         "8102529/00000002.jp2", "8102529/00000002.txt",
@@ -635,14 +640,17 @@ def hathi_8102529_package(tmpdir):
         "8102529/marc.xml",
         "8102529/meta.yml",
     ]
-
+    # tmpdir = tmpdir_factory.mktemp("8102529")
+    tmpdir = os.path.join(tmpdir_factory.getbasetemp(), "8102529")
     for file_ in files:
         short_path, filename = os.path.split(file_)
         full_path = os.path.join(str(tmpdir), short_path)
         os.makedirs(full_path, exist_ok=True)
         pathlib.Path(os.path.join(full_path, filename)).touch()
     yield tmpdir
+    # tmpdir_factory.finish()
     shutil.rmtree(tmpdir)
+
 
 
 # =======================

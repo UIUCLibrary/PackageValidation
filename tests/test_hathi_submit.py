@@ -8,8 +8,8 @@ import shutil
 TEST_PATH = r"T:\HenryTest-PSR_2\DCC\ReadyToSubmit\uiu_uiuc-loc_20170606_uiuc_DigitalRareBooksCollections_092"
 
 
-@pytest.fixture
-def hathi_sample_package(tmpdir):
+@pytest.fixture(scope="session")
+def hathi_sample_package(tmpdir_factory):
     files = [
         "2693684/00000001.jp2", "2693684/00000001.txt",
         "2693684/00000002.jp2", "2693684/00000002.txt",
@@ -498,7 +498,8 @@ def hathi_sample_package(tmpdir):
         "8102529/meta.yml",
 
     ]
-
+    # tmpdir = tmpdir_factory.mktemp("hathi_sample_package_1")
+    tmpdir = os.path.join(tmpdir_factory.getbasetemp(), "hathi_sample_package_2")
     for file_ in files:
         short_path, filename = os.path.split(file_)
         full_path = os.path.join(str(tmpdir), short_path)

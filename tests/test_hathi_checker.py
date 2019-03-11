@@ -1,5 +1,7 @@
 import os
 import shutil
+import sys
+
 import pytest
 
 import dcc_qc.checkers.hathi_lab_factory
@@ -13,8 +15,8 @@ BASE_ROOT = "T://"
 # =======================
 # Fixtures
 # =======================
-@pytest.fixture(name="access_good")
-def files_access_good(tmpdir):
+@pytest.fixture(name="access_good", scope="session")
+def files_access_good(tmpdir_factory):
     test_files = ["access/7212907/00000001.tif",
                   "access/7212907/00000002.tif",
                   "access/7212907/00000003.tif",
@@ -38,6 +40,8 @@ def files_access_good(tmpdir):
                   "access/7212907/00000021.tif",
                   "access/7212907/00000022.tif"]
 
+    # tmpdir = tmpdir_factory.mktemp("access_good")
+    tmpdir = os.path.join(tmpdir_factory.getbasetemp(), "access_good")
     for file_ in test_files:
         short_path, filename = os.path.split(file_)
         full_path = os.path.join(str(tmpdir), short_path)
@@ -48,8 +52,8 @@ def files_access_good(tmpdir):
     shutil.rmtree(tmpdir)
 
 
-@pytest.fixture(name="access_7209692")
-def files_access_bad_7209692(tmpdir):
+@pytest.fixture(name="access_7209692", scope="session")
+def files_access_bad_7209692(tmpdir_factory):
     """
     Note:
         Images 00000004, 00000008, have incorrect Job Identifier metadata.
@@ -173,6 +177,7 @@ def files_access_bad_7209692(tmpdir):
                         "Access_BAD/7209692/CaptureOne/Cache/Proxies/00000026.tif.cof",
                         "Access_BAD/7209692/CaptureOne/Cache/Proxies/00000026.tif.cop",
                         "Access_BAD/7209692/CaptureOne/Cache/Thumbnails/00000001.tif.[fdafdd01-d550-4a5e-9b41-3d3be329cd87].cot"]
+    tmpdir = tmpdir_factory.getbasetemp()
     for file_ in bad_access_files:
         short_path, filename = os.path.split(file_)
         full_path = os.path.join(str(tmpdir), short_path)
@@ -182,8 +187,9 @@ def files_access_bad_7209692(tmpdir):
     shutil.rmtree(tmpdir)
 
 
-@pytest.fixture(name="access_7210012")
-def files_access_bad_7210012(tmpdir):
+
+@pytest.fixture(name="access_7210012", scope="session")
+def files_access_bad_7210012(tmpdir_factory):
     """
     Note:
         Images 00000007, 00000016, 00000027, 00000033 have incorrect specs for access files.
@@ -266,6 +272,9 @@ def files_access_bad_7210012(tmpdir):
         "Access_BAD/7210012/meta.yml",
         "Access_BAD/7210012/Thumbs.db",
     ]
+    # tmpdir = tmpdir_factory.mktemp("Access_BAD")
+    tmpdir = os.path.join(tmpdir_factory.getbasetemp(), "Access_BAD")
+
     for file_ in files:
         short_path, filename = os.path.split(file_)
         full_path = os.path.join(str(tmpdir), short_path)
@@ -273,9 +282,11 @@ def files_access_bad_7210012(tmpdir):
         pathlib.Path(os.path.join(full_path, filename)).touch()
     yield str(tmpdir)
     shutil.rmtree(tmpdir)
+    # # print(, file=sys.stderr)
+    # raise Exception(f"here {tmpdir}")
 
 
-@pytest.fixture(name="access_7210438")
+@pytest.fixture(name="access_7210438", scope="session")
 def files_access_bad_7210438():
     """
     Note:
@@ -290,11 +301,12 @@ def files_access_bad_7210438():
     for root_, dirs, files in foo:
         for file_ in files:
             print(os.path.join(root_, file_))
-    return foo
+    yield foo
+    shutil.rmtree(foo)
 
 
-@pytest.fixture(name="preservation_7208772")
-def files_preservation_bad_7208772(tmpdir):
+@pytest.fixture(name="preservation_7208772", scope="session")
+def files_preservation_bad_7208772(tmpdir_factory):
     """
     Note:
         All images have incorrect specs for preservation files.
@@ -335,6 +347,8 @@ def files_preservation_bad_7208772(tmpdir):
         "00000029.tif",
         "00000030.tif",
     ]
+    tmpdir = os.path.join(tmpdir_factory.getbasetemp(), "7208772")
+    # tmpdir = tmpdir_factory.mktemp("7208772")
     for file_ in files:
         short_path, filename = os.path.split(file_)
         full_path = os.path.join(str(tmpdir), short_path)
@@ -344,8 +358,8 @@ def files_preservation_bad_7208772(tmpdir):
     shutil.rmtree(tmpdir)
 
 
-@pytest.fixture(name="preservation_7209934")
-def files_preservation_bad_7209934(tmpdir):
+@pytest.fixture(name="preservation_7209934", scope="session")
+def files_preservation_bad_7209934(tmpdir_factory):
     """
     Note:
         Images 00000005, 00000010, 00000015, 00000020, 00000025 have incorrect specs for preservation files.
@@ -388,6 +402,7 @@ def files_preservation_bad_7209934(tmpdir):
         "target_r_001.tif",
         "Target_r_002.tif",
     ]
+    tmpdir = os.path.join(tmpdir_factory.getbasetemp(), "7209934")
     for file_ in files:
         short_path, filename = os.path.split(file_)
         full_path = os.path.join(str(tmpdir), short_path)
@@ -397,8 +412,8 @@ def files_preservation_bad_7209934(tmpdir):
     shutil.rmtree(tmpdir)
 
 
-@pytest.fixture(name="preservation_good")
-def files_preservation_good(tmpdir):
+@pytest.fixture(name="preservation_good", scope="session")
+def files_preservation_good(tmpdir_factory):
     """
     Note:
         Contains 6895567 & 7210439
@@ -482,6 +497,8 @@ def files_preservation_good(tmpdir):
         "7210439/Thumbs.db",
 
     ]
+    # tmpdir = tmpdir_factory.mktemp("preservation_good")
+    tmpdir = os.path.join(tmpdir_factory.getbasetemp(), "preservation_good")
     for file_ in files:
         short_path, filename = os.path.split(file_)
         full_path = os.path.join(str(tmpdir), short_path)
