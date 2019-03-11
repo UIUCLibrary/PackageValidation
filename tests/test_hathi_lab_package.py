@@ -5,7 +5,7 @@ import shutil
 import pytest
 from dcc_qc import packages
 
-TEST_PATH = "T:\HenryTest-PSR_2\DCC\Package_GOOD\\20170424_CavagnaCollectionRBML_tg"
+TEST_PATH = r"T:\HenryTest-PSR_2\DCC\Package_GOOD\\20170424_CavagnaCollectionRBML_tg"
 
 
 @pytest.fixture(scope="session")
