@@ -448,7 +448,7 @@ pipeline {
                             }
                             agent {
                                 node {
-                                    label "Windows && Python3 && VS2015"
+                                    label "Windows && Python3"
                                 }
                             }
                             options {
@@ -613,7 +613,11 @@ pipeline {
             when {
                 equals expected: true, actual: params.UPDATE_DOCS
             }
+            options {
+                skipDefaultCheckout()
+            }
             steps {
+                unstash "DOCS_ARCHIVE"
                 dir("build/docs/html/"){
                     bat "dir /s /B"
                     sshPublisher(
