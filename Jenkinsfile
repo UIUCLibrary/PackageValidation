@@ -193,6 +193,7 @@ pipeline {
                             cleanWs(patterns: [[pattern: 'logs/build_sphinx.log', type: 'INCLUDE']])
                             cleanWs(patterns: [[pattern: "dist/${DOC_ZIP_FILENAME}", type: 'INCLUDE']])
                         }
+
                     }
                 }
             }
@@ -294,6 +295,24 @@ pipeline {
                                     bat "tox --recreate --parallel=auto --parallel-live  --workdir ${WORKSPACE}\\.tox -vv"
                                 }
                             }
+                        }
+                    }
+                    post{
+                        failure {
+                            dir("${WORKSPACE}\\.tox"){
+                                deleteDir()
+                            }
+                        }
+                        always {
+                                recordIssues(tools: [pep8(id: 'tox', name: 'Tox', pattern: '.tox/**/*.log')])
+                                archiveArtifacts artifacts: ".tox/**/*.log", allowEmptyArchive: true
+                            }
+                        cleanup{
+                            cleanWs(
+                                patterns: [
+                                        [pattern: '.tox/**/*.log', type: 'INCLUDE']
+                                    ]
+                                )
                         }
                     }
                 }
