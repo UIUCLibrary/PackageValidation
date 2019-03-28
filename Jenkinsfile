@@ -208,7 +208,10 @@ pipeline {
                     }
                     steps{
                         dir("source"){
-                            bat "${WORKSPACE}\\venv\\Scripts\\coverage run --parallel-mode --source=dcc_qc -m pytest --junitxml=${WORKSPACE}/reports/pytest/junit-${env.NODE_NAME}-pytest.xml --junit-prefix=${env.NODE_NAME}-pytest" //  --basetemp={envtmpdir}"
+                            bat(
+                                label: "Run PyTest",
+                                script: "${WORKSPACE}\\venv\\Scripts\\coverage run --parallel-mode --source=dcc_qc -m pytest --junitxml=${WORKSPACE}/reports/pytest/junit-${env.NODE_NAME}-pytest.xml --junit-prefix=${env.NODE_NAME}-pytest" //  --basetemp={envtmpdir}"
+                            )
                         }
 
                     }
@@ -263,7 +266,11 @@ pipeline {
                         }
                         script{
                             dir("source"){
-                                bat returnStatus: true, script: "${WORKSPACE}\\venv\\Scripts\\flake8.exe dcc_qc --tee --output-file=${WORKSPACE}\\logs\\flake8.log"
+                                bat(
+                                    label: "Run Flake8",
+                                    returnStatus: true,
+                                    script: "${WORKSPACE}\\venv\\Scripts\\flake8.exe dcc_qc --tee --output-file=${WORKSPACE}\\logs\\flake8.log"
+                                )
                             }
                         }
                     }
@@ -293,12 +300,12 @@ pipeline {
                             script{
                                 try{
                                     bat (
-                                        label: "Running Tox",
+                                        label: "Run Tox",
                                         script: "tox --parallel=auto --workdir ${WORKSPACE}\\.tox -vv --result-json=${WORKSPACE}\\logs\\tox_report.json"
                                     )
                                 } catch (exc) {
                                     bat (
-                                        label: "Running Tox with new environments",
+                                        label: "Run Tox with new environments",
                                         script: "tox --recreate --parallel=auto --workdir ${WORKSPACE}\\.tox -vv --result-json=${WORKSPACE}\\logs\\tox_report.json"
                                     )
                                 }
