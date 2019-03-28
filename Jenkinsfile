@@ -293,13 +293,13 @@ pipeline {
                             script{
                                 try{
                                     powershell(
-                                        encoding: 'UTF-8',
+//                                        encoding: 'UTF-8',
                                         label: "Tox Command",
                                         script: "tox --parallel=auto --workdir ${WORKSPACE}\\.tox -v --result-json=${WORKSPACE}\\logs\\tox_report.json"
                                     )
                                 } catch (exc) {
                                     powershell(
-                                        encoding: 'UTF-8',
+//                                        encoding: 'UTF-8',
                                         label: "Tox Command",
                                         script: "tox --recreate --parallel=auto --workdir ${WORKSPACE}\\.tox -v --result-json=${WORKSPACE}\\logs\\tox_report.json"
                                     )
