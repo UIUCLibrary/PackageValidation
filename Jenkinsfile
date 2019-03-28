@@ -292,10 +292,11 @@ pipeline {
                         dir("source"){
                             script{
                                 try{
-                                    bat "tox --workdir ${WORKSPACE}\\.tox -v --result-json=${WORKSPACE}\\logs\\tox_report.json"
+                                    powershell "tox --workdir ${WORKSPACE}\\.tox -v --result-json=${WORKSPACE}\\logs\\tox_report.json"
+//                                    bat "tox --workdir ${WORKSPACE}\\.tox -v --result-json=${WORKSPACE}\\logs\\tox_report.json"
 //                                    bat "tox --parallel=auto --workdir ${WORKSPACE}\\.tox -v --result-json=${WORKSPACE}\\logs\\tox_report.json"
                                 } catch (exc) {
-                                    bat "tox --parallel=auto --workdir ${WORKSPACE}\\.tox -v --result-json=${WORKSPACE}\\logs\\tox_report.json"
+                                    powershell "tox --parallel=auto --workdir ${WORKSPACE}\\.tox -v --result-json=${WORKSPACE}\\logs\\tox_report.json"
 //                                    bat "tox --recreate --parallel=auto --workdir ${WORKSPACE}\\.tox -v --result-json=${WORKSPACE}\\logs\\tox_report.json"
                                 }
                             }
