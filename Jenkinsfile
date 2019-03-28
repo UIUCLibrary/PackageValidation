@@ -290,29 +290,27 @@ pipeline {
                         dir("source"){
                             script{
                                 try{
-                                    bat "tox --parallel=auto --parallel-live --workdir ${WORKSPACE}\\.tox -vv"
+                                    bat "tox --parallel=auto --parallel-live --workdir ${WORKSPACE}\\.tox -vv --result-json=${WORKSPACE}\\logs\\tox_report.json"
                                 } catch (exc) {
-                                    bat "tox --recreate --parallel=auto --parallel-live  --workdir ${WORKSPACE}\\.tox -vv"
+                                    bat "tox --recreate --parallel=auto --parallel-live  --workdir ${WORKSPACE}\\.tox -vv --result-json=${WORKSPACE}\\logs\\tox_report.json"
                                 }
                             }
                         }
                     }
                     post{
-                        always {
-                                archiveArtifacts artifacts: ".tox/**/*.log", allowEmptyArchive: true
-                                recordIssues(tools: [pep8(id: 'tox', name: 'Tox', pattern: '.tox/**/*.log')])
-                            }
+                        always{
+                            archiveArtifacts allowEmptyArchive: true, artifacts: '.tox/py*/log/*.log,.tox/log/*.log,logs/tox_report.json'
+                        }
+                        cleanup{
+                            cleanWs deleteDirs: true, patterns: [
+                                [pattern: '.tox/py*/log/*.log', type: 'INCLUDE'],
+                                [pattern: '.tox/log/*.log', type: 'INCLUDE']
+                            ]
+                        }
                         failure {
                             dir("${WORKSPACE}\\.tox"){
                                 deleteDir()
                             }
-                        }
-                        cleanup{
-                            cleanWs(
-                                patterns: [
-                                        [pattern: '.tox/**/*.log', type: 'INCLUDE']
-                                    ]
-                                )
                         }
                     }
                 }
