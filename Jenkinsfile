@@ -292,11 +292,19 @@ pipeline {
                         dir("source"){
                             script{
                                 try{
-                                    powershell "tox --parallel=auto --workdir ${WORKSPACE}\\.tox -v --result-json=${WORKSPACE}\\logs\\tox_report.json"
+                                    powershell(
+                                        encoding: 'UTF-8',
+                                        label: "Tox Command",
+                                        script: "tox --parallel=auto --workdir ${WORKSPACE}\\.tox -v --result-json=${WORKSPACE}\\logs\\tox_report.json"
+                                    )
 //                                    bat "tox --workdir ${WORKSPACE}\\.tox -v --result-json=${WORKSPACE}\\logs\\tox_report.json"
 //                                    bat "tox --parallel=auto --workdir ${WORKSPACE}\\.tox -v --result-json=${WORKSPACE}\\logs\\tox_report.json"
                                 } catch (exc) {
-                                    powershell "tox --recreate --parallel=auto --workdir ${WORKSPACE}\\.tox -v --result-json=${WORKSPACE}\\logs\\tox_report.json"
+                                    powershell(
+                                        encoding: 'UTF-8',
+                                        label: "Tox Command",
+                                        script: "tox --recreate --parallel=auto --workdir ${WORKSPACE}\\.tox -v --result-json=${WORKSPACE}\\logs\\tox_report.json"
+                                    )
 //                                    bat "tox --recreate --parallel=auto --workdir ${WORKSPACE}\\.tox -v --result-json=${WORKSPACE}\\logs\\tox_report.json"
                                 }
                             }
