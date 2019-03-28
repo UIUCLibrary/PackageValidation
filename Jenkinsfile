@@ -295,13 +295,13 @@ pipeline {
                                     bat (
                                         encoding: 'UTF-8',
                                         label: "Tox Command",
-                                        script: "tox --parallel=auto --workdir ${WORKSPACE}\\.tox -v --result-json=${WORKSPACE}\\logs\\tox_report.json"
+                                        script: "tox --parallel=auto --workdir ${WORKSPACE}\\.tox -vv --result-json=${WORKSPACE}\\logs\\tox_report.json"
                                     )
                                 } catch (exc) {
                                     bat (
                                         encoding: 'UTF-8',
                                         label: "Tox Command",
-                                        script: "tox --recreate --parallel=auto --workdir ${WORKSPACE}\\.tox -v --result-json=${WORKSPACE}\\logs\\tox_report.json"
+                                        script: "tox --recreate --parallel=auto --workdir ${WORKSPACE}\\.tox -vv --result-json=${WORKSPACE}\\logs\\tox_report.json"
                                     )
                                 }
                             }
