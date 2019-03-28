@@ -108,8 +108,8 @@ pipeline {
                         }
 
                         bat "venv\\Scripts\\pip.exe install -r source\\requirements.txt --upgrade-strategy only-if-needed"
-                        bat "venv\\Scripts\\pip.exe install lxml pytest-cov mypy coverage flake8 --upgrade-strategy only-if-needed"
-                        bat 'venv\\Scripts\\pip.exe install "tox<3.8"'
+                        bat "venv\\Scripts\\pip.exe install lxml pytest-cov mypy coverage tox flake8 --upgrade-strategy only-if-needed"
+//                        bat 'venv\\Scripts\\pip.exe install "tox<3.8"'
 
                         bat "venv\\Scripts\\pip.exe list > ${WORKSPACE}/logs/pippackages_venv_${NODE_NAME}.log"
                     }
@@ -292,9 +292,9 @@ pipeline {
                         dir("source"){
                             script{
                                 try{
-                                    bat "tox --parallel=auto --parallel-live --workdir ${WORKSPACE}\\.tox -vv --result-json=${WORKSPACE}\\logs\\tox_report.json"
+                                    bat "tox --parallel=auto --workdir ${WORKSPACE}\\.tox -v --result-json=${WORKSPACE}\\logs\\tox_report.json"
                                 } catch (exc) {
-                                    bat "tox --recreate --parallel=auto --parallel-live  --workdir ${WORKSPACE}\\.tox -vv --result-json=${WORKSPACE}\\logs\\tox_report.json"
+                                    bat "tox --recreate --parallel=auto --workdir ${WORKSPACE}\\.tox -v --result-json=${WORKSPACE}\\logs\\tox_report.json"
                                 }
                             }
                         }
