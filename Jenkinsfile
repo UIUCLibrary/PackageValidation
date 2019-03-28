@@ -298,15 +298,15 @@ pipeline {
                         }
                     }
                     post{
+                        always {
+                                archiveArtifacts artifacts: ".tox/**/*.log", allowEmptyArchive: true
+                                recordIssues(tools: [pep8(id: 'tox', name: 'Tox', pattern: '.tox/**/*.log')])
+                            }
                         failure {
                             dir("${WORKSPACE}\\.tox"){
                                 deleteDir()
                             }
                         }
-                        always {
-                                recordIssues(tools: [pep8(id: 'tox', name: 'Tox', pattern: '.tox/**/*.log')])
-                                archiveArtifacts artifacts: ".tox/**/*.log", allowEmptyArchive: true
-                            }
                         cleanup{
                             cleanWs(
                                 patterns: [
