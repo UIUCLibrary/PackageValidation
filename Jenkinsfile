@@ -301,12 +301,12 @@ pipeline {
                                 try{
                                     bat (
                                         label: "Run Tox",
-                                        script: "tox --parallel=auto --workdir ${WORKSPACE}\\.tox -vv --result-json=${WORKSPACE}\\logs\\tox_report.json"
+                                        script: "tox --parallel=auto --parallel-live --workdir ${WORKSPACE}\\.tox -vv --result-json=${WORKSPACE}\\logs\\tox_report.json"
                                     )
                                 } catch (exc) {
                                     bat (
                                         label: "Run Tox with new environments",
-                                        script: "tox --recreate --parallel=auto --workdir ${WORKSPACE}\\.tox -vv --result-json=${WORKSPACE}\\logs\\tox_report.json"
+                                        script: "tox --recreate --parallel=auto --parallel-live --workdir ${WORKSPACE}\\.tox -vv --result-json=${WORKSPACE}\\logs\\tox_report.json"
                                     )
                                 }
                             }
@@ -322,11 +322,11 @@ pipeline {
 //                                [pattern: '.tox/log/*.log', type: 'INCLUDE']
 //                            ]
 //                        }
-//                        failure {
-//                            dir("${WORKSPACE}\\.tox"){
-//                                deleteDir()
-//                            }
-//                        }
+                        failure {
+                            dir("${WORKSPACE}\\.tox"){
+                                deleteDir()
+                            }
+                        }
                     }
                 }
             }
