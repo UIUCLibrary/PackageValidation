@@ -640,8 +640,7 @@ def hathi_8102529_package(tmpdir_factory):
         "8102529/marc.xml",
         "8102529/meta.yml",
     ]
-    # tmpdir = tmpdir_factory.mktemp("8102529")
-    tmpdir = os.path.join(tmpdir_factory.getbasetemp(), "8102529")
+    tmpdir = tmpdir_factory.mktemp("8102529", numbered=False)
     for file_ in files:
         short_path, filename = os.path.split(file_)
         full_path = os.path.join(str(tmpdir), short_path)

@@ -40,8 +40,7 @@ def files_access_good(tmpdir_factory):
                   "access/7212907/00000021.tif",
                   "access/7212907/00000022.tif"]
 
-    # tmpdir = tmpdir_factory.mktemp("access_good")
-    tmpdir = os.path.join(tmpdir_factory.getbasetemp(), "access_good")
+    tmpdir = tmpdir_factory.mktemp("access_good", numbered=False)
     for file_ in test_files:
         short_path, filename = os.path.split(file_)
         full_path = os.path.join(str(tmpdir), short_path)
@@ -177,7 +176,8 @@ def files_access_bad_7209692(tmpdir_factory):
                         "Access_BAD/7209692/CaptureOne/Cache/Proxies/00000026.tif.cof",
                         "Access_BAD/7209692/CaptureOne/Cache/Proxies/00000026.tif.cop",
                         "Access_BAD/7209692/CaptureOne/Cache/Thumbnails/00000001.tif.[fdafdd01-d550-4a5e-9b41-3d3be329cd87].cot"]
-    tmpdir = tmpdir_factory.getbasetemp()
+    # tmpdir = tmpdir_factory.getbasetemp()
+    tmpdir = tmpdir_factory.mktemp("Access_BAD_7209692", numbered=False)
     for file_ in bad_access_files:
         short_path, filename = os.path.split(file_)
         full_path = os.path.join(str(tmpdir), short_path)
@@ -273,13 +273,15 @@ def files_access_bad_7210012(tmpdir_factory):
         "Access_BAD/7210012/Thumbs.db",
     ]
     # tmpdir = tmpdir_factory.mktemp("Access_BAD")
-    tmpdir = os.path.join(tmpdir_factory.getbasetemp(), "Access_BAD")
+    tmpdir = tmpdir_factory.mktemp("Access_BAD_7210012", numbered=False)
 
     for file_ in files:
         short_path, filename = os.path.split(file_)
         full_path = os.path.join(str(tmpdir), short_path)
         os.makedirs(full_path, exist_ok=True)
-        pathlib.Path(os.path.join(full_path, filename)).touch()
+        with open(os.path.join(full_path, filename), "w"):
+            pass
+        # pathlib.Path(os.path.join(full_path, filename)).touch()
     yield str(tmpdir)
     shutil.rmtree(tmpdir)
     # # print(, file=sys.stderr)
@@ -347,8 +349,7 @@ def files_preservation_bad_7208772(tmpdir_factory):
         "00000029.tif",
         "00000030.tif",
     ]
-    tmpdir = os.path.join(tmpdir_factory.getbasetemp(), "7208772")
-    # tmpdir = tmpdir_factory.mktemp("7208772")
+    tmpdir = tmpdir_factory.mktemp("7208772", numbered=False)
     for file_ in files:
         short_path, filename = os.path.split(file_)
         full_path = os.path.join(str(tmpdir), short_path)
@@ -402,7 +403,8 @@ def files_preservation_bad_7209934(tmpdir_factory):
         "target_r_001.tif",
         "Target_r_002.tif",
     ]
-    tmpdir = os.path.join(tmpdir_factory.getbasetemp(), "7209934")
+    # tmpdir = os.path.join(tmpdir_factory.getbasetemp(), "7209934")
+    tmpdir = tmpdir_factory.mktemp("7209934", numbered=False)
     for file_ in files:
         short_path, filename = os.path.split(file_)
         full_path = os.path.join(str(tmpdir), short_path)
@@ -497,8 +499,7 @@ def files_preservation_good(tmpdir_factory):
         "7210439/Thumbs.db",
 
     ]
-    # tmpdir = tmpdir_factory.mktemp("preservation_good")
-    tmpdir = os.path.join(tmpdir_factory.getbasetemp(), "preservation_good")
+    tmpdir = tmpdir_factory.mktemp("preservation_good", numbered=False)
     for file_ in files:
         short_path, filename = os.path.split(file_)
         full_path = os.path.join(str(tmpdir), short_path)

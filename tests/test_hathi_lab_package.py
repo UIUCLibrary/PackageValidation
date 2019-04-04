@@ -252,8 +252,8 @@ def hathi_sample_package(tmpdir_factory):
         "preservation/7213184/target_r_002.tif", "preservation/7213184/Thumbs.db",
 
     ]
-    # tmpdir = tmpdir_factory.mktemp("hathi_sample_package_1")
-    tmpdir = os.path.join(tmpdir_factory.getbasetemp(), "hathi_sample_package_1")
+    tmpdir = tmpdir_factory.mktemp("hathi_sample_package_1", numbered=False)
+
     for file_ in files:
         short_path, filename = os.path.split(file_)
         full_path = os.path.join(str(tmpdir), short_path)
