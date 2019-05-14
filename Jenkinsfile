@@ -108,7 +108,7 @@ pipeline {
                         }
 
                         bat "venv\\Scripts\\pip.exe install -r source\\requirements.txt --upgrade-strategy only-if-needed"
-                        bat 'venv\\Scripts\\pip.exe install lxml pytest-cov mypy coverage "tox>=3.8.2" flake8 --upgrade-strategy only-if-needed'
+                        bat 'venv\\Scripts\\pip.exe install lxml pytest-cov mypy coverage "tox>=3.8.2,<3.10" flake8 --upgrade-strategy only-if-needed'
 //                        bat 'venv\\Scripts\\pip.exe install "tox<3.8"'
 
                         bat "venv\\Scripts\\pip.exe list > ${WORKSPACE}/logs/pippackages_venv_${NODE_NAME}.log"
