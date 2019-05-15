@@ -475,7 +475,7 @@ pipeline {
                                         lock("system_python_${NODE_NAME}"){
                                             bat "python -m venv venv\\36"
                                         }
-                                        bat "venv\\36\\Scripts\\python.exe -m pip install pip --upgrade && venv\\36\\Scripts\\pip.exe install setuptools --upgrade && venv\\36\\Scripts\\pip.exe install tox devpi-client"
+                                        bat 'venv\\36\\Scripts\\python.exe -m pip install pip --upgrade && venv\\36\\Scripts\\pip.exe install setuptools --upgrade && venv\\36\\Scripts\\pip.exe install "tox>=3.8.2,<3.10" devpi-client'
                                     }
                                 }
                                 stage("Testing DevPi zip Package"){
