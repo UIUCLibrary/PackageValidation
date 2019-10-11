@@ -257,19 +257,21 @@ pipeline {
                     }
                 }
                 stage("Run Flake8 Static Analysis") {
-                    when {
-                        equals expected: true, actual: params.TEST_RUN_FLAKE8
+                    agent{
+                        dockerfile {
+                            filename 'CI/docker/pytest_tests/Dockerfile'
+                            label "linux && docker"
+                            dir 'source'
+                            }
                     }
                     steps{
-                        dir("logs"){
-                            bat "dir"
-                        }
+                        sh "mkdir -p logs"
                         script{
                             dir("source"){
-                                bat(
+                                sh(
                                     label: "Run Flake8",
                                     returnStatus: true,
-                                    script: "${WORKSPACE}\\venv\\Scripts\\flake8.exe dcc_qc --tee --output-file=${WORKSPACE}\\logs\\flake8.log"
+                                    script: "flake8 dcc_qc --tee --output-file=${WORKSPACE}/logs/flake8.log"
                                 )
                             }
                         }
