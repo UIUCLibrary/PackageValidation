@@ -286,7 +286,7 @@ pipeline {
                                     }
                         }
                         cleanup{
-                            cleanWs(patterns: [[pattern: 'logs/flake8.log', type: 'INCLUDE']])
+                            deleteDir()
                         }
                     }
                 }
