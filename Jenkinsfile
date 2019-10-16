@@ -73,6 +73,24 @@ pipeline {
                         }
                     }
                 }
+                stage("Getting Distribution Info"){
+                    environment{
+                        PATH = "${tool 'CPython-3.7'};$PATH"
+                    }
+                    steps{
+                        dir("source"){
+                            bat "python setup.py dist_info"
+                        }
+                    }
+                    post{
+                        success{
+                            dir("source"){
+                                stash includes: "dcc_qc.dist-info.dist-info/**", name: 'DIST-INFO'
+                                archiveArtifacts artifacts: "dcc_qc.dist-info.dist-info/**"
+                            }
+                        }
+                    }
+                }
                 stage("Install Python system dependencies"){
                     steps{
 
