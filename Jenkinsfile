@@ -85,8 +85,8 @@ pipeline {
                     post{
                         success{
                             dir("source"){
-                                stash includes: "dcc_qc.dist-info.dist-info/**", name: 'DIST-INFO'
-                                archiveArtifacts artifacts: "dcc_qc.dist-info.dist-info/**"
+                                stash includes: "dcc_qc.dist-info/**", name: 'DIST-INFO'
+                                archiveArtifacts artifacts: "dcc_qc.dist-info/**"
                             }
                         }
                     }
