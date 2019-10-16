@@ -29,19 +29,13 @@ pipeline {
     }
     environment {
 //        PATH = "${tool 'CPython-3.6'};${tool 'CPython-3.7'};$PATH"
-        PKG_NAME = pythonPackageName(toolName: "CPython-3.6")
-        PKG_VERSION = pythonPackageVersion(toolName: "CPython-3.6")
-        DOC_ZIP_FILENAME = "${env.PKG_NAME}-${env.PKG_VERSION}.doc.zip"
-        DEVPI = credentials("DS_devpi")
+
+
         mypy_args = "--junit-xml=mypy.xml"
         pytest_args = "--junitxml=reports/junit-{env:OS:UNKNOWN_OS}-{envname}.xml --junit-prefix={env:OS:UNKNOWN_OS}  --basetemp={envtmpdir}"
     }
     parameters {
         booleanParam(name: "FRESH_WORKSPACE", defaultValue: false, description: "Purge workspace before staring and checking out source")
-        booleanParam(name: "TEST_RUN_DOCTEST", defaultValue: true, description: "Test documentation")
-        booleanParam(name: "TEST_RUN_PYTEST", defaultValue: true, description: "Run unit tests with PyTest")
-        booleanParam(name: "TEST_RUN_MYPY", defaultValue: true, description: "Run MyPy static analysis")
-        booleanParam(name: "TEST_RUN_FLAKE8", defaultValue: true, description: "Run Flake8 static analysis")
         booleanParam(name: "TEST_RUN_TOX", defaultValue: true, description: "Run Tox Tests")
         booleanParam(name: "PACKAGE_PYTHON_FORMATS", defaultValue: true, description: "Create native Python packages")
         booleanParam(name: "PACKAGE_CX_FREEZE", defaultValue: false, description: "Create standalone install with CX_Freeze")
@@ -70,6 +64,24 @@ pipeline {
                         deleteDir()
                         dir("source"){
                             checkout scm
+                        }
+                    }
+                }
+                stage("Getting Distribution Info"){
+                    environment{
+                        PATH = "${tool 'CPython-3.7'};$PATH"
+                    }
+                    steps{
+                        dir("source"){
+                            bat "python setup.py dist_info"
+                        }
+                    }
+                    post{
+                        success{
+                            dir("source"){
+                                stash includes: "dcc_qc.dist-info/**", name: 'DIST-INFO'
+                                archiveArtifacts artifacts: "dcc_qc.dist-info/**"
+                            }
                         }
                     }
                 }
@@ -126,13 +138,6 @@ pipeline {
                     }
                 }
             }
-            post{
-                success{
-                    echo "Configured ${env.PKG_NAME}, version ${env.PKG_VERSION}, for testing."
-                }
-
-            }
-
         }
         stage("Building") {
             stages{
@@ -186,14 +191,22 @@ pipeline {
                             archiveArtifacts artifacts: 'logs/build_sphinx.log'
                         }
                         success{
-                            publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'build/docs/html', reportFiles: 'index.html', reportName: 'Documentation', reportTitles: ''])
-                            zip archive: true, dir: "${WORKSPACE}/build/docs/html", glob: '', zipFile: "dist/${DOC_ZIP_FILENAME}"
-                            stash includes: "dist/${DOC_ZIP_FILENAME},build/docs/html/**", name: 'DOCS_ARCHIVE'
+                            unstash "DIST-INFO"
+                            script{
+                                def props = readProperties interpolate: true, file: 'dcc_qc.dist-info/METADATA'
+                                def DOC_ZIP_FILENAME = "${props.Name}-${props.Version}.doc.zip"
+                                publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'build/docs/html', reportFiles: 'index.html', reportName: 'Documentation', reportTitles: ''])
+                                zip archive: true, dir: "${WORKSPACE}/build/docs/html", glob: '', zipFile: "dist/${DOC_ZIP_FILENAME}"
+                                stash includes: "dist/${DOC_ZIP_FILENAME},build/docs/html/**", name: 'DOCS_ARCHIVE'
+                            }
 
                         }
                         cleanup{
-                            cleanWs(patterns: [[pattern: 'logs/build_sphinx.log', type: 'INCLUDE']])
-                            cleanWs(patterns: [[pattern: "dist/${DOC_ZIP_FILENAME}", type: 'INCLUDE']])
+                            cleanWs(patterns: [
+                                [pattern: 'logs/build_sphinx.log', type: 'INCLUDE'],
+                                [pattern: "dist/*.doc.zip", type: 'INCLUDE']
+                                ]
+                            )
                         }
 
                     }
@@ -203,9 +216,6 @@ pipeline {
         stage("Tests") {
             parallel {
                 stage("PyTest"){
-                    when {
-                        equals expected: true, actual: params.TEST_RUN_PYTEST
-                    }
                     steps{
                         dir("source"){
                             bat(
@@ -225,9 +235,6 @@ pipeline {
                     }
                 }
                 stage("Documentation"){
-                    when{
-                        equals expected: true, actual: params.TEST_RUN_DOCTEST
-                    }
                     steps{
                         dir("source"){
                             bat "${WORKSPACE}\\venv\\Scripts\\sphinx-build.exe -b doctest docs\\source ${WORKSPACE}\\build\\docs -d ${WORKSPACE}\\build\\docs\\doctrees -v"
@@ -236,9 +243,6 @@ pipeline {
 
                 }
                 stage("MyPy"){
-                    when{
-                        equals expected: true, actual: params.TEST_RUN_MYPY
-                    }
                     steps{
                         dir("source"){
                             powershell returnStatus: true, script: "& ${WORKSPACE}\\venv\\Scripts\\mypy.exe -p dcc_qc | tee ${WORKSPACE}\\logs\\mypy.log"
@@ -449,6 +453,7 @@ pipeline {
             }
             environment{
                 PATH = "${WORKSPACE}\\venv\\Scripts;${tool 'CPython-3.6'};${tool 'CPython-3.6'}\\Scripts;${PATH}"
+                DEVPI = credentials("DS_devpi")
             }
             stages{
                 stage("Upload to Devpi staging") {
@@ -493,15 +498,18 @@ pipeline {
                                     }
                                     steps {
                                         bat "devpi.exe use https://devpi.library.illinois.edu/${env.BRANCH_NAME}_staging"
-                                        devpiTest(
-                                            devpiExecutable: "${powershell(script: '(Get-Command devpi).path', returnStdout: true).trim()}",
-                                            url: "https://devpi.library.illinois.edu",
-                                            index: "${env.BRANCH_NAME}_staging",
-                                            pkgName: "${env.PKG_NAME}",
-                                            pkgVersion: "${env.PKG_VERSION}",
-                                            pkgRegex: "zip"
-                                        )
-//                                        }
+                                        unstash "DIST-INFO"
+                                        script{
+                                            def props = readProperties interpolate: true, file: 'dcc_qc.dist-info/METADATA'
+                                            devpiTest(
+                                                devpiExecutable: "${powershell(script: '(Get-Command devpi).path', returnStdout: true).trim()}",
+                                                url: "https://devpi.library.illinois.edu",
+                                                index: "${env.BRANCH_NAME}_staging",
+                                                pkgName: "${props.Name}",
+                                                pkgVersion: "${props.Version}",
+                                                pkgRegex: "zip"
+                                            )
+                                        }
                                     }
                                     post{
                                         cleanup{
@@ -541,14 +549,18 @@ pipeline {
                                         PATH = "${WORKSPACE}\\venv\\36\\Scripts;${tool 'CPython-3.6'};${tool 'CPython-3.7'};$PATH"
                                     }
                                     steps{
-                                        devpiTest(
-                                            devpiExecutable: "${powershell(script: '(Get-Command devpi).path', returnStdout: true).trim()}",
-                                            url: "https://devpi.library.illinois.edu",
-                                            index: "${env.BRANCH_NAME}_staging",
-                                            pkgName: "${env.PKG_NAME}",
-                                            pkgVersion: "${env.PKG_VERSION}",
-                                            pkgRegex: "whl"
-                                        )
+                                        unstash "DIST-INFO"
+                                        script{
+                                            def props = readProperties interpolate: true, file: 'dcc_qc.dist-info/METADATA'
+                                            devpiTest(
+                                                devpiExecutable: "${powershell(script: '(Get-Command devpi).path', returnStdout: true).trim()}",
+                                                url: "https://devpi.library.illinois.edu",
+                                                index: "${env.BRANCH_NAME}_staging",
+                                                pkgName: "${props.Name}",
+                                                pkgVersion: "${props.Version}",
+                                                pkgRegex: "whl"
+                                            )
+                                        }
                                     }
 
                                 }
@@ -572,12 +584,13 @@ pipeline {
                         }
                     }
                     steps {
+                        unstash "DIST-INFO"
                         script {
-                            input "Release ${env.PKG_NAME} ${env.PKG_VERSION} to DevPi Production?"
+                            def props = readProperties interpolate: true, file: 'dcc_qc.dist-info/METADATA'
+                            input "Release ${props.Name} ${props.Version} to DevPi Production?"
                             bat "venv\\Scripts\\devpi.exe login ${env.DEVPI_USR} --password ${env.DEVPI_PSW}"
-
                             bat "venv\\Scripts\\devpi.exe use /DS_Jenkins/${env.BRANCH_NAME}_staging"
-                            bat "venv\\Scripts\\devpi.exe push ${env.PKG_NAME}==${env.PKG_VERSION} production/release"
+                            bat "venv\\Scripts\\devpi.exe push ${props.Name}==${props.Version} production/release"
                         }
                     }
                 }
@@ -586,12 +599,20 @@ pipeline {
             post {
                 success {
                     echo "it Worked. Pushing file to ${env.BRANCH_NAME} index"
-                    bat "venv\\Scripts\\devpi.exe login ${env.DEVPI_USR} --password ${env.DEVPI_PSW}"
-                    bat "venv\\Scripts\\devpi.exe use /${env.DEVPI_USR}/${env.BRANCH_NAME}_staging"
-                    bat "venv\\Scripts\\devpi.exe push ${env.PKG_NAME}==${env.PKG_VERSION} ${env.DEVPI_USR}/${env.BRANCH_NAME}"
+                    unstash "DIST-INFO"
+                    script {
+                        def props = readProperties interpolate: true, file: 'dcc_qc.dist-info/METADATA'
+                        bat "venv\\Scripts\\devpi.exe login ${env.DEVPI_USR} --password ${env.DEVPI_PSW}"
+                        bat "venv\\Scripts\\devpi.exe use /${env.DEVPI_USR}/${env.BRANCH_NAME}_staging"
+                        bat "venv\\Scripts\\devpi.exe push ${props.Name}==${props.Version} ${env.DEVPI_USR}/${env.BRANCH_NAME}"
+                    }
                 }
                 cleanup{
-                    remove_from_devpi("venv\\Scripts\\devpi.exe", "${env.PKG_NAME}", "${env.PKG_VERSION}", "/${env.DEVPI_USR}/${env.BRANCH_NAME}_staging", "${env.DEVPI_USR}", "${env.DEVPI_PSW}")
+                    unstash "DIST-INFO"
+                    script {
+                        def props = readProperties interpolate: true, file: 'dcc_qc.dist-info/METADATA'
+                        remove_from_devpi("venv\\Scripts\\devpi.exe", "${props.Name}", "${props.Version}", "/${env.DEVPI_USR}/${env.BRANCH_NAME}_staging", "${env.DEVPI_USR}", "${env.DEVPI_PSW}")
+                    }
                 }
             }
         }
