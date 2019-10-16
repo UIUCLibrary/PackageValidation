@@ -203,8 +203,10 @@ pipeline {
                             archiveArtifacts artifacts: 'logs/build_sphinx.log'
                         }
                         success{
+                            unstash "DIST-INFO"
                             script{
-                                def DOC_ZIP_FILENAME = "${env.PKG_NAME}-${env.PKG_VERSION}.doc.zip"
+                                def props = readProperties interpolate: true, file: 'dcc_qc.dist-info/METADATA'
+                                def DOC_ZIP_FILENAME = "${props.Name}-${props.Version}.doc.zip"
                                 publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'build/docs/html', reportFiles: 'index.html', reportName: 'Documentation', reportTitles: ''])
                                 zip archive: true, dir: "${WORKSPACE}/build/docs/html", glob: '', zipFile: "dist/${DOC_ZIP_FILENAME}"
                                 stash includes: "dist/${DOC_ZIP_FILENAME},build/docs/html/**", name: 'DOCS_ARCHIVE'
@@ -214,7 +216,7 @@ pipeline {
                         cleanup{
                             cleanWs(patterns: [
                                 [pattern: 'logs/build_sphinx.log', type: 'INCLUDE'],
-                                [pattern: "dist/*.doc.zip}", type: 'INCLUDE']
+                                [pattern: "dist/*.doc.zip", type: 'INCLUDE']
                                 ]
                             )
                         }
