@@ -36,10 +36,6 @@ pipeline {
     }
     parameters {
         booleanParam(name: "FRESH_WORKSPACE", defaultValue: false, description: "Purge workspace before staring and checking out source")
-        booleanParam(name: "TEST_RUN_DOCTEST", defaultValue: true, description: "Test documentation")
-        booleanParam(name: "TEST_RUN_PYTEST", defaultValue: true, description: "Run unit tests with PyTest")
-        booleanParam(name: "TEST_RUN_MYPY", defaultValue: true, description: "Run MyPy static analysis")
-        booleanParam(name: "TEST_RUN_FLAKE8", defaultValue: true, description: "Run Flake8 static analysis")
         booleanParam(name: "TEST_RUN_TOX", defaultValue: true, description: "Run Tox Tests")
         booleanParam(name: "PACKAGE_PYTHON_FORMATS", defaultValue: true, description: "Create native Python packages")
         booleanParam(name: "PACKAGE_CX_FREEZE", defaultValue: false, description: "Create standalone install with CX_Freeze")
@@ -220,9 +216,6 @@ pipeline {
         stage("Tests") {
             parallel {
                 stage("PyTest"){
-                    when {
-                        equals expected: true, actual: params.TEST_RUN_PYTEST
-                    }
                     steps{
                         dir("source"){
                             bat(
@@ -242,9 +235,6 @@ pipeline {
                     }
                 }
                 stage("Documentation"){
-                    when{
-                        equals expected: true, actual: params.TEST_RUN_DOCTEST
-                    }
                     steps{
                         dir("source"){
                             bat "${WORKSPACE}\\venv\\Scripts\\sphinx-build.exe -b doctest docs\\source ${WORKSPACE}\\build\\docs -d ${WORKSPACE}\\build\\docs\\doctrees -v"
@@ -253,9 +243,6 @@ pipeline {
 
                 }
                 stage("MyPy"){
-                    when{
-                        equals expected: true, actual: params.TEST_RUN_MYPY
-                    }
                     steps{
                         dir("source"){
                             powershell returnStatus: true, script: "& ${WORKSPACE}\\venv\\Scripts\\mypy.exe -p dcc_qc | tee ${WORKSPACE}\\logs\\mypy.log"
