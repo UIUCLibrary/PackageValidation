@@ -335,7 +335,7 @@ pipeline {
                         beforeAgent true
                     }
                     steps{
-                        bat "python cx_setup.py bdist_msi --add-to-path=true -k --bdist-dir build/msi"                        // bat "make freeze"
+                        bat "python cx_setup.py bdist_msi --add-to-path=true -k --bdist-dir build/msi"
                     }
                     post{
                         success{
