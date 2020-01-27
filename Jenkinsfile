@@ -300,7 +300,7 @@ pipeline {
                     stages{
                         stage("Packaging sdist and wheel"){
                             steps{
-                                bat script: "python setup.py sdist -d ${WORKSPACE}\\dist --format=zip bdist_wheel -d ${WORKSPACE}\\dist"
+                                bat script: "python setup.py sdist -d dist --format=zip bdist_wheel -d dist"
                             }
                             post {
                                 success {
@@ -308,7 +308,9 @@ pipeline {
                                     stash includes: "dist/*.whl,dist/*.tar.gz,dist/*.zip", name: 'PYTHON_PACKAGES'
                                 }
                                 cleanup{
-                                    cleanWs deleteDirs: true, patterns: [[pattern: 'dist/*.whl,dist/*.tar.gz,dist/*.zip', type: 'INCLUDE']]
+                                    cleanWs(
+                                        deleteDirs: true, patterns: [[pattern: 'dist/*.whl,dist/*.tar.gz,dist/*.zip', type: 'INCLUDE']]
+                                    )
                                 }
                             }
                         }
@@ -323,6 +325,7 @@ pipeline {
                     }
                     when {
                         equals expected: true, actual: params.PACKAGE_CX_FREEZE
+                        beforeAgent true
                     }
                     steps{
                         bat "python cx_setup.py bdist_msi --add-to-path=true -k --bdist-dir build/msi"                        // bat "make freeze"
