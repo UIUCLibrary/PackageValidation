@@ -304,13 +304,22 @@ pipeline {
                                 bat script: "python setup.py sdist -d dist --format=zip bdist_wheel -d dist"
                             }
                             post {
+                                always{
+                                    bat "dir"
+                                }
                                 success {
-                                    archiveArtifacts artifacts: "dist/*.whl,dist/*.tar.gz,dist/*.zip", fingerprint: true
+                                    archiveArtifacts(
+                                        artifacts: "dist/*.whl,dist/*.tar.gz,dist/*.zip",
+                                        fingerprint: true
+                                    )
                                     stash includes: "dist/*.whl,dist/*.tar.gz,dist/*.zip", name: 'PYTHON_PACKAGES'
                                 }
                                 cleanup{
                                     cleanWs(
-                                        deleteDirs: true, patterns: [[pattern: 'dist/*.whl,dist/*.tar.gz,dist/*.zip', type: 'INCLUDE']]
+                                        deleteDirs: true,
+                                        patterns: [
+                                            [pattern: 'dist/*.whl,dist/*.tar.gz,dist/*.zip', type: 'INCLUDE']
+                                        ]
                                     )
                                 }
                             }
