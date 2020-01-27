@@ -128,15 +128,15 @@ pipeline {
                             }
 
                         }
-                        cleanup{
-                            cleanWs(patterns: [
-                                [pattern: 'logs/build_sphinx.log', type: 'INCLUDE'],
-                                [pattern: "dist/*.doc.zip", type: 'INCLUDE']
-                                ]
-                            )
-                        }
-
                     }
+                }
+            }
+            post{
+                cleanup{
+                    cleanWs(patterns: [
+                        [pattern: 'build', type: 'INCLUDE'],
+                        ]
+                    )
                 }
             }
         }
