@@ -314,7 +314,6 @@ pipeline {
                         }
                     }
                 }
-
                 stage("Windows CX_Freeze MSI"){
                     agent {
                         dockerfile {
@@ -587,9 +586,8 @@ pipeline {
             }
         }
     }
-    post{
-        cleanup{
-
+//     post{
+//         cleanup{
 //            script {
 //                if(fileExists('source/setup.py')){
 //                    dir("source"){
@@ -604,13 +602,13 @@ pipeline {
 //                    }
 //                }
 //            }
-            cleanWs deleteDirs: true, patterns: [
-                [pattern: 'certs', type: 'INCLUDE'],
-                [pattern: 'dist', type: 'INCLUDE'],
-                [pattern: 'reports', type: 'INCLUDE'],
-                [pattern: 'logs', type: 'INCLUDE'],
-                [pattern: '*@tmp', type: 'INCLUDE']
-                ]
-        }
-    }
+//             cleanWs deleteDirs: true, patterns: [
+//                 [pattern: 'certs', type: 'INCLUDE'],
+//                 [pattern: 'dist', type: 'INCLUDE'],
+//                 [pattern: 'reports', type: 'INCLUDE'],
+//                 [pattern: 'logs', type: 'INCLUDE'],
+//                 [pattern: '*@tmp', type: 'INCLUDE']
+//                 ]
+//         }
+//     }
 }
