@@ -49,91 +49,105 @@ pipeline {
         cron('@daily')
     }
     stages {
-        stage("Configure") {
-            environment {
-                PATH = "${tool 'CPython-3.6'};$PATH"
+        stage("Getting Distribution Info"){
+            agent {
+                dockerfile {
+                    filename 'ci/docker/python37/windows/build/msvc/Dockerfile'
+                    label "windows && docker"
+                }
             }
-            stages{
-                stage("Purge all existing data in workspace"){
-                    when{
-                        anyOf{
-                            equals expected: true, actual: params.FRESH_WORKSPACE
-                            triggeredBy "TimerTriggerCause"
-                        }
-                    }
-                    steps{
-                        deleteDir()
-                        checkout scm
-                    }
+//                     environment{
+//                         PATH = "${tool 'CPython-3.7'};$PATH"
+//                     }
+            steps{
+                bat "python setup.py dist_info"
+            }
+            post{
+                success{
+                    stash includes: "dcc_qc.dist-info/**", name: 'DIST-INFO'
+                    archiveArtifacts artifacts: "dcc_qc.dist-info/**"
                 }
-                stage("Getting Distribution Info"){
-                    environment{
-                        PATH = "${tool 'CPython-3.7'};$PATH"
-                    }
-                    steps{
-                        bat "python setup.py dist_info"
-                    }
-                    post{
-                        success{
-                            stash includes: "dcc_qc.dist-info/**", name: 'DIST-INFO'
-                            archiveArtifacts artifacts: "dcc_qc.dist-info/**"
-                        }
-                    }
-                }
-                stage("Install Python system dependencies"){
-                    steps{
-
-                        lock("system_python_${env.NODE_NAME}"){
-                            bat "python -m pip install pip --upgrade --quiet"
-                            bat "(if not exist logs mkdir logs) && python -m pip list > logs/pippackages_system_${env.NODE_NAME}.log"
-                        }
-                    }
-                    post{
-                        always{
-                            archiveArtifacts artifacts: "logs/pippackages_system_${env.NODE_NAME}.log"
-                        }
-                        failure {
-                            deleteDir()
-                        }
-                        cleanup{
-                            cleanWs(patterns: [[pattern: "logs/pippackages_system_*.log", type: 'INCLUDE']])
-                        }
-                    }
-                }
-                stage("Creating virtualenv for building"){
-                    steps {
-                        bat "python -m venv venv"
-                        script {
-                            try {
-//                                bat "call venv\\Scripts\\python.exe -m pip install -U pip"
-                                bat "venv\\Scripts\\python.exe -m pip install -U pip>=18.1"
-                            }
-                            catch (exc) {
-                                bat "python -m venv venv"
-                                bat "venv\\Scripts\\python.exe -m pip install -U pip>=18.1 --no-cache-dir"
-                            }
-                        }
-
-                        bat "venv\\Scripts\\pip.exe install -r requirements.txt --upgrade-strategy only-if-needed"
-                        bat 'venv\\Scripts\\pip.exe install lxml pytest-cov mypy coverage "tox>=3.8.2,<3.10" flake8 --upgrade-strategy only-if-needed'
-//                        bat 'venv\\Scripts\\pip.exe install "tox<3.8"'
-
-                        bat "venv\\Scripts\\pip.exe list > ${WORKSPACE}/logs/pippackages_venv_${NODE_NAME}.log"
-                    }
-                    post{
-                        success{
-                            archiveArtifacts artifacts: "logs/pippackages_venv_${NODE_NAME}.log"
-                        }
-                        failure {
-                            deleteDir()
-                        }
-                        cleanup{
-                            cleanWs(patterns: [[pattern: 'logs/pippackages_venv_*.log', type: 'INCLUDE']])
-                        }
-                    }
+                cleanup{
+                    cleanWs(
+                        deleteDirs: true,
+                        patterns: [
+                            [pattern: "dcc_qc.dist-info/", type: 'INCLUDE'],
+                        ]
+                    )
                 }
             }
         }
+//         stage("Configure") {
+//             environment {
+//                 PATH = "${tool 'CPython-3.6'};$PATH"
+//             }
+//             stages{
+//                 stage("Purge all existing data in workspace"){
+//                     when{
+//                         anyOf{
+//                             equals expected: true, actual: params.FRESH_WORKSPACE
+//                             triggeredBy "TimerTriggerCause"
+//                         }
+//                     }
+//                     steps{
+//                         deleteDir()
+//                         checkout scm
+//                     }
+//                 }
+//                 stage("Install Python system dependencies"){
+//                     steps{
+//
+//                         lock("system_python_${env.NODE_NAME}"){
+//                             bat "python -m pip install pip --upgrade --quiet"
+//                             bat "(if not exist logs mkdir logs) && python -m pip list > logs/pippackages_system_${env.NODE_NAME}.log"
+//                         }
+//                     }
+//                     post{
+//                         always{
+//                             archiveArtifacts artifacts: "logs/pippackages_system_${env.NODE_NAME}.log"
+//                         }
+//                         failure {
+//                             deleteDir()
+//                         }
+//                         cleanup{
+//                             cleanWs(patterns: [[pattern: "logs/pippackages_system_*.log", type: 'INCLUDE']])
+//                         }
+//                     }
+//                 }
+//                 stage("Creating virtualenv for building"){
+//                     steps {
+//                         bat "python -m venv venv"
+//                         script {
+//                             try {
+// //                                bat "call venv\\Scripts\\python.exe -m pip install -U pip"
+//                                 bat "venv\\Scripts\\python.exe -m pip install -U pip>=18.1"
+//                             }
+//                             catch (exc) {
+//                                 bat "python -m venv venv"
+//                                 bat "venv\\Scripts\\python.exe -m pip install -U pip>=18.1 --no-cache-dir"
+//                             }
+//                         }
+//
+//                         bat "venv\\Scripts\\pip.exe install -r requirements.txt --upgrade-strategy only-if-needed"
+//                         bat 'venv\\Scripts\\pip.exe install lxml pytest-cov mypy coverage "tox>=3.8.2,<3.10" flake8 --upgrade-strategy only-if-needed'
+// //                        bat 'venv\\Scripts\\pip.exe install "tox<3.8"'
+//
+//                         bat "venv\\Scripts\\pip.exe list > ${WORKSPACE}/logs/pippackages_venv_${NODE_NAME}.log"
+//                     }
+//                     post{
+//                         success{
+//                             archiveArtifacts artifacts: "logs/pippackages_venv_${NODE_NAME}.log"
+//                         }
+//                         failure {
+//                             deleteDir()
+//                         }
+//                         cleanup{
+//                             cleanWs(patterns: [[pattern: 'logs/pippackages_venv_*.log', type: 'INCLUDE']])
+//                         }
+//                     }
+//                 }
+//             }
+//         }
         stage("Building") {
             stages{
                 stage("Building Python Package"){
