@@ -304,9 +304,6 @@ pipeline {
                                 bat script: "python setup.py sdist -d dist --format=zip bdist_wheel -d dist"
                             }
                             post {
-                                always{
-                                    bat "dir"
-                                }
                                 success {
                                     archiveArtifacts(
                                         artifacts: "dist/*.whl,dist/*.tar.gz,dist/*.zip",
