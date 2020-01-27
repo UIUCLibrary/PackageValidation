@@ -20,18 +20,11 @@ def remove_from_devpi(devpiExecutable, pkgName, pkgVersion, devpiIndex, devpiUse
 
 pipeline {
     agent none
-//     agent {
-//         label "Windows && Python3"
-//     }
     options {
         disableConcurrentBuilds()  //each branch has 1 job running at a time
         timeout(60)  // Timeout after 60 minutes. This shouldn't take this long but it hangs for some reason
-//         checkoutToSubdirectory("source")
     }
     environment {
-//        PATH = "${tool 'CPython-3.6'};${tool 'CPython-3.7'};$PATH"
-
-
         mypy_args = "--junit-xml=mypy.xml"
         pytest_args = "--junitxml=reports/junit-{env:OS:UNKNOWN_OS}-{envname}.xml --junit-prefix={env:OS:UNKNOWN_OS}  --basetemp={envtmpdir}"
     }
@@ -56,9 +49,6 @@ pipeline {
                     label "windows && docker"
                 }
             }
-//                     environment{
-//                         PATH = "${tool 'CPython-3.7'};$PATH"
-//                     }
             steps{
                 bat "python setup.py dist_info"
             }
@@ -77,82 +67,18 @@ pipeline {
                 }
             }
         }
-//         stage("Configure") {
-//             environment {
-//                 PATH = "${tool 'CPython-3.6'};$PATH"
-//             }
-//             stages{
-//                 stage("Purge all existing data in workspace"){
-//                     when{
-//                         anyOf{
-//                             equals expected: true, actual: params.FRESH_WORKSPACE
-//                             triggeredBy "TimerTriggerCause"
-//                         }
-//                     }
-//                     steps{
-//                         deleteDir()
-//                         checkout scm
-//                     }
-//                 }
-//                 stage("Install Python system dependencies"){
-//                     steps{
-//
-//                         lock("system_python_${env.NODE_NAME}"){
-//                             bat "python -m pip install pip --upgrade --quiet"
-//                             bat "(if not exist logs mkdir logs) && python -m pip list > logs/pippackages_system_${env.NODE_NAME}.log"
-//                         }
-//                     }
-//                     post{
-//                         always{
-//                             archiveArtifacts artifacts: "logs/pippackages_system_${env.NODE_NAME}.log"
-//                         }
-//                         failure {
-//                             deleteDir()
-//                         }
-//                         cleanup{
-//                             cleanWs(patterns: [[pattern: "logs/pippackages_system_*.log", type: 'INCLUDE']])
-//                         }
-//                     }
-//                 }
-//                 stage("Creating virtualenv for building"){
-//                     steps {
-//                         bat "python -m venv venv"
-//                         script {
-//                             try {
-// //                                bat "call venv\\Scripts\\python.exe -m pip install -U pip"
-//                                 bat "venv\\Scripts\\python.exe -m pip install -U pip>=18.1"
-//                             }
-//                             catch (exc) {
-//                                 bat "python -m venv venv"
-//                                 bat "venv\\Scripts\\python.exe -m pip install -U pip>=18.1 --no-cache-dir"
-//                             }
-//                         }
-//
-//                         bat "venv\\Scripts\\pip.exe install -r requirements.txt --upgrade-strategy only-if-needed"
-//                         bat 'venv\\Scripts\\pip.exe install lxml pytest-cov mypy coverage "tox>=3.8.2,<3.10" flake8 --upgrade-strategy only-if-needed'
-// //                        bat 'venv\\Scripts\\pip.exe install "tox<3.8"'
-//
-//                         bat "venv\\Scripts\\pip.exe list > ${WORKSPACE}/logs/pippackages_venv_${NODE_NAME}.log"
-//                     }
-//                     post{
-//                         success{
-//                             archiveArtifacts artifacts: "logs/pippackages_venv_${NODE_NAME}.log"
-//                         }
-//                         failure {
-//                             deleteDir()
-//                         }
-//                         cleanup{
-//                             cleanWs(patterns: [[pattern: 'logs/pippackages_venv_*.log', type: 'INCLUDE']])
-//                         }
-//                     }
-//                 }
-//             }
-//         }
         stage("Building") {
+            agent {
+                dockerfile {
+                    filename 'ci/docker/python37/windows/build/msvc/Dockerfile'
+                    label "windows && docker"
+                }
+            }
             stages{
                 stage("Building Python Package"){
                     steps {
-                        powershell "& ${WORKSPACE}\\venv\\Scripts\\python.exe setup.py build -b ${WORKSPACE}\\build | tee ${WORKSPACE}\\logs\\build.log"
+                        bat "if not exist logs mkdir logs"
+                        powershell "& python setup.py build -b ${WORKSPACE}\\build | tee ${WORKSPACE}\\logs\\build.log"
                     }
                     post{
                         always{
@@ -162,7 +88,6 @@ pipeline {
                                         msBuild(name: 'Setuptools Build: MSBuild', pattern: 'logs/build.log')
                                     ]
                                 )
-//                            warnings canRunOnFailed: true, parserConfigurations: [[parserName: 'Pep8', pattern: 'logs/build.log']]
                         }
                         cleanup{
                             cleanWs(patterns: [[pattern: 'logs/build.log', type: 'INCLUDE']])
@@ -171,11 +96,6 @@ pipeline {
                 }
                 stage("Building Sphinx Documentation"){
                     steps {
-                        dir("build/docs/html"){
-                            deleteDir()
-                            echo "Cleaned out build/docs/html dirctory"
-
-                        }
                         script{
                             // Add a line to config file so auto docs look in the build folder
                             def sphinx_config_file = 'docs/source/conf.py'
@@ -187,12 +107,11 @@ pipeline {
 
                         }
                         echo "Building docs on ${env.NODE_NAME}"
-                        powershell "& ${WORKSPACE}\\venv\\Scripts\\python.exe setup.py build_sphinx --build-dir ${WORKSPACE}\\build\\docs | tee ${WORKSPACE}\\logs\\build_sphinx.log"
+                        powershell "& python setup.py build_sphinx --build-dir ${WORKSPACE}\\build\\docs | tee ${WORKSPACE}\\logs\\build_sphinx.log"
                     }
                     post{
                         always {
                             recordIssues(tools: [sphinxBuild(name: 'Sphinx Documentation Build', pattern: 'logs/build_sphinx.log', id: 'sphinx_build')])
-//                            warnings canRunOnFailed: true, parserConfigurations: [[parserName: 'Pep8', pattern: 'logs/build_sphinx.log']]
                             archiveArtifacts artifacts: 'logs/build_sphinx.log'
                         }
                         success{
