@@ -153,6 +153,7 @@ pipeline {
                 stage("Setting up Tests"){
                     steps{
                         bat "if not exist logs mkdir logs"
+                        bat "if not exist reports\\html mkdir reports\\html"
                     }
                 }
                 stage("Run Tests"){
