@@ -136,7 +136,7 @@ pipeline {
                 cleanup{
                     cleanWs(
                         patterns: [
-                            [pattern: 'build', type: 'INCLUDE'],
+                            [pattern: 'build/', type: 'INCLUDE'],
                             ],
                         deleteDirs: true,
                     )
@@ -199,10 +199,12 @@ pipeline {
                                     publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'reports/mypy/html', reportFiles: 'index.html', reportName: 'MyPy', reportTitles: ''])
                                 }
                                 cleanup{
-                                    cleanWs(patterns: [
-                                        [pattern: 'logs/mypy.log', type: 'INCLUDE'],
-                                        [pattern: '.mypy_cache/', type: 'INCLUDE'],
-                                        ]
+                                    cleanWs(
+                                        patterns: [
+                                            [pattern: 'logs/mypy.log', type: 'INCLUDE'],
+                                            [pattern: '.mypy_cache/', type: 'INCLUDE'],
+                                            ],
+                                        deleteDirs: true,
                                     )
                                 }
                             }
@@ -273,6 +275,8 @@ pipeline {
                         cleanup{
                             cleanWs(
                                 patterns: [
+                                    [pattern: 'build/', type: 'INCLUDE'],
+                                    [pattern: 'logs/', type: 'INCLUDE'],
                                     [pattern: 'reports/', type: 'INCLUDE'],
                                     [pattern: 'reports/coverage', type: 'INCLUDE'],
                                 ],
