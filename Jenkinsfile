@@ -62,6 +62,7 @@ pipeline {
                         deleteDirs: true,
                         patterns: [
                             [pattern: "dcc_qc.dist-info/", type: 'INCLUDE'],
+                            [pattern: "dcc_qc.egg-info/", type: 'INCLUDE'],
                         ]
                     )
                 }
@@ -133,9 +134,11 @@ pipeline {
             }
             post{
                 cleanup{
-                    cleanWs(patterns: [
-                        [pattern: 'build', type: 'INCLUDE'],
-                        ]
+                    cleanWs(
+                        patterns: [
+                            [pattern: 'build', type: 'INCLUDE'],
+                            ],
+                        deleteDirs: true,
                     )
                 }
             }
@@ -168,7 +171,13 @@ pipeline {
                                     junit "reports/pytest/junit-*.xml"
                                 }
                                 cleanup{
-                                    cleanWs(patterns: [[pattern: 'reports/pytest/junit-*.xml', type: 'INCLUDE']])
+                                    cleanWs(
+                                        patterns: [
+                                            [pattern: 'reports/pytest/junit-*.xml', type: 'INCLUDE'],
+                                            [pattern: '.pytest_cache/', type: 'INCLUDE'],
+                                        ],
+                                        deleteDirs: true,
+                                    )
                                 }
                             }
                         }
@@ -190,7 +199,11 @@ pipeline {
                                     publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'reports/mypy/html', reportFiles: 'index.html', reportName: 'MyPy', reportTitles: ''])
                                 }
                                 cleanup{
-                                    cleanWs(patterns: [[pattern: 'logs/mypy.log', type: 'INCLUDE']])
+                                    cleanWs(patterns: [
+                                        [pattern: 'logs/mypy.log', type: 'INCLUDE'],
+                                        [pattern: '.mypy_cache/', type: 'INCLUDE'],
+                                        ]
+                                    )
                                 }
                             }
                         }
@@ -232,11 +245,14 @@ pipeline {
                                     archiveArtifacts allowEmptyArchive: true, artifacts: '.tox/py*/log/*.log,.tox/log/*.log,logs/tox_report.json'
                                 }
                                 cleanup{
-                                    cleanWs deleteDirs: true, patterns: [
-                                        [pattern: '.tox/py*/log/*.log', type: 'INCLUDE'],
-                                        [pattern: '.tox/log/*.log', type: 'INCLUDE'],
-                                        [pattern: 'logs/rox_report.json', type: 'INCLUDE']
-                                    ]
+                                    cleanWs(
+                                        deleteDirs: true,
+                                        patterns: [
+                                            [pattern: '.tox/py*/log/*.log', type: 'INCLUDE'],
+                                            [pattern: '.tox/log/*.log', type: 'INCLUDE'],
+                                            [pattern: 'logs/rox_report.json', type: 'INCLUDE']
+                                        ]
+                                    )
                                 }
                             }
                         }
@@ -255,11 +271,12 @@ pipeline {
                             publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'reports/coverage', reportFiles: 'index.html', reportName: 'Coverage', reportTitles: ''])
                         }
                         cleanup{
-                            cleanWs(patterns:
-                                [
-                                    [pattern: 'reports/coverage.xml', type: 'INCLUDE'],
+                            cleanWs(
+                                patterns: [
+                                    [pattern: 'reports/', type: 'INCLUDE'],
                                     [pattern: 'reports/coverage', type: 'INCLUDE'],
-                                ]
+                                ],
+                                deleteDirs: true,
                             )
                         }
                     }
