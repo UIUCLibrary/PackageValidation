@@ -31,7 +31,6 @@ pipeline {
     parameters {
         booleanParam(name: "FRESH_WORKSPACE", defaultValue: false, description: "Purge workspace before staring and checking out source")
         booleanParam(name: "TEST_RUN_TOX", defaultValue: false, description: "Run Tox Tests")
-        booleanParam(name: "PACKAGE_PYTHON_FORMATS", defaultValue: true, description: "Create native Python packages")
         booleanParam(name: "PACKAGE_CX_FREEZE", defaultValue: false, description: "Create standalone install with CX_Freeze")
         booleanParam(name: "DEPLOY_DEVPI", defaultValue: false, description: "Deploy to devpi on http://devpy.library.illinois.edu/DS_Jenkins/${env.BRANCH_NAME}")
         booleanParam(name: "DEPLOY_DEVPI_PRODUCTION", defaultValue: false, description: "Deploy to https://devpi.library.illinois.edu/production/release")
@@ -292,15 +291,16 @@ pipeline {
             failFast true
             parallel {
                 stage("Source and Wheel formats"){
-                    when {
-                        equals expected: true, actual: params.PACKAGE_PYTHON_FORMATS
+                    agent {
+                        dockerfile {
+                            filename 'ci/docker/python37/windows/build/msvc/Dockerfile'
+                            label "windows && docker"
+                        }
                     }
                     stages{
-
                         stage("Packaging sdist and wheel"){
-
                             steps{
-                                bat script: "${WORKSPACE}\\venv\\scripts\\python.exe setup.py sdist -d ${WORKSPACE}\\dist --format=zip bdist_wheel -d ${WORKSPACE}\\dist"
+                                bat script: "python setup.py sdist -d ${WORKSPACE}\\dist --format=zip bdist_wheel -d ${WORKSPACE}\\dist"
                             }
                             post {
                                 success {
@@ -316,40 +316,22 @@ pipeline {
                 }
 
                 stage("Windows CX_Freeze MSI"){
-                    agent{
-                        node {
-                            label "Windows"
+                    agent {
+                        dockerfile {
+                            filename 'ci/docker/python37/windows/build/msvc/Dockerfile'
+                            label "windows && docker"
                         }
                     }
                     when {
                         equals expected: true, actual: params.PACKAGE_CX_FREEZE
                     }
-                    options {
-                        skipDefaultCheckout true
-                    }
                     steps{
-                        bat "dir"
-                        deleteDir()
-                        bat "dir"
-                        checkout scm
-                        bat "dir /s / B"
-                        bat "python -m venv venv"
-                        bat "venv\\Scripts\\python.exe -m pip install -U pip>=18.1"
-                        bat "venv\\Scripts\\pip.exe install -U setuptools"
-                        bat "venv\\Scripts\\pip.exe install -r requirements.txt"
-                        bat "venv\\Scripts\\pip.exe install appdirs cx_Freeze"
-
-                        bat "venv\\Scripts\\python.exe cx_setup.py bdist_msi --add-to-path=true -k --bdist-dir build/msi"                        // bat "make freeze"
+                        bat "python cx_setup.py bdist_msi --add-to-path=true -k --bdist-dir build/msi"                        // bat "make freeze"
                     }
                     post{
                         success{
-                            dir("dist") {
-                                stash includes: "*.msi", name: "msi"
-                                archiveArtifacts artifacts: "*.msi", fingerprint: true
-                            }
-                        }
-                        cleanup{
-                            deleteDir()
+                            stash includes: "dist/*.msi", name: "msi"
+                            archiveArtifacts artifacts: "dist/*.msi", fingerprint: true
                         }
                     }
                 }
