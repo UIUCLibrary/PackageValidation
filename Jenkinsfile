@@ -383,11 +383,11 @@ pipeline {
                                 label: "Connecting to DevPi Server",
                                 script: 'devpi use https://devpi.library.illinois.edu --clientdir ${WORKSPACE}/devpi && devpi login $DEVPI_USR --password $DEVPI_PSW --clientdir ${WORKSPACE}/devpi'
                             )
-                            sh(
-                                label: "Uploading to DevPi Staging",
-                                script: """devpi use /${env.DEVPI_USR}/${env.BRANCH_NAME}_staging --clientdir ${WORKSPACE}/devpi
-    devpi upload --from-dir dist --clientdir ${WORKSPACE}/devpi"""
-                            )
+                        sh(
+                            label: "Uploading to DevPi Staging",
+                            script: """devpi use /${env.DEVPI_USR}/${env.BRANCH_NAME}_staging --clientdir ${WORKSPACE}/devpi
+devpi upload --from-dir dist --clientdir ${WORKSPACE}/devpi"""
+                        )
                     }
                 }
                 //stage("Upload to Devpi staging") {
@@ -529,7 +529,7 @@ pipeline {
                 success{
                     node('linux && docker') {
                        script{
-                            docker.build("dcc_qc:devpi.${env.BUILD_ID}",'-f ./ci/docker/deploy/devpi/deploy/Dockerfile --build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g) .').inside{
+                            docker.build("dcc_qc:devpi.${env.BUILD_ID}",'-f ./CI/docker/deploy/devpi/deploy/Dockerfile --build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g) .').inside{
                                 unstash "DIST-INFO"
                                 def props = readProperties interpolate: true, file: 'dcc_qc.dist-info/METADATA'
                                 sh(
@@ -545,7 +545,7 @@ pipeline {
                 cleanup{
                     node('linux && docker') {
                        script{
-                            docker.build("dcc_qc:devpi.${env.BUILD_ID}",'-f ./ci/docker/deploy/devpi/deploy/Dockerfile --build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g) .').inside{
+                            docker.build("dcc_qc:devpi.${env.BUILD_ID}",'-f ./CI/docker/deploy/devpi/deploy/Dockerfile --build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g) .').inside{
                                 unstash "DIST-INFO"
                                 def props = readProperties interpolate: true, file: 'dcc_qc.dist-info/METADATA'
                                 sh(
