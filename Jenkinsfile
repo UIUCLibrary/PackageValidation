@@ -19,13 +19,14 @@ def remove_from_devpi(devpiExecutable, pkgName, pkgVersion, devpiIndex, devpiUse
 }
 
 pipeline {
-    agent {
-        label "Windows && Python3"
-    }
+    agent none
+//     agent {
+//         label "Windows && Python3"
+//     }
     options {
         disableConcurrentBuilds()  //each branch has 1 job running at a time
         timeout(60)  // Timeout after 60 minutes. This shouldn't take this long but it hangs for some reason
-        checkoutToSubdirectory("source")
+//         checkoutToSubdirectory("source")
     }
     environment {
 //        PATH = "${tool 'CPython-3.6'};${tool 'CPython-3.7'};$PATH"
@@ -62,9 +63,7 @@ pipeline {
                     }
                     steps{
                         deleteDir()
-                        dir("source"){
-                            checkout scm
-                        }
+                        checkout scm
                     }
                 }
                 stage("Getting Distribution Info"){
@@ -72,16 +71,12 @@ pipeline {
                         PATH = "${tool 'CPython-3.7'};$PATH"
                     }
                     steps{
-                        dir("source"){
-                            bat "python setup.py dist_info"
-                        }
+                        bat "python setup.py dist_info"
                     }
                     post{
                         success{
-                            dir("source"){
-                                stash includes: "dcc_qc.dist-info/**", name: 'DIST-INFO'
-                                archiveArtifacts artifacts: "dcc_qc.dist-info/**"
-                            }
+                            stash includes: "dcc_qc.dist-info/**", name: 'DIST-INFO'
+                            archiveArtifacts artifacts: "dcc_qc.dist-info/**"
                         }
                     }
                 }
@@ -119,7 +114,7 @@ pipeline {
                             }
                         }
 
-                        bat "venv\\Scripts\\pip.exe install -r source\\requirements.txt --upgrade-strategy only-if-needed"
+                        bat "venv\\Scripts\\pip.exe install -r requirements.txt --upgrade-strategy only-if-needed"
                         bat 'venv\\Scripts\\pip.exe install lxml pytest-cov mypy coverage "tox>=3.8.2,<3.10" flake8 --upgrade-strategy only-if-needed'
 //                        bat 'venv\\Scripts\\pip.exe install "tox<3.8"'
 
@@ -143,9 +138,7 @@ pipeline {
             stages{
                 stage("Building Python Package"){
                     steps {
-                        dir("source"){
-                            powershell "& ${WORKSPACE}\\venv\\Scripts\\python.exe setup.py build -b ${WORKSPACE}\\build | tee ${WORKSPACE}\\logs\\build.log"
-                        }
+                        powershell "& ${WORKSPACE}\\venv\\Scripts\\python.exe setup.py build -b ${WORKSPACE}\\build | tee ${WORKSPACE}\\logs\\build.log"
                     }
                     post{
                         always{
@@ -171,7 +164,7 @@ pipeline {
                         }
                         script{
                             // Add a line to config file so auto docs look in the build folder
-                            def sphinx_config_file = 'source/docs/source/conf.py'
+                            def sphinx_config_file = 'docs/source/conf.py'
                             def extra_line = "sys.path.insert(0, os.path.abspath('${WORKSPACE}/build/lib'))"
                             def readContent = readFile "${sphinx_config_file}"
                             echo "Adding \"${extra_line}\" to ${sphinx_config_file}."
@@ -180,9 +173,7 @@ pipeline {
 
                         }
                         echo "Building docs on ${env.NODE_NAME}"
-                        dir("source"){
-                            powershell "& ${WORKSPACE}\\venv\\Scripts\\python.exe setup.py build_sphinx --build-dir ${WORKSPACE}\\build\\docs | tee ${WORKSPACE}\\logs\\build_sphinx.log"
-                        }
+                        powershell "& ${WORKSPACE}\\venv\\Scripts\\python.exe setup.py build_sphinx --build-dir ${WORKSPACE}\\build\\docs | tee ${WORKSPACE}\\logs\\build_sphinx.log"
                     }
                     post{
                         always {
@@ -217,12 +208,10 @@ pipeline {
             parallel {
                 stage("PyTest"){
                     steps{
-                        dir("source"){
-                            bat(
-                                label: "Run PyTest",
-                                script: "${WORKSPACE}\\venv\\Scripts\\coverage run --parallel-mode --source=dcc_qc -m pytest --junitxml=${WORKSPACE}/reports/pytest/junit-${env.NODE_NAME}-pytest.xml --junit-prefix=${env.NODE_NAME}-pytest" //  --basetemp={envtmpdir}"
-                            )
-                        }
+                        bat(
+                            label: "Run PyTest",
+                            script: "${WORKSPACE}\\venv\\Scripts\\coverage run --parallel-mode --source=dcc_qc -m pytest --junitxml=${WORKSPACE}/reports/pytest/junit-${env.NODE_NAME}-pytest.xml --junit-prefix=${env.NODE_NAME}-pytest" //  --basetemp={envtmpdir}"
+                        )
 
                     }
                     post {
@@ -236,18 +225,14 @@ pipeline {
                 }
                 stage("Documentation"){
                     steps{
-                        dir("source"){
-                            bat "${WORKSPACE}\\venv\\Scripts\\sphinx-build.exe -b doctest docs\\source ${WORKSPACE}\\build\\docs -d ${WORKSPACE}\\build\\docs\\doctrees -v"
-                        }
+                        bat "${WORKSPACE}\\venv\\Scripts\\sphinx-build.exe -b doctest docs\\source ${WORKSPACE}\\build\\docs -d ${WORKSPACE}\\build\\docs\\doctrees -v"
                     }
 
                 }
                 stage("MyPy"){
                     steps{
-                        dir("source"){
-                            powershell returnStatus: true, script: "& ${WORKSPACE}\\venv\\Scripts\\mypy.exe -p dcc_qc | tee ${WORKSPACE}\\logs\\mypy.log"
-                            powershell returnStatus: true, script: "& ${WORKSPACE}\\venv\\Scripts\\mypy.exe -p dcc_qc --html-report ${WORKSPACE}\\reports\\mypy\\html"
-                        }
+                        powershell returnStatus: true, script: "& ${WORKSPACE}\\venv\\Scripts\\mypy.exe -p dcc_qc | tee ${WORKSPACE}\\logs\\mypy.log"
+                        powershell returnStatus: true, script: "& ${WORKSPACE}\\venv\\Scripts\\mypy.exe -p dcc_qc --html-report ${WORKSPACE}\\reports\\mypy\\html"
                     }
                     post{
                         always {
@@ -265,29 +250,24 @@ pipeline {
                         dockerfile {
                             filename 'CI/docker/pytest_tests/Dockerfile'
                             label "linux && docker"
-                            dir 'source'
                             }
                     }
                     steps{
                         sh "mkdir -p logs"
                         script{
-                            dir("source"){
-                                sh(
-                                    label: "Run Flake8",
-                                    returnStatus: true,
-                                    script: "flake8 dcc_qc --tee --output-file=${WORKSPACE}/logs/flake8.log"
-                                )
-                            }
+                            sh(
+                                label: "Run Flake8",
+                                returnStatus: true,
+                                script: "flake8 dcc_qc --tee --output-file=${WORKSPACE}/logs/flake8.log"
+                            )
                         }
                     }
                     post {
                         always {
                             archiveArtifacts "logs/flake8.log"
                             stash includes: "logs/flake8.log", name: 'FLAKE8_LOGS'
-                                    dir("source"){
-                                        unstash "FLAKE8_LOGS"
-                                        recordIssues(tools: [flake8(name: 'Flake8', pattern: 'logs/flake8.log')])
-                                    }
+                            unstash "FLAKE8_LOGS"
+                            recordIssues(tools: [flake8(name: 'Flake8', pattern: 'logs/flake8.log')])
                         }
                         cleanup{
                             deleteDir()
@@ -306,19 +286,17 @@ pipeline {
                         timeout(15)
                     }
                     steps {
-                        dir("source"){
-                            script{
-                                try{
-                                    bat (
-                                        label: "Run Tox",
-                                        script: "tox --parallel=auto --parallel-live --workdir ${WORKSPACE}\\.tox -v --result-json=${WORKSPACE}\\logs\\tox_report.json"
-                                    )
-                                } catch (exc) {
-                                    bat (
-                                        label: "Run Tox with new environments",
-                                        script: "tox --recreate --parallel=auto --parallel-live --workdir ${WORKSPACE}\\.tox -v --result-json=${WORKSPACE}\\logs\\tox_report.json"
-                                    )
-                                }
+                        script{
+                            try{
+                                bat (
+                                    label: "Run Tox",
+                                    script: "tox --parallel=auto --parallel-live --workdir ${WORKSPACE}\\.tox -v --result-json=${WORKSPACE}\\logs\\tox_report.json"
+                                )
+                            } catch (exc) {
+                                bat (
+                                    label: "Run Tox with new environments",
+                                    script: "tox --recreate --parallel=auto --parallel-live --workdir ${WORKSPACE}\\.tox -v --result-json=${WORKSPACE}\\logs\\tox_report.json"
+                                )
                             }
                         }
                     }
@@ -343,11 +321,9 @@ pipeline {
             }
             post{
                 always{
-                    dir("source"){
-                        bat "${WORKSPACE}\\venv\\Scripts\\coverage.exe combine"
-                        bat "${WORKSPACE}\\venv\\Scripts\\coverage.exe xml -o ${WORKSPACE}\\reports\\coverage.xml"
-                        bat "${WORKSPACE}\\venv\\Scripts\\coverage.exe html -d ${WORKSPACE}\\reports\\coverage"
-                    }
+                    bat "${WORKSPACE}\\venv\\Scripts\\coverage.exe combine"
+                    bat "${WORKSPACE}\\venv\\Scripts\\coverage.exe xml -o ${WORKSPACE}\\reports\\coverage.xml"
+                    bat "${WORKSPACE}\\venv\\Scripts\\coverage.exe html -d ${WORKSPACE}\\reports\\coverage"
                     publishHTML([allowMissing: true, alwaysLinkToLastBuild: false, keepAll: false, reportDir: "reports/coverage", reportFiles: 'index.html', reportName: 'Coverage', reportTitles: ''])
                     publishCoverage adapters: [
                                     coberturaAdapter('reports/coverage.xml')
@@ -361,7 +337,6 @@ pipeline {
                         [
                             [pattern: 'reports/coverage.xml', type: 'INCLUDE'],
                             [pattern: 'reports/coverage', type: 'INCLUDE'],
-                            [pattern: 'source/.coverage', type: 'INCLUDE']
                         ]
                     )
 
@@ -380,9 +355,7 @@ pipeline {
                         stage("Packaging sdist and wheel"){
 
                             steps{
-                                dir("source"){
-                                    bat script: "${WORKSPACE}\\venv\\scripts\\python.exe setup.py sdist -d ${WORKSPACE}\\dist --format=zip bdist_wheel -d ${WORKSPACE}\\dist"
-                                }
+                                bat script: "${WORKSPACE}\\venv\\scripts\\python.exe setup.py sdist -d ${WORKSPACE}\\dist --format=zip bdist_wheel -d ${WORKSPACE}\\dist"
                             }
                             post {
                                 success {
@@ -706,7 +679,6 @@ pipeline {
 //            }
             cleanWs deleteDirs: true, patterns: [
                 [pattern: 'certs', type: 'INCLUDE'],
-                [pattern: 'source', type: 'INCLUDE'],
                 [pattern: 'dist', type: 'INCLUDE'],
                 [pattern: 'reports', type: 'INCLUDE'],
                 [pattern: 'logs', type: 'INCLUDE'],
