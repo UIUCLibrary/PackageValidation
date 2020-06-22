@@ -31,7 +31,7 @@ pipeline {
     agent none
     options {
         disableConcurrentBuilds()  //each branch has 1 job running at a time
-        timeout(60)  // Timeout after 60 minutes. This shouldn't take this long but it hangs for some reason
+        timeout(time: 1, unit: 'DAYS')
     }
     environment {
         mypy_args = "--junit-xml=mypy.xml"
