@@ -45,9 +45,6 @@ pipeline {
         booleanParam(name: "UPDATE_DOCS", defaultValue: false, description: "Update the documentation")
         string(name: 'URL_SUBFOLDER', defaultValue: "package_qc", description: 'The directory that the docs should be saved under')
     }
-    triggers {
-       parameterizedCron '@daily % DEPLOY_DEVPI=true; TEST_RUN_TOX=true'
-    }
     stages {
         stage("Getting Distribution Info"){
             agent {
