@@ -1,7 +1,7 @@
 ARG PYTHON_VERSION=3.8
 FROM python:${PYTHON_VERSION} as wheel_builder
 
-COPY requirements.txt ci/docker/python/linux/jenkins/requirements-ci.txt /tmp/
+COPY requirements.txt ci/docker/shared/requirements-ci.txt /tmp/
 ARG PYTHON_INDEX=https://devpi.library.illinois.edu/production/release
 RUN python -m pip install --upgrade pip &&  \
     pip install wheel && \
@@ -22,7 +22,7 @@ RUN groupadd -g $GROUP_ID user && \
     useradd -u $USER_ID -s /bin/sh -m -d /home/user -g user user
 
 COPY --from=wheel_builder /wheels /wheels/
-COPY requirements.txt ci/docker/python/linux/jenkins/requirements-ci.txt /tmp/
+COPY requirements.txt ci/docker/shared/requirements-ci.txt /tmp/
 ENV PIP_EXTRA_INDEX_URL="${PYTHON_INDEX}"
 ENV PIP_TRUSTED_HOST="devpi.library.illinois.edu"
 ENV PIP_FIND_LINKS=/wheels
