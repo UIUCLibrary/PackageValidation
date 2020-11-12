@@ -176,12 +176,11 @@ pipeline {
                     parallel {
                         stage("PyTest"){
                             steps{
-                                sh "coverage run --parallel-mode --source=dcc_qc -m pytest --junitxml=reports/pytest/junit-pytest.xml"
+                                sh "coverage run --parallel-mode --source=dcc_qc -m pytest --junitxml=reports/junit-pytest.xml"
                             }
                             post {
                                 always{
                                     junit "reports/junit-pytest.xml"
-                                    publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'reports/coverage', reportFiles: 'index.html', reportName: 'Coverage', reportTitles: ''])
                                 }
                             }
                         }
