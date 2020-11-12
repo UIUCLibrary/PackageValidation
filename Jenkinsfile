@@ -216,7 +216,7 @@ pipeline {
                             def linuxJobs
                             stage("Scanning Tox Environments"){
                                 parallel(
-                                    "Linux Tox Scanning":{
+                                    "Linux":{
                                         linuxJobs = tox.getToxTestsParallel(
                                                 stagePrefix: "Tox Linux",
                                                 label: "linux && docker",
@@ -224,7 +224,7 @@ pipeline {
                                                 dockerBuildArgs: "--build-arg PIP_EXTRA_INDEX_URL --build-arg PIP_INDEX_URL"
                                             )
                                     },
-                                    "Windows Tox Scanning":{
+                                    "Windows":{
                                         windowsJobs = tox.getToxTestsParallel(
                                                 stagePrefix: "Tox Windows",
                                                 label: "windows && docker",
