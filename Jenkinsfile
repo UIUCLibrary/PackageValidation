@@ -166,119 +166,163 @@ pipeline {
         stage("Tests") {
             agent {
                 dockerfile {
-                    filename 'ci/docker/python37/windows/build/msvc/Dockerfile'
-                    label "windows && docker"
+                    filename DEFAULT_AGENT_DOCKERFILE
+                    label DEFAULT_AGENT_LABEL
+                    additionalBuildArgs DEFAULT_AGENT_DOCKER_BUILD_ARGS
                 }
             }
             stages{
-                stage("Setting up Tests"){
-                    steps{
-                        bat "if not exist logs mkdir logs"
-                        bat "if not exist reports\\html mkdir reports\\html"
-                    }
-                }
                 stage("Run Tests"){
                     parallel {
                         stage("PyTest"){
                             steps{
-                                bat(
-                                    label: "Run PyTest",
-                                    script: "coverage run --parallel-mode --source=dcc_qc -m pytest --junitxml=${WORKSPACE}/reports/pytest/junit-${env.NODE_NAME}-pytest.xml --junit-prefix=${env.NODE_NAME}-pytest" //  --basetemp={envtmpdir}"
-                                )
-
+                                sh "python -m pytest --junitxml=reports/junit-${env.NODE_NAME}-pytest.xml --junit-prefix=${env.NODE_NAME}-pytest --cov-report html:reports/coverage/ --cov=MedusaPackager" //  --basetemp={envtmpdir}"
                             }
                             post {
                                 always{
-                                    junit "reports/pytest/junit-*.xml"
-                                }
-                                cleanup{
-                                    cleanWs(
-                                        patterns: [
-                                            [pattern: 'reports/pytest/junit-*.xml', type: 'INCLUDE'],
-                                            [pattern: '.pytest_cache/', type: 'INCLUDE'],
-                                        ],
-                                        deleteDirs: true,
-                                    )
+                                    junit "reports/junit-${env.NODE_NAME}-pytest.xml"
+                                    publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'reports/coverage', reportFiles: 'index.html', reportName: 'Coverage', reportTitles: ''])
                                 }
                             }
                         }
+//                             steps{
+// //                                 bat(
+// //                                     label: "Run PyTest",
+// //                                     script: "coverage run --parallel-mode --source=dcc_qc -m pytest --junitxml=${WORKSPACE}/reports/pytest/junit-${env.NODE_NAME}-pytest.xml --junit-prefix=${env.NODE_NAME}-pytest" //  --basetemp={envtmpdir}"
+// //                                 )
+//
+//                             }
+//                             post {
+//                                 always{
+//                                     junit "reports/pytest/junit-*.xml"
+//                                 }
+//                                 cleanup{
+//                                     cleanWs(
+//                                         patterns: [
+//                                             [pattern: 'reports/pytest/junit-*.xml', type: 'INCLUDE'],
+//                                             [pattern: '.pytest_cache/', type: 'INCLUDE'],
+//                                         ],
+//                                         deleteDirs: true,
+//                                     )
+//                                 }
+//                             }
+//                         }
+//                         stage("Documentation"){
+//                             steps{
+//                                 bat "python -m sphinx -b doctest docs\\source ${WORKSPACE}\\build\\docs -d ${WORKSPACE}\\build\\docs\\doctrees -v"
+//                             }
+//
+//                         }
                         stage("Documentation"){
                             steps{
-                                bat "python -m sphinx -b doctest docs\\source ${WORKSPACE}\\build\\docs -d ${WORKSPACE}\\build\\docs\\doctrees -v"
-                            }
-
-                        }
-                        stage("MyPy"){
-                            steps{
-                                powershell returnStatus: true, script: "& mypy -p dcc_qc | tee ${WORKSPACE}\\logs\\mypy.log"
-                                powershell returnStatus: true, script: "& mypy -p dcc_qc --html-report ${WORKSPACE}\\reports\\mypy\\html"
+                                    sh """mkdir -p logs
+                                          python -m sphinx -b doctest docs/source build/docs -d build/docs/doctrees -v -w logs/doctest.log --no-color
+                                          """
                             }
                             post{
                                 always {
-                                    archiveArtifacts "logs\\mypy.log"
-                                    recordIssues(tools: [myPy(name: 'MyPy', pattern: 'logs/mypy.log')])
-                                    publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'reports/mypy/html', reportFiles: 'index.html', reportName: 'MyPy', reportTitles: ''])
-                                }
-                                cleanup{
-                                    cleanWs(
-                                        patterns: [
-                                            [pattern: 'logs/mypy.log', type: 'INCLUDE'],
-                                            [pattern: '.mypy_cache/', type: 'INCLUDE'],
-                                            ],
-                                        deleteDirs: true,
-                                    )
+                                    recordIssues(tools: [sphinxBuild(pattern: 'logs/doctest.log')])
+
                                 }
                             }
                         }
+//                         stage("MyPy"){
+//                             steps{
+//                                 powershell returnStatus: true, script: "& mypy -p dcc_qc | tee ${WORKSPACE}\\logs\\mypy.log"
+//                                 powershell returnStatus: true, script: "& mypy -p dcc_qc --html-report ${WORKSPACE}\\reports\\mypy\\html"
+//                             }
+//                             post{
+//                                 always {
+//                                     archiveArtifacts "logs\\mypy.log"
+//                                     recordIssues(tools: [myPy(name: 'MyPy', pattern: 'logs/mypy.log')])
+//                                     publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'reports/mypy/html', reportFiles: 'index.html', reportName: 'MyPy', reportTitles: ''])
+//                                 }
+//                                 cleanup{
+//                                     cleanWs(
+//                                         patterns: [
+//                                             [pattern: 'logs/mypy.log', type: 'INCLUDE'],
+//                                             [pattern: '.mypy_cache/', type: 'INCLUDE'],
+//                                             ],
+//                                         deleteDirs: true,
+//                                     )
+//                                 }
+//                             }
+//                         }
+                        stage("MyPy"){
+                            steps{
+                                sh "mypy -p dcc_qc --junit-xml=junit-${env.NODE_NAME}-mypy.xml --html-report reports/mypy_html"
+                            }
+                            post{
+                                always {
+                                    junit "junit-${env.NODE_NAME}-mypy.xml"
+                                    publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'reports/mypy_html', reportFiles: 'index.html', reportName: 'MyPy', reportTitles: ''])
+                                }
+                            }
+                        }
+//                         stage("Run Flake8 Static Analysis") {
+//                             steps{
+//                                 script{
+//                                     bat(
+//                                         label: "Run Flake8",
+//                                         returnStatus: true,
+//                                         script: "flake8 dcc_qc --tee --output-file=${WORKSPACE}/logs/flake8.log"
+//                                     )
+//                                 }
+//                             }
+//                             post {
+//                                 always {
+//                                     archiveArtifacts "logs/flake8.log"
+//                                     stash includes: "logs/flake8.log", name: 'FLAKE8_LOGS'
+//                                     unstash "FLAKE8_LOGS"
+//                                     recordIssues(tools: [flake8(name: 'Flake8', pattern: 'logs/flake8.log')])
+//                                 }
+//                             }
+//                         }
                         stage("Run Flake8 Static Analysis") {
                             steps{
-                                script{
-                                    bat(
-                                        label: "Run Flake8",
-                                        returnStatus: true,
-                                        script: "flake8 dcc_qc --tee --output-file=${WORKSPACE}/logs/flake8.log"
-                                    )
+                                catchError(buildResult: "SUCCESS", message: 'Flake8 found issues', stageResult: "UNSTABLE") {
+                                    sh '''mkdir -p logs
+                                          flake8 uiucprescon --format=pylint --tee --output-file=logs/flake8.log
+                                          '''
                                 }
                             }
                             post {
                                 always {
-                                    archiveArtifacts "logs/flake8.log"
-                                    stash includes: "logs/flake8.log", name: 'FLAKE8_LOGS'
-                                    unstash "FLAKE8_LOGS"
                                     recordIssues(tools: [flake8(name: 'Flake8', pattern: 'logs/flake8.log')])
+                                    stash includes: "logs/flake8.log", name: "FLAKE8_REPORT"
                                 }
                             }
                         }
-                        stage("Run Tox test") {
-                            when {
-                               equals expected: true, actual: params.TEST_RUN_TOX
-                            }
-
-                            options{
-                                timeout(15)
-                            }
-                            steps {
-                                bat (
-                                    label: "Run Tox",
-                                    script: "tox --workdir ${WORKSPACE}\\.tox -e py -v"
-                                )
-                            }
-                            post{
-                                always{
-                                    archiveArtifacts allowEmptyArchive: true, artifacts: '.tox/py*/log/*.log,.tox/log/*.log,logs/tox_report.json'
-                                }
-                                cleanup{
-                                    cleanWs(
-                                        deleteDirs: true,
-                                        patterns: [
-                                            [pattern: '.tox/py*/log/*.log', type: 'INCLUDE'],
-                                            [pattern: '.tox/log/*.log', type: 'INCLUDE'],
-                                            [pattern: 'logs/rox_report.json', type: 'INCLUDE']
-                                        ]
-                                    )
-                                }
-                            }
-                        }
+//                         stage("Run Tox test") {
+//                             when {
+//                                equals expected: true, actual: params.TEST_RUN_TOX
+//                             }
+//
+//                             options{
+//                                 timeout(15)
+//                             }
+//                             steps {
+//                                 bat (
+//                                     label: "Run Tox",
+//                                     script: "tox --workdir ${WORKSPACE}\\.tox -e py -v"
+//                                 )
+//                             }
+//                             post{
+//                                 always{
+//                                     archiveArtifacts allowEmptyArchive: true, artifacts: '.tox/py*/log/*.log,.tox/log/*.log,logs/tox_report.json'
+//                                 }
+//                                 cleanup{
+//                                     cleanWs(
+//                                         deleteDirs: true,
+//                                         patterns: [
+//                                             [pattern: '.tox/py*/log/*.log', type: 'INCLUDE'],
+//                                             [pattern: '.tox/log/*.log', type: 'INCLUDE'],
+//                                             [pattern: 'logs/rox_report.json', type: 'INCLUDE']
+//                                         ]
+//                                     )
+//                                 }
+//                             }
+//                         }
                     }
                     post{
                         always{
