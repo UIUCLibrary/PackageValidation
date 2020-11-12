@@ -144,7 +144,9 @@ pipeline {
                                     failFast: true
                                 )
                             }
-                            parallel(windowsJobs + linuxJobs)
+                            stage("Running Tox"){
+                                parallel(windowsJobs + linuxJobs)
+                            }
                         }
                     }
                 }
