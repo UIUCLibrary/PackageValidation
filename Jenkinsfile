@@ -113,43 +113,8 @@ pipeline {
                 }
             }
         }
-        stage("Tests") {
+        stage("Checks") {
             stages{
-                stage("Run Tox"){
-                    when{
-                        equals expected: true, actual: params.TEST_RUN_TOX
-                    }
-                    steps {
-                        script{
-                            def windowsJobs
-                            def linuxJobs
-                            stage("Scanning Tox Environments"){
-                                parallel(
-                                    "Linux Tox Scanning":{
-                                        linuxJobs = tox.getToxTestsParallel(
-                                                stagePrefix: "Tox Linux",
-                                                label: "linux && docker",
-                                                dockerfile: "ci/docker/python/linux/tox/Dockerfile",
-                                                dockerBuildArgs: "--build-arg PIP_EXTRA_INDEX_URL --build-arg PIP_INDEX_URL"
-                                            )
-                                    },
-                                    "Windows Tox Scanning":{
-                                        windowsJobs = tox.getToxTestsParallel(
-                                                stagePrefix: "Tox Windows",
-                                                label: "windows && docker",
-                                                dockerfile: "ci/docker/python/windows/tox/Dockerfile",
-                                                dockerBuildArgs: "--build-arg PIP_EXTRA_INDEX_URL --build-arg PIP_INDEX_URL --build-arg CHOCOLATEY_SOURCE"
-                                            )
-                                    },
-                                    failFast: true
-                                )
-                            }
-                            stage("Running Tox"){
-                                parallel(windowsJobs + linuxJobs)
-                            }
-                        }
-                    }
-                }
                 stage("Code Quality"){
                     agent {
                         dockerfile {
@@ -214,36 +179,6 @@ pipeline {
                                         }
                                     }
                                 }
-        //                         stage("Run Tox test") {
-        //                             when {
-        //                                equals expected: true, actual: params.TEST_RUN_TOX
-        //                             }
-        //
-        //                             options{
-        //                                 timeout(15)
-        //                             }
-        //                             steps {
-        //                                 bat (
-        //                                     label: "Run Tox",
-        //                                     script: "tox --workdir ${WORKSPACE}\\.tox -e py -v"
-        //                                 )
-        //                             }
-        //                             post{
-        //                                 always{
-        //                                     archiveArtifacts allowEmptyArchive: true, artifacts: '.tox/py*/log/*.log,.tox/log/*.log,logs/tox_report.json'
-        //                                 }
-        //                                 cleanup{
-        //                                     cleanWs(
-        //                                         deleteDirs: true,
-        //                                         patterns: [
-        //                                             [pattern: '.tox/py*/log/*.log', type: 'INCLUDE'],
-        //                                             [pattern: '.tox/log/*.log', type: 'INCLUDE'],
-        //                                             [pattern: 'logs/rox_report.json', type: 'INCLUDE']
-        //                                         ]
-        //                                     )
-        //                                 }
-        //                             }
-        //                         }
                             }
                             post{
                                 always{
@@ -270,7 +205,41 @@ pipeline {
                             }
                         }
                     }
-
+                }
+                stage("Run Tox"){
+                    when{
+                        equals expected: true, actual: params.TEST_RUN_TOX
+                    }
+                    steps {
+                        script{
+                            def windowsJobs
+                            def linuxJobs
+                            stage("Scanning Tox Environments"){
+                                parallel(
+                                    "Linux Tox Scanning":{
+                                        linuxJobs = tox.getToxTestsParallel(
+                                                stagePrefix: "Tox Linux",
+                                                label: "linux && docker",
+                                                dockerfile: "ci/docker/python/linux/tox/Dockerfile",
+                                                dockerBuildArgs: "--build-arg PIP_EXTRA_INDEX_URL --build-arg PIP_INDEX_URL"
+                                            )
+                                    },
+                                    "Windows Tox Scanning":{
+                                        windowsJobs = tox.getToxTestsParallel(
+                                                stagePrefix: "Tox Windows",
+                                                label: "windows && docker",
+                                                dockerfile: "ci/docker/python/windows/tox/Dockerfile",
+                                                dockerBuildArgs: "--build-arg PIP_EXTRA_INDEX_URL --build-arg PIP_INDEX_URL --build-arg CHOCOLATEY_SOURCE"
+                                            )
+                                    },
+                                    failFast: true
+                                )
+                            }
+                            stage("Running Tox"){
+                                parallel(windowsJobs + linuxJobs)
+                            }
+                        }
+                    }
                 }
             }
         }
