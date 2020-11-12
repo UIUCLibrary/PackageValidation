@@ -258,7 +258,10 @@ pipeline {
                             post{
                                 always {
                                     recordIssues(tools: [myPy(name: 'MyPy', pattern: 'logs/mypy.log')])
-                                    junit "junit-${env.NODE_NAME}-mypy.xml"
+                                    junit(
+                                        testResults: "junit-${env.NODE_NAME}-mypy.xml",
+                                        checksName: 'MyPy tests'
+                                    )
                                     publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'reports/mypy_html', reportFiles: 'index.html', reportName: 'MyPy', reportTitles: ''])
                                 }
                             }
