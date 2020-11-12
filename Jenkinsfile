@@ -250,7 +250,9 @@ pipeline {
 //                         }
                         stage("MyPy"){
                             steps{
-                                sh "mypy -p dcc_qc --junit-xml=junit-${env.NODE_NAME}-mypy.xml --html-report reports/mypy_html"
+                                catchError(buildResult: "SUCCESS", message: 'MyPy found issues', stageResult: "UNSTABLE") {
+                                    sh "mypy -p dcc_qc --junit-xml=junit-${env.NODE_NAME}-mypy.xml --html-report reports/mypy_html"
+                                }
                             }
                             post{
                                 always {
