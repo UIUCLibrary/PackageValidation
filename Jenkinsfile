@@ -282,7 +282,7 @@ pipeline {
                             steps{
                                 catchError(buildResult: "SUCCESS", message: 'Flake8 found issues', stageResult: "UNSTABLE") {
                                     sh '''mkdir -p logs
-                                          flake8 uiucprescon --format=pylint --tee --output-file=logs/flake8.log
+                                          flake8 dcc_qc --format=pylint --tee --output-file=logs/flake8.log
                                           '''
                                 }
                             }
