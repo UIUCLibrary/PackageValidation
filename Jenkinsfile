@@ -116,9 +116,9 @@ pipeline {
         stage("Tests") {
             stages{
                 stage("Run Tox"){
-//                     when{
-//                         equals expected: true, actual: params.TEST_RUN_TOX
-//                     }
+                    when{
+                        equals expected: true, actual: params.TEST_RUN_TOX
+                    }
                     steps {
                         script{
                             def windowsJobs
