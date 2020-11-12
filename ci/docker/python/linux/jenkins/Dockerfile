@@ -4,9 +4,9 @@ FROM python:${PYTHON_VERSION} as wheel_builder
 COPY requirements.txt ci/docker/python/linux/jenkins/requirements-ci.txt /tmp/
 ARG PYTHON_INDEX=https://devpi.library.illinois.edu/production/release
 RUN python -m pip install --upgrade pip &&  \
-    pip install setuptools && \
-    pip install wheel
-RUN pip wheel \
+    pip install wheel && \
+    pip install setuptools --upgrade && \
+    pip wheel \
         --no-cache-dir \
         --wheel-dir=/wheels \
         -i ${PYTHON_INDEX} \
