@@ -327,16 +327,14 @@ pipeline {
                     }
                     post{
                         always{
-                            bat "coverage combine"
-                            bat "coverage xml -o ${WORKSPACE}\\reports\\coverage.xml"
-                            bat "coverage html -d ${WORKSPACE}\\reports\\coverage"
-                            publishHTML([allowMissing: true, alwaysLinkToLastBuild: false, keepAll: false, reportDir: "reports/coverage", reportFiles: 'index.html', reportName: 'Coverage', reportTitles: ''])
-                            publishCoverage adapters: [
-                                            coberturaAdapter('reports/coverage.xml')
-                                            ],
-                                        sourceFileResolver: sourceFiles('STORE_ALL_BUILD')
-
-                            publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'reports/coverage', reportFiles: 'index.html', reportName: 'Coverage', reportTitles: ''])
+                            sh "coverage combine"
+                            sh "coverage xml -o reports/coverage.xml"
+                            publishCoverage(
+                                adapters: [
+                                    coberturaAdapter('reports/coverage.xml')
+                                    ],
+                                sourceFileResolver: sourceFiles('STORE_ALL_BUILD')
+                            )
                         }
                         cleanup{
                             cleanWs(
