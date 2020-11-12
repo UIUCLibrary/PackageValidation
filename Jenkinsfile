@@ -29,6 +29,14 @@ def remove_from_devpi(devpiExecutable, pkgName, pkgVersion, devpiIndex, devpiUse
 def DEFAULT_AGENT_DOCKERFILE = 'ci/docker/python/linux/jenkins/Dockerfile'
 def DEFAULT_AGENT_LABEL = 'linux && docker'
 def DEFAULT_AGENT_DOCKER_BUILD_ARGS =  '--build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g)'
+
+def tox
+
+node(){
+    checkout scm
+    tox = load("ci/jenkins/scripts/tox.groovy")
+}
+
 pipeline {
     agent none
     environment {
