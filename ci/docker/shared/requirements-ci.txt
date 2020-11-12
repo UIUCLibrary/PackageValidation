@@ -1,0 +1,6 @@
+coverage
+flake8
+lxml
+mypy
+pytest
+tox

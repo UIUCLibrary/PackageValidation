@@ -26,13 +26,19 @@ def remove_from_devpi(devpiExecutable, pkgName, pkgVersion, devpiIndex, devpiUse
 
     }
 }
+def DEFAULT_AGENT_DOCKERFILE = 'ci/docker/python/linux/jenkins/Dockerfile'
+def DEFAULT_AGENT_LABEL = 'linux && docker'
+def DEFAULT_AGENT_DOCKER_BUILD_ARGS =  '--build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g)'
+
+def tox
+
+node(){
+    checkout scm
+    tox = load("ci/jenkins/scripts/tox.groovy")
+}
 
 pipeline {
     agent none
-    options {
-        disableConcurrentBuilds()  //each branch has 1 job running at a time
-        timeout(time: 1, unit: 'DAYS')
-    }
     environment {
         mypy_args = "--junit-xml=mypy.xml"
         pytest_args = "--junitxml=reports/junit-{env:OS:UNKNOWN_OS}-{envname}.xml --junit-prefix={env:OS:UNKNOWN_OS}  --basetemp={envtmpdir}"
@@ -49,12 +55,13 @@ pipeline {
         stage("Getting Distribution Info"){
             agent {
                 dockerfile {
-                    filename 'ci/docker/python37/windows/build/msvc/Dockerfile'
-                    label "windows && docker"
+                    filename DEFAULT_AGENT_DOCKERFILE
+                    label DEFAULT_AGENT_LABEL
+                    additionalBuildArgs DEFAULT_AGENT_DOCKER_BUILD_ARGS
                 }
             }
             steps{
-                bat "python setup.py dist_info"
+                sh "python setup.py dist_info"
             }
             post{
                 success{
@@ -72,224 +79,167 @@ pipeline {
                 }
             }
         }
-        stage("Building") {
+        stage("Building Sphinx Documentation"){
             agent {
                 dockerfile {
-                    filename 'ci/docker/python37/windows/build/msvc/Dockerfile'
-                    label "windows && docker"
+                    filename DEFAULT_AGENT_DOCKERFILE
+                    label DEFAULT_AGENT_LABEL
+                    additionalBuildArgs DEFAULT_AGENT_DOCKER_BUILD_ARGS
                 }
             }
-            stages{
-                stage("Building Python Package"){
-                    steps {
-                        bat "if not exist logs mkdir logs"
-                        powershell "& python setup.py build -b ${WORKSPACE}\\build | tee ${WORKSPACE}\\logs\\build.log"
-                    }
-                    post{
-                        always{
-                            archiveArtifacts artifacts: "logs/build.log"
-                            recordIssues(tools: [
-                                        pyLint(name: 'Setuptools Build: PyLint', pattern: 'logs/build.log'),
-                                        msBuild(name: 'Setuptools Build: MSBuild', pattern: 'logs/build.log')
-                                    ]
-                                )
-                        }
-                        cleanup{
-                            cleanWs(patterns: [[pattern: 'logs/build.log', type: 'INCLUDE']])
-                        }
-                    }
-                }
-                stage("Building Sphinx Documentation"){
-                    steps {
-                        script{
-                            // Add a line to config file so auto docs look in the build folder
-                            def sphinx_config_file = 'docs/source/conf.py'
-                            def extra_line = "sys.path.insert(0, os.path.abspath('${WORKSPACE}/build/lib'))"
-                            def readContent = readFile "${sphinx_config_file}"
-                            echo "Adding \"${extra_line}\" to ${sphinx_config_file}."
-                            writeFile file: "${sphinx_config_file}", text: readContent+"\r\n${extra_line}\r\n"
-
-
-                        }
-                        bat "if not exist logs mkdir logs"
-                        powershell(
-                            label: "Building docs on ${env.NODE_NAME}",
-                            script: "& python setup.py build_sphinx --build-dir ${WORKSPACE}\\build\\docs | tee ${WORKSPACE}\\logs\\build_sphinx.log"
-                        )
-                    }
-                    post{
-                        always {
-                            recordIssues(tools: [sphinxBuild(name: 'Sphinx Documentation Build', pattern: 'logs/build_sphinx.log', id: 'sphinx_build')])
-                            archiveArtifacts artifacts: 'logs/build_sphinx.log'
-                        }
-                        success{
-                            unstash "DIST-INFO"
-                            script{
-                                def props = readProperties interpolate: true, file: 'dcc_qc.dist-info/METADATA'
-                                def DOC_ZIP_FILENAME = "${props.Name}-${props.Version}.doc.zip"
-                                publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'build/docs/html', reportFiles: 'index.html', reportName: 'Documentation', reportTitles: ''])
-                                zip archive: true, dir: "${WORKSPACE}/build/docs/html", glob: '', zipFile: "dist/${DOC_ZIP_FILENAME}"
-                                stash includes: "dist/${DOC_ZIP_FILENAME},build/docs/html/**", name: 'DOCS_ARCHIVE'
-                            }
-
-                        }
-                    }
-                }
+            steps {
+                sh (
+                    label: "Building docs on ${env.NODE_NAME}",
+                    script: """mkdir -p logs
+                               python -m sphinx docs/source build/docs/html -d build/docs/.doctrees -v -w logs/build_sphinx.log
+                               """
+                )
             }
             post{
-                cleanup{
-                    cleanWs(
-                        patterns: [
-                            [pattern: 'build/', type: 'INCLUDE'],
-                            ],
-                        deleteDirs: true,
-                    )
+                always {
+                    recordIssues(tools: [sphinxBuild(name: 'Sphinx Documentation Build', pattern: 'logs/build_sphinx.log', id: 'sphinx_build')])
+                    archiveArtifacts artifacts: 'logs/build_sphinx.log'
+                }
+                success{
+                    publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'build/docs/html', reportFiles: 'index.html', reportName: 'Documentation', reportTitles: ''])
+                    stash includes: "build/docs/html/**", name: 'DOCS_ARCHIVE'
+//                     script{
+//                         def DOC_ZIP_FILENAME = "${env.PKG_NAME}-${env.PKG_VERSION}.doc.zip"
+//                     zip archive: true, dir: "build/docs/html", glob: '', zipFile: "dist/${DOC_ZIP_FILENAME}"
+//                     }
+                }
+                failure{
+                    echo "Failed to build Python package"
                 }
             }
         }
-        stage("Tests") {
-            agent {
-                dockerfile {
-                    filename 'ci/docker/python37/windows/build/msvc/Dockerfile'
-                    label "windows && docker"
-                }
-            }
+        stage("Checks") {
             stages{
-                stage("Setting up Tests"){
-                    steps{
-                        bat "if not exist logs mkdir logs"
-                        bat "if not exist reports\\html mkdir reports\\html"
+                stage("Code Quality"){
+                    agent {
+                        dockerfile {
+                            filename DEFAULT_AGENT_DOCKERFILE
+                            label DEFAULT_AGENT_LABEL
+                            additionalBuildArgs DEFAULT_AGENT_DOCKER_BUILD_ARGS
+                        }
                     }
-                }
-                stage("Run Tests"){
-                    parallel {
-                        stage("PyTest"){
-                            steps{
-                                bat(
-                                    label: "Run PyTest",
-                                    script: "coverage run --parallel-mode --source=dcc_qc -m pytest --junitxml=${WORKSPACE}/reports/pytest/junit-${env.NODE_NAME}-pytest.xml --junit-prefix=${env.NODE_NAME}-pytest" //  --basetemp={envtmpdir}"
-                                )
+                    stages{
+                        stage("Run Tests"){
+                            parallel {
+                                stage("PyTest"){
+                                    steps{
+                                        sh "coverage run --parallel-mode --source=dcc_qc -m pytest --junitxml=reports/junit-pytest.xml"
+                                    }
+                                    post {
+                                        always{
+                                            junit "reports/junit-pytest.xml"
+                                        }
+                                    }
+                                }
+                                stage("Documentation"){
+                                    steps{
+                                            sh """mkdir -p logs
+                                                  python -m sphinx -b doctest docs/source build/docs -d build/docs/doctrees -v -w logs/doctest.log --no-color
+                                                  """
+                                    }
+                                    post{
+                                        always {
+                                            recordIssues(tools: [sphinxBuild(pattern: 'logs/doctest.log')])
 
+                                        }
+                                    }
+                                }
+                                stage("MyPy"){
+                                    steps{
+                                        catchError(buildResult: "SUCCESS", message: 'MyPy found issues', stageResult: "UNSTABLE") {
+                                            tee('logs/mypy.log'){
+                                                sh "mypy -p dcc_qc --html-report reports/mypy_html"
+                                            }
+                                        }
+                                    }
+                                    post{
+                                        always {
+                                            recordIssues(tools: [myPy(name: 'MyPy', pattern: 'logs/mypy.log')])
+                                            publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'reports/mypy_html', reportFiles: 'index.html', reportName: 'MyPy', reportTitles: ''])
+                                        }
+                                    }
+                                }
+                                stage("Run Flake8 Static Analysis") {
+                                    steps{
+                                        catchError(buildResult: "SUCCESS", message: 'Flake8 found issues', stageResult: "UNSTABLE") {
+                                            sh '''mkdir -p logs
+                                                  flake8 dcc_qc --format=pylint --tee --output-file=logs/flake8.log
+                                                  '''
+                                        }
+                                    }
+                                    post {
+                                        always {
+                                            recordIssues(tools: [flake8(name: 'Flake8', pattern: 'logs/flake8.log')])
+                                            stash includes: "logs/flake8.log", name: "FLAKE8_REPORT"
+                                        }
+                                    }
+                                }
                             }
-                            post {
+                            post{
                                 always{
-                                    junit "reports/pytest/junit-*.xml"
+                                    sh "coverage combine"
+                                    sh "coverage xml -o reports/coverage.xml"
+                                    publishCoverage(
+                                        adapters: [
+                                            coberturaAdapter('reports/coverage.xml')
+                                            ],
+                                        sourceFileResolver: sourceFiles('STORE_ALL_BUILD')
+                                    )
                                 }
                                 cleanup{
                                     cleanWs(
                                         patterns: [
-                                            [pattern: 'reports/pytest/junit-*.xml', type: 'INCLUDE'],
-                                            [pattern: '.pytest_cache/', type: 'INCLUDE'],
+                                            [pattern: 'build/', type: 'INCLUDE'],
+                                            [pattern: 'logs/', type: 'INCLUDE'],
+                                            [pattern: 'reports/', type: 'INCLUDE'],
+                                            [pattern: 'reports/coverage', type: 'INCLUDE'],
                                         ],
                                         deleteDirs: true,
                                     )
                                 }
                             }
                         }
-                        stage("Documentation"){
-                            steps{
-                                bat "python -m sphinx -b doctest docs\\source ${WORKSPACE}\\build\\docs -d ${WORKSPACE}\\build\\docs\\doctrees -v"
-                            }
-
-                        }
-                        stage("MyPy"){
-                            steps{
-                                powershell returnStatus: true, script: "& mypy -p dcc_qc | tee ${WORKSPACE}\\logs\\mypy.log"
-                                powershell returnStatus: true, script: "& mypy -p dcc_qc --html-report ${WORKSPACE}\\reports\\mypy\\html"
-                            }
-                            post{
-                                always {
-                                    archiveArtifacts "logs\\mypy.log"
-                                    recordIssues(tools: [myPy(name: 'MyPy', pattern: 'logs/mypy.log')])
-                                    publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'reports/mypy/html', reportFiles: 'index.html', reportName: 'MyPy', reportTitles: ''])
-                                }
-                                cleanup{
-                                    cleanWs(
-                                        patterns: [
-                                            [pattern: 'logs/mypy.log', type: 'INCLUDE'],
-                                            [pattern: '.mypy_cache/', type: 'INCLUDE'],
-                                            ],
-                                        deleteDirs: true,
-                                    )
-                                }
-                            }
-                        }
-                        stage("Run Flake8 Static Analysis") {
-                            steps{
-                                script{
-                                    bat(
-                                        label: "Run Flake8",
-                                        returnStatus: true,
-                                        script: "flake8 dcc_qc --tee --output-file=${WORKSPACE}/logs/flake8.log"
-                                    )
-                                }
-                            }
-                            post {
-                                always {
-                                    archiveArtifacts "logs/flake8.log"
-                                    stash includes: "logs/flake8.log", name: 'FLAKE8_LOGS'
-                                    unstash "FLAKE8_LOGS"
-                                    recordIssues(tools: [flake8(name: 'Flake8', pattern: 'logs/flake8.log')])
-                                }
-                            }
-                        }
-                        stage("Run Tox test") {
-                            when {
-                               equals expected: true, actual: params.TEST_RUN_TOX
-                            }
-
-                            options{
-                                timeout(15)
-                            }
-                            steps {
-                                bat (
-                                    label: "Run Tox",
-                                    script: "tox --workdir ${WORKSPACE}\\.tox -e py -v"
+                    }
+                }
+                stage("Run Tox"){
+                    when{
+                        equals expected: true, actual: params.TEST_RUN_TOX
+                    }
+                    steps {
+                        script{
+                            def windowsJobs
+                            def linuxJobs
+                            stage("Scanning Tox Environments"){
+                                parallel(
+                                    "Linux":{
+                                        linuxJobs = tox.getToxTestsParallel(
+                                                stagePrefix: "Tox Linux",
+                                                label: "linux && docker",
+                                                dockerfile: "ci/docker/python/linux/tox/Dockerfile",
+                                                dockerBuildArgs: "--build-arg PIP_EXTRA_INDEX_URL --build-arg PIP_INDEX_URL"
+                                            )
+                                    },
+                                    "Windows":{
+                                        windowsJobs = tox.getToxTestsParallel(
+                                                stagePrefix: "Tox Windows",
+                                                label: "windows && docker",
+                                                dockerfile: "ci/docker/python/windows/tox/Dockerfile",
+                                                dockerBuildArgs: "--build-arg PIP_EXTRA_INDEX_URL --build-arg PIP_INDEX_URL --build-arg CHOCOLATEY_SOURCE"
+                                            )
+                                    },
+                                    failFast: true
                                 )
                             }
-                            post{
-                                always{
-                                    archiveArtifacts allowEmptyArchive: true, artifacts: '.tox/py*/log/*.log,.tox/log/*.log,logs/tox_report.json'
-                                }
-                                cleanup{
-                                    cleanWs(
-                                        deleteDirs: true,
-                                        patterns: [
-                                            [pattern: '.tox/py*/log/*.log', type: 'INCLUDE'],
-                                            [pattern: '.tox/log/*.log', type: 'INCLUDE'],
-                                            [pattern: 'logs/rox_report.json', type: 'INCLUDE']
-                                        ]
-                                    )
-                                }
+                            stage("Running Tox"){
+                                parallel(windowsJobs + linuxJobs)
                             }
                         }
                     }
-                    post{
-                        always{
-                            bat "coverage combine"
-                            bat "coverage xml -o ${WORKSPACE}\\reports\\coverage.xml"
-                            bat "coverage html -d ${WORKSPACE}\\reports\\coverage"
-                            publishHTML([allowMissing: true, alwaysLinkToLastBuild: false, keepAll: false, reportDir: "reports/coverage", reportFiles: 'index.html', reportName: 'Coverage', reportTitles: ''])
-                            publishCoverage adapters: [
-                                            coberturaAdapter('reports/coverage.xml')
-                                            ],
-                                        sourceFileResolver: sourceFiles('STORE_ALL_BUILD')
-
-                            publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'reports/coverage', reportFiles: 'index.html', reportName: 'Coverage', reportTitles: ''])
-                        }
-                        cleanup{
-                            cleanWs(
-                                patterns: [
-                                    [pattern: 'build/', type: 'INCLUDE'],
-                                    [pattern: 'logs/', type: 'INCLUDE'],
-                                    [pattern: 'reports/', type: 'INCLUDE'],
-                                    [pattern: 'reports/coverage', type: 'INCLUDE'],
-                                ],
-                                deleteDirs: true,
-                            )
-                        }
-                    }
-
                 }
             }
         }
@@ -374,7 +324,7 @@ pipeline {
                 stage("Deploy to Devpi Staging") {
                     agent {
                         dockerfile {
-                            filename 'CI/docker/deploy/devpi/deploy/Dockerfile'
+                            filename 'ci/docker/deploy/devpi/deploy/Dockerfile'
                             label 'linux&&docker'
                             additionalBuildArgs '--build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g)'
                           }
@@ -408,7 +358,7 @@ devpi upload --from-dir dist --clientdir ${WORKSPACE}/devpi"""
                         agent {
                           dockerfile {
                             additionalBuildArgs "--build-arg PYTHON_DOCKER_IMAGE_BASE=${CONFIGURATIONS[PYTHON_VERSION].test_docker_image}"
-                            filename 'CI/docker/deploy/devpi/test/windows/Dockerfile'
+                            filename 'ci/docker/deploy/devpi/test/windows/Dockerfile'
                             label 'windows && docker'
                           }
                         }
@@ -453,7 +403,7 @@ devpi upload --from-dir dist --clientdir ${WORKSPACE}/devpi"""
                 success{
                     node('linux && docker') {
                        script{
-                            docker.build("dcc_qc:devpi",'-f ./CI/docker/deploy/devpi/deploy/Dockerfile --build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g) .').inside{
+                            docker.build("dcc_qc:devpi",'-f ./ci/docker/deploy/devpi/deploy/Dockerfile --build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g) .').inside{
                                 unstash "DIST-INFO"
                                 def props = readProperties interpolate: true, file: 'dcc_qc.dist-info/METADATA'
                                 sh(
@@ -475,7 +425,7 @@ devpi upload --from-dir dist --clientdir ${WORKSPACE}/devpi"""
                 cleanup{
                     node('linux && docker') {
                        script{
-                            docker.build("dcc_qc:devpi",'-f ./CI/docker/deploy/devpi/deploy/Dockerfile --build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g) .').inside{
+                            docker.build("dcc_qc:devpi",'-f ./ci/docker/deploy/devpi/deploy/Dockerfile --build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g) .').inside{
                                 unstash "DIST-INFO"
                                 def props = readProperties interpolate: true, file: 'dcc_qc.dist-info/METADATA'
                                 sh(
