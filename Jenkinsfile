@@ -71,81 +71,98 @@ pipeline {
                 }
             }
         }
-        stage("Building") {
+        stage("Building Sphinx Documentation"){
             agent {
                 dockerfile {
-                    filename 'ci/docker/python37/windows/build/msvc/Dockerfile'
-                    label "windows && docker"
+                    filename DEFAULT_AGENT_DOCKERFILE
+                    label DEFAULT_AGENT_LABEL
+                    additionalBuildArgs DEFAULT_AGENT_DOCKER_BUILD_ARGS
                 }
             }
-            stages{
-                stage("Building Python Package"){
-                    steps {
-                        bat "if not exist logs mkdir logs"
-                        powershell "& python setup.py build -b ${WORKSPACE}\\build | tee ${WORKSPACE}\\logs\\build.log"
-                    }
-                    post{
-                        always{
-                            archiveArtifacts artifacts: "logs/build.log"
-                            recordIssues(tools: [
-                                        pyLint(name: 'Setuptools Build: PyLint', pattern: 'logs/build.log'),
-                                        msBuild(name: 'Setuptools Build: MSBuild', pattern: 'logs/build.log')
-                                    ]
-                                )
-                        }
-                        cleanup{
-                            cleanWs(patterns: [[pattern: 'logs/build.log', type: 'INCLUDE']])
-                        }
-                    }
-                }
-                stage("Building Sphinx Documentation"){
-                    steps {
-                        script{
-                            // Add a line to config file so auto docs look in the build folder
-                            def sphinx_config_file = 'docs/source/conf.py'
-                            def extra_line = "sys.path.insert(0, os.path.abspath('${WORKSPACE}/build/lib'))"
-                            def readContent = readFile "${sphinx_config_file}"
-                            echo "Adding \"${extra_line}\" to ${sphinx_config_file}."
-                            writeFile file: "${sphinx_config_file}", text: readContent+"\r\n${extra_line}\r\n"
-
-
-                        }
-                        bat "if not exist logs mkdir logs"
-                        powershell(
-                            label: "Building docs on ${env.NODE_NAME}",
-                            script: "& python setup.py build_sphinx --build-dir ${WORKSPACE}\\build\\docs | tee ${WORKSPACE}\\logs\\build_sphinx.log"
-                        )
-                    }
-                    post{
-                        always {
-                            recordIssues(tools: [sphinxBuild(name: 'Sphinx Documentation Build', pattern: 'logs/build_sphinx.log', id: 'sphinx_build')])
-                            archiveArtifacts artifacts: 'logs/build_sphinx.log'
-                        }
-                        success{
-                            unstash "DIST-INFO"
-                            script{
-                                def props = readProperties interpolate: true, file: 'dcc_qc.dist-info/METADATA'
-                                def DOC_ZIP_FILENAME = "${props.Name}-${props.Version}.doc.zip"
-                                publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'build/docs/html', reportFiles: 'index.html', reportName: 'Documentation', reportTitles: ''])
-                                zip archive: true, dir: "${WORKSPACE}/build/docs/html", glob: '', zipFile: "dist/${DOC_ZIP_FILENAME}"
-                                stash includes: "dist/${DOC_ZIP_FILENAME},build/docs/html/**", name: 'DOCS_ARCHIVE'
-                            }
-
-                        }
-                    }
-                }
+            steps {
+                sh (
+                    label: "Building docs on ${env.NODE_NAME}",
+                    script: """mkdir -p logs
+                               python -m sphinx docs/source build/docs/html -d build/docs/.doctrees -v -w logs/build_sphinx.log
+                               """
+                )
             }
             post{
-                cleanup{
-                    cleanWs(
-                        patterns: [
-                            [pattern: 'build/', type: 'INCLUDE'],
-                            ],
-                        deleteDirs: true,
-                    )
+                always {
+                    recordIssues(tools: [sphinxBuild(name: 'Sphinx Documentation Build', pattern: 'logs/build_sphinx.log', id: 'sphinx_build')])
+                    archiveArtifacts artifacts: 'logs/build_sphinx.log'
+                }
+                success{
+                    publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'build/docs/html', reportFiles: 'index.html', reportName: 'Documentation', reportTitles: ''])
+//                     script{
+//                         def DOC_ZIP_FILENAME = "${env.PKG_NAME}-${env.PKG_VERSION}.doc.zip"
+//                         zip archive: true, dir: "build/docs/html", glob: '', zipFile: "dist/${DOC_ZIP_FILENAME}"
+//                         stash includes: "dist/${DOC_ZIP_FILENAME},build/docs/html/**", name: 'DOCS_ARCHIVE'
+//                     }
+                }
+                failure{
+                    echo "Failed to build Python package"
                 }
             }
         }
+//         stage("Building") {
+//             agent {
+//                 dockerfile {
+//                     filename DEFAULT_AGENT_DOCKERFILE
+//                     label DEFAULT_AGENT_LABEL
+//                     additionalBuildArgs DEFAULT_AGENT_DOCKER_BUILD_ARGS
+//                 }
+//             }
+//             stages{
+//                 stage("Building Sphinx Documentation"){
+//                     steps {
+//                         script{
+//                             // Add a line to config file so auto docs look in the build folder
+//                             def sphinx_config_file = 'docs/source/conf.py'
+//                             def extra_line = "sys.path.insert(0, os.path.abspath('${WORKSPACE}/build/lib'))"
+//                             def readContent = readFile "${sphinx_config_file}"
+//                             echo "Adding \"${extra_line}\" to ${sphinx_config_file}."
+//                             writeFile file: "${sphinx_config_file}", text: readContent+"\r\n${extra_line}\r\n"
+//
+//
+//                         }
+//
+// //                         bat "if not exist logs mkdir logs"
+// //                         powershell(
+// //                             label: "Building docs on ${env.NODE_NAME}",
+// //                             script: "& python setup.py build_sphinx --build-dir ${WORKSPACE}\\build\\docs | tee ${WORKSPACE}\\logs\\build_sphinx.log"
+// //                         )
+//                     }
+//                     post{
+//                         always {
+//                             recordIssues(tools: [sphinxBuild(name: 'Sphinx Documentation Build', pattern: 'logs/build_sphinx.log', id: 'sphinx_build')])
+//                             archiveArtifacts artifacts: 'logs/build_sphinx.log'
+//                         }
+//                         success{
+//                             unstash "DIST-INFO"
+//                             script{
+//                                 def props = readProperties interpolate: true, file: 'dcc_qc.dist-info/METADATA'
+//                                 def DOC_ZIP_FILENAME = "${props.Name}-${props.Version}.doc.zip"
+//                                 publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'build/docs/html', reportFiles: 'index.html', reportName: 'Documentation', reportTitles: ''])
+//                                 zip archive: true, dir: "${WORKSPACE}/build/docs/html", glob: '', zipFile: "dist/${DOC_ZIP_FILENAME}"
+//                                 stash includes: "dist/${DOC_ZIP_FILENAME},build/docs/html/**", name: 'DOCS_ARCHIVE'
+//                             }
+//
+//                         }
+//                     }
+//                 }
+//             }
+//             post{
+//                 cleanup{
+//                     cleanWs(
+//                         patterns: [
+//                             [pattern: 'build/', type: 'INCLUDE'],
+//                             ],
+//                         deleteDirs: true,
+//                     )
+//                 }
+//             }
+//         }
         stage("Tests") {
             agent {
                 dockerfile {
