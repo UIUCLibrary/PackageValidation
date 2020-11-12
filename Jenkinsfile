@@ -250,11 +250,14 @@ pipeline {
                         stage("MyPy"){
                             steps{
                                 catchError(buildResult: "SUCCESS", message: 'MyPy found issues', stageResult: "UNSTABLE") {
-                                    sh "mypy -p dcc_qc --junit-xml=junit-${env.NODE_NAME}-mypy.xml --html-report reports/mypy_html"
+                                    tee('logs/mypy.log'){
+                                        sh "mypy -p dcc_qc --junit-xml=junit-${env.NODE_NAME}-mypy.xml --html-report reports/mypy_html"
+                                    }
                                 }
                             }
                             post{
                                 always {
+                                    recordIssues(tools: [myPy(name: 'MyPy', pattern: 'logs/mypy.log')])
                                     junit "junit-${env.NODE_NAME}-mypy.xml"
                                     publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'reports/mypy_html', reportFiles: 'index.html', reportName: 'MyPy', reportTitles: ''])
                                 }
