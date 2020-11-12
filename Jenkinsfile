@@ -26,13 +26,11 @@ def remove_from_devpi(devpiExecutable, pkgName, pkgVersion, devpiIndex, devpiUse
 
     }
 }
-
+def DEFAULT_AGENT_DOCKERFILE = 'ci/docker/python/linux/jenkins/Dockerfile'
+def DEFAULT_AGENT_LABEL = 'linux && docker'
+def DEFAULT_AGENT_DOCKER_BUILD_ARGS =  '--build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g)'
 pipeline {
     agent none
-    options {
-        disableConcurrentBuilds()  //each branch has 1 job running at a time
-        timeout(time: 1, unit: 'DAYS')
-    }
     environment {
         mypy_args = "--junit-xml=mypy.xml"
         pytest_args = "--junitxml=reports/junit-{env:OS:UNKNOWN_OS}-{envname}.xml --junit-prefix={env:OS:UNKNOWN_OS}  --basetemp={envtmpdir}"
@@ -49,12 +47,13 @@ pipeline {
         stage("Getting Distribution Info"){
             agent {
                 dockerfile {
-                    filename 'ci/docker/python37/windows/build/msvc/Dockerfile'
-                    label "windows && docker"
+                    filename DEFAULT_AGENT_DOCKERFILE
+                    label DEFAULT_AGENT_LABEL
+                    additionalBuildArgs DEFAULT_AGENT_DOCKER_BUILD_ARGS
                 }
             }
             steps{
-                bat "python setup.py dist_info"
+                sh "python setup.py dist_info"
             }
             post{
                 success{
