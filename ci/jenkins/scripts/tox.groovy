@@ -121,7 +121,7 @@ def getToxTestsParallel(args = [:]){
     def envNamePrefix = args['envNamePrefix']
     def label = args['label']
     def dockerfile = args['dockerfile']
-    def dockerArgs = args['dockerArgs']
+    def dockerBuildArgs = args['dockerBuildArgs']
     script{
         def TOX_RESULT_FILE_NAME = "tox_result.json"
         def envs
@@ -130,7 +130,7 @@ def getToxTestsParallel(args = [:]){
         node(label){
             originalNodeLabel = env.NODE_NAME
             checkout scm
-            def dockerImage = docker.build(dockerImageName, "-f ${dockerfile} ${dockerArgs} .")
+            def dockerImage = docker.build(dockerImageName, "-f ${dockerfile} ${dockerBuildArgs} .")
             dockerImage.inside{
                 envs = getToxEnvs()
             }
@@ -139,7 +139,7 @@ def getToxTestsParallel(args = [:]){
         def dockerImageForTesting
         node(originalNodeLabel){
             checkout scm
-            dockerImageForTesting = docker.build(dockerImageName, "-f ${dockerfile} ${dockerArgs} . ")
+            dockerImageForTesting = docker.build(dockerImageName, "-f ${dockerfile} ${dockerBuildArgs} . ")
 
         }
         echo "Adding jobs to ${originalNodeLabel}"
