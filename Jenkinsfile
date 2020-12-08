@@ -11,7 +11,15 @@ CONFIGURATIONS = [
     "3.7": [
         test_docker_image: "python:3.7",
         tox_env: "py37"
-        ]
+        ],
+    "3.8": [
+        test_docker_image: "python:3.8",
+        tox_env: "py38"
+        ],
+    "3.9": [
+        test_docker_image: "python:3.9",
+        tox_env: "py39"
+        ],
 ]
 
 def remove_from_devpi(devpiExecutable, pkgName, pkgVersion, devpiIndex, devpiUsername, devpiPassword){
@@ -93,33 +101,6 @@ pipeline {
         string(name: 'URL_SUBFOLDER', defaultValue: "package_qc", description: 'The directory that the docs should be saved under')
     }
     stages {
-//         stage("Getting Distribution Info"){
-//             agent {
-//                 dockerfile {
-//                     filename DEFAULT_AGENT_DOCKERFILE
-//                     label DEFAULT_AGENT_LABEL
-//                     additionalBuildArgs DEFAULT_AGENT_DOCKER_BUILD_ARGS
-//                 }
-//             }
-//             steps{
-//                 sh "python setup.py dist_info"
-//             }
-//             post{
-//                 success{
-//                     stash includes: "dcc_qc.dist-info/**", name: 'DIST-INFO'
-//                     archiveArtifacts artifacts: "dcc_qc.dist-info/**"
-//                 }
-//                 cleanup{
-//                     cleanWs(
-//                         deleteDirs: true,
-//                         patterns: [
-//                             [pattern: "dcc_qc.dist-info/", type: 'INCLUDE'],
-//                             [pattern: "dcc_qc.egg-info/", type: 'INCLUDE'],
-//                         ]
-//                     )
-//                 }
-//             }
-//         }
         stage("Building Sphinx Documentation"){
             agent {
                 dockerfile {
@@ -143,11 +124,11 @@ pipeline {
                 }
                 success{
                     publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'build/docs/html', reportFiles: 'index.html', reportName: 'Documentation', reportTitles: ''])
-                    stash includes: "build/docs/html/**", name: 'DOCS_ARCHIVE'
-//                     script{
-//                         def DOC_ZIP_FILENAME = "${env.PKG_NAME}-${env.PKG_VERSION}.doc.zip"
-//                     zip archive: true, dir: "build/docs/html", glob: '', zipFile: "dist/${DOC_ZIP_FILENAME}"
-//                     }
+                    script{
+                        def DOC_ZIP_FILENAME = "${props.Name}-${props.Version}.doc.zip"
+                        zip archive: true, dir: "build/docs/html", glob: '', zipFile: "dist/${DOC_ZIP_FILENAME}"
+                    }
+                    stash includes: "build/docs/html/**,dist/*.doc.zip", name: 'DOCS_ARCHIVE'
                 }
                 failure{
                     echo "Failed to build Python package"
@@ -393,7 +374,7 @@ devpi upload --from-dir dist --clientdir ${WORKSPACE}/devpi"""
                             }
                             axis {
                                 name 'PYTHON_VERSION'
-                                values '3.6', "3.7"
+                                values '3.6', '3.7', '3.8', '3.9'
                             }
                         }
                         agent {
