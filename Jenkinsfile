@@ -1,8 +1,8 @@
 #!/usr/bin/env groovy
-@Library("ds-utils")
-import org.ds.*
-
-@Library(["devpi", "PythonHelpers"]) _
+// @Library("ds-utils")
+// import org.ds.*
+//
+// @Library(["devpi", "PythonHelpers"]) _
 CONFIGURATIONS = [
     '3.6': [
         test_docker_image: "python:3.6-windowsservercore",
@@ -11,7 +11,15 @@ CONFIGURATIONS = [
     "3.7": [
         test_docker_image: "python:3.7",
         tox_env: "py37"
-        ]
+        ],
+    "3.8": [
+        test_docker_image: "python:3.8",
+        tox_env: "py38"
+        ],
+    "3.9": [
+        test_docker_image: "python:3.9",
+        tox_env: "py39"
+        ],
 ]
 
 def remove_from_devpi(devpiExecutable, pkgName, pkgVersion, devpiIndex, devpiUsername, devpiPassword){
@@ -31,11 +39,52 @@ def DEFAULT_AGENT_LABEL = 'linux && docker'
 def DEFAULT_AGENT_DOCKER_BUILD_ARGS =  '--build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g)'
 
 def tox
-
-node(){
-    checkout scm
-    tox = load("ci/jenkins/scripts/tox.groovy")
+def startup(){
+    node('linux && docker') {
+        timeout(2){
+            ws{
+                checkout scm
+                tox = load("ci/jenkins/scripts/tox.groovy")
+                try{
+                    docker.image('python:3.9').inside {
+                        stage("Getting Distribution Info"){
+                            sh(
+                               label: "Running setup.py with dist_info",
+                               script: 'PIP_NO_CACHE_DIR=off python setup.py dist_info'
+                            )
+                            stash includes: "*.dist-info/**", name: 'DIST-INFO'
+                            archiveArtifacts artifacts: "*.dist-info/**"
+                        }
+                    }
+                } finally{
+                    deleteDir()
+                }
+            }
+        }
+    }
 }
+
+def get_props(){
+    stage("Reading Package Metadata"){
+        node() {
+            try{
+                unstash "DIST-INFO"
+                def metadataFile = findFiles(excludes: '', glob: '*.dist-info/METADATA')[0]
+                def package_metadata = readProperties interpolate: true, file: metadataFile.path
+                echo """Metadata:
+
+    Name      ${package_metadata.Name}
+    Version   ${package_metadata.Version}
+    """
+                return package_metadata
+            } finally {
+                deleteDir()
+            }
+        }
+    }
+}
+startup()
+def props = get_props()
 
 pipeline {
     agent none
@@ -52,33 +101,6 @@ pipeline {
         string(name: 'URL_SUBFOLDER', defaultValue: "package_qc", description: 'The directory that the docs should be saved under')
     }
     stages {
-        stage("Getting Distribution Info"){
-            agent {
-                dockerfile {
-                    filename DEFAULT_AGENT_DOCKERFILE
-                    label DEFAULT_AGENT_LABEL
-                    additionalBuildArgs DEFAULT_AGENT_DOCKER_BUILD_ARGS
-                }
-            }
-            steps{
-                sh "python setup.py dist_info"
-            }
-            post{
-                success{
-                    stash includes: "dcc_qc.dist-info/**", name: 'DIST-INFO'
-                    archiveArtifacts artifacts: "dcc_qc.dist-info/**"
-                }
-                cleanup{
-                    cleanWs(
-                        deleteDirs: true,
-                        patterns: [
-                            [pattern: "dcc_qc.dist-info/", type: 'INCLUDE'],
-                            [pattern: "dcc_qc.egg-info/", type: 'INCLUDE'],
-                        ]
-                    )
-                }
-            }
-        }
         stage("Building Sphinx Documentation"){
             agent {
                 dockerfile {
@@ -102,11 +124,11 @@ pipeline {
                 }
                 success{
                     publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'build/docs/html', reportFiles: 'index.html', reportName: 'Documentation', reportTitles: ''])
-                    stash includes: "build/docs/html/**", name: 'DOCS_ARCHIVE'
-//                     script{
-//                         def DOC_ZIP_FILENAME = "${env.PKG_NAME}-${env.PKG_VERSION}.doc.zip"
-//                     zip archive: true, dir: "build/docs/html", glob: '', zipFile: "dist/${DOC_ZIP_FILENAME}"
-//                     }
+                    script{
+                        def DOC_ZIP_FILENAME = "${props.Name}-${props.Version}.doc.zip"
+                        zip archive: true, dir: "build/docs/html", glob: '', zipFile: "dist/${DOC_ZIP_FILENAME}"
+                    }
+                    stash includes: "build/docs/html/**,dist/*.doc.zip", name: 'DOCS_ARCHIVE'
                 }
                 failure{
                     echo "Failed to build Python package"
@@ -352,7 +374,7 @@ devpi upload --from-dir dist --clientdir ${WORKSPACE}/devpi"""
                             }
                             axis {
                                 name 'PYTHON_VERSION'
-                                values '3.6', "3.7"
+                                values '3.6', '3.7', '3.8', '3.9'
                             }
                         }
                         agent {
@@ -369,8 +391,8 @@ devpi upload --from-dir dist --clientdir ${WORKSPACE}/devpi"""
                                 }
                                 steps{
                                     script{
-                                        unstash "DIST-INFO"
-                                        def props = readProperties interpolate: true, file: 'dcc_qc.dist-info/METADATA'
+//                                         unstash "DIST-INFO"
+//                                         def props = readProperties interpolate: true, file: 'dcc_qc.dist-info/METADATA'
                                         bat(
                                             label: "Connecting to Devpi Server",
                                             script: "devpi use https://devpi.library.illinois.edu --clientdir certs\\ && devpi login %DEVPI_USR% --password %DEVPI_PSW% --clientdir certs\\ && devpi use ${env.BRANCH_NAME}_staging --clientdir certs\\"
@@ -404,8 +426,8 @@ devpi upload --from-dir dist --clientdir ${WORKSPACE}/devpi"""
                     node('linux && docker') {
                        script{
                             docker.build("dcc_qc:devpi",'-f ./ci/docker/deploy/devpi/deploy/Dockerfile --build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g) .').inside{
-                                unstash "DIST-INFO"
-                                def props = readProperties interpolate: true, file: 'dcc_qc.dist-info/METADATA'
+//                                 unstash "DIST-INFO"
+//                                 def props = readProperties interpolate: true, file: 'dcc_qc.dist-info/METADATA'
                                 sh(
                                     label: "Connecting to DevPi Server",
                                     script: 'devpi use https://devpi.library.illinois.edu --clientdir ${WORKSPACE}/devpi && devpi login $DEVPI_USR --password $DEVPI_PSW --clientdir ${WORKSPACE}/devpi'
@@ -426,8 +448,8 @@ devpi upload --from-dir dist --clientdir ${WORKSPACE}/devpi"""
                     node('linux && docker') {
                        script{
                             docker.build("dcc_qc:devpi",'-f ./ci/docker/deploy/devpi/deploy/Dockerfile --build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g) .').inside{
-                                unstash "DIST-INFO"
-                                def props = readProperties interpolate: true, file: 'dcc_qc.dist-info/METADATA'
+//                                 unstash "DIST-INFO"
+//                                 def props = readProperties interpolate: true, file: 'dcc_qc.dist-info/METADATA'
                                 sh(
                                     label: "Connecting to DevPi Server",
                                     script: 'devpi use https://devpi.library.illinois.edu --clientdir ${WORKSPACE}/devpi && devpi login $DEVPI_USR --password $DEVPI_PSW --clientdir ${WORKSPACE}/devpi'
