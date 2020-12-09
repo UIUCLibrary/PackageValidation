@@ -131,7 +131,7 @@ def getToxTestsParallel(args = [:]){
         if (dockerBuildArgs != null){
             dockerBuildArgString = dockerBuildArgString + "  ${dockerBuildArgs}"
         }
-        dockerBuildArgString = dockerBuildArgString + " ${WORKSPACE}"
+        dockerBuildArgString = dockerBuildArgString + " ."
         node(label){
             originalNodeLabel = env.NODE_NAME
             checkout scm
