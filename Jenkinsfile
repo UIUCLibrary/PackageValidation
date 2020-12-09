@@ -92,7 +92,7 @@ pipeline {
         pytest_args = "--junitxml=reports/junit-{env:OS:UNKNOWN_OS}-{envname}.xml --junit-prefix={env:OS:UNKNOWN_OS}  --basetemp={envtmpdir}"
     }
     parameters {
-        booleanParam(name: "TEST_RUN_TOX", defaultValue: false, description: "Run Tox Tests")
+`        booleanParam(name: "TEST_RUN_TOX", defaultValue: true, description: "Run Tox Tests")
         booleanParam(name: "PACKAGE_CX_FREEZE", defaultValue: false, description: "Create standalone install with CX_Freeze")
         booleanParam(name: "DEPLOY_DEVPI", defaultValue: false, description: "Deploy to devpi on http://devpy.library.illinois.edu/DS_Jenkins/${env.BRANCH_NAME}")
         booleanParam(name: "DEPLOY_DEVPI_PRODUCTION", defaultValue: false, description: "Deploy to https://devpi.library.illinois.edu/production/release")
@@ -245,7 +245,7 @@ pipeline {
                                 parallel(
                                     "Linux":{
                                         linuxJobs = tox.getToxTestsParallel(
-                                                stagePrefix: "Tox Linux",
+                                                envNamePrefix: "Tox Linux",
                                                 label: "linux && docker",
                                                 dockerfile: "ci/docker/python/linux/tox/Dockerfile",
                                                 dockerBuildArgs: "--build-arg PIP_EXTRA_INDEX_URL --build-arg PIP_INDEX_URL"
@@ -253,7 +253,7 @@ pipeline {
                                     },
                                     "Windows":{
                                         windowsJobs = tox.getToxTestsParallel(
-                                                stagePrefix: "Tox Windows",
+                                                envNamePrefix: "Tox Windows",
                                                 label: "windows && docker",
                                                 dockerfile: "ci/docker/python/windows/tox/Dockerfile",
                                                 dockerBuildArgs: "--build-arg PIP_EXTRA_INDEX_URL --build-arg PIP_INDEX_URL --build-arg CHOCOLATEY_SOURCE"
