@@ -34,16 +34,30 @@ def remove_from_devpi(devpiExecutable, pkgName, pkgVersion, devpiIndex, devpiUse
 
     }
 }
+DEVPI_SERVER = "https://devpi.library.illinois.edu"
+DEVPI_CREDS_ID = "DS_devpi"
+
 def DEFAULT_AGENT_DOCKERFILE = 'ci/docker/python/linux/jenkins/Dockerfile'
 def DEFAULT_AGENT_LABEL = 'linux && docker'
 def DEFAULT_AGENT_DOCKER_BUILD_ARGS =  '--build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g)'
 
+def getDevPiStagingIndex(){
+
+    if (env.TAG_NAME?.trim()){
+        return "tag_staging"
+    } else{
+        return "${env.BRANCH_NAME}_staging"
+    }
+}
 def startup(){
+    node() {
+        checkout scm
+        devpi = load("ci/jenkins/scripts/devpi.groovy")
+    }
     node('linux && docker') {
         timeout(2){
             ws{
                 checkout scm
-
                 try{
                     docker.image('python:3.9').inside {
                         stage("Getting Distribution Info"){
@@ -359,15 +373,13 @@ pipeline {
                     steps {
                         unstash 'DOCS_ARCHIVE'
                         unstash 'PYTHON_PACKAGES'
-                        sh(
-                                label: "Connecting to DevPi Server",
-                                script: 'devpi use https://devpi.library.illinois.edu --clientdir ${WORKSPACE}/devpi && devpi login $DEVPI_USR --password $DEVPI_PSW --clientdir ${WORKSPACE}/devpi'
-                            )
-                        sh(
-                            label: "Uploading to DevPi Staging",
-                            script: """devpi use /${env.DEVPI_USR}/${env.BRANCH_NAME}_staging --clientdir ${WORKSPACE}/devpi
-devpi upload --from-dir dist --clientdir ${WORKSPACE}/devpi"""
-                        )
+                        script{
+                            devpi.upload(
+                                    server: DEVPI_SERVER,
+                                    credentialsId: DEVPI_CREDS_ID,
+                                    index: getDevPiStagingIndex(),
+                                )
+                        }
                     }
                 }
                 stage("Test DevPi packages") {
