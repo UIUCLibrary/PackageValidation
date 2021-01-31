@@ -40,6 +40,7 @@ DEVPI_CREDS_ID = "DS_devpi"
 def DEFAULT_AGENT_DOCKERFILE = 'ci/docker/python/linux/jenkins/Dockerfile'
 def DEFAULT_AGENT_LABEL = 'linux && docker'
 def DEFAULT_AGENT_DOCKER_BUILD_ARGS =  '--build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g)'
+DEVPI_STAGING_INDEX = "DS_Jenkins/${getDevPiStagingIndex()}"
 
 def getDevPiStagingIndex(){
 
@@ -448,7 +449,7 @@ pipeline {
                                             pkgName: props.Name,
                                             pkgVersion: props.Version,
                                             server: "https://devpi.library.illinois.edu",
-                                            indexSource: "DS_Jenkins/${getDevPiStagingIndex()}",
+                                            indexSource: DEVPI_STAGING_INDEX,
                                             indexDestination: "DS_Jenkins/${env.BRANCH_NAME}",
                                             credentialsId: DEVPI_CREDS_ID
                                         )
@@ -461,19 +462,12 @@ pipeline {
                     node('linux && docker') {
                        script{
                             docker.build("dcc_qc:devpi",'-f ./ci/docker/deploy/devpi/deploy/Dockerfile --build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g) .').inside{
-//                                 unstash "DIST-INFO"
-//                                 def props = readProperties interpolate: true, file: 'dcc_qc.dist-info/METADATA'
-                                sh(
-                                    label: "Connecting to DevPi Server",
-                                    script: 'devpi use https://devpi.library.illinois.edu --clientdir ${WORKSPACE}/devpi && devpi login $DEVPI_USR --password $DEVPI_PSW --clientdir ${WORKSPACE}/devpi'
-                                )
-                                sh(
-                                    label: "Selecting to DevPi index",
-                                    script: "devpi use /DS_Jenkins/${env.BRANCH_NAME}_staging --clientdir ${WORKSPACE}/devpi"
-                                )
-                                sh(
-                                    label: "Removing package to DevPi index",
-                                    script: "devpi remove -y ${props.Name}==${props.Version} --clientdir ${WORKSPACE}/devpi"
+                                devpi.removePackage(
+                                    pkgName: props.Name,
+                                    pkgVersion: props.Version,
+                                    index: DEVPI_STAGING_INDEX,
+                                    server: 'https://devpi.library.illinois.edu',
+                                    credentialsId: DEVPI_CREDS_ID,
                                 )
                             }
                        }
