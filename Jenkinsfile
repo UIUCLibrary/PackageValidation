@@ -83,7 +83,7 @@ def get_props(){
     }
 }
 startup()
-def props = get_props()
+props = get_props()
 
 pipeline {
     agent none
