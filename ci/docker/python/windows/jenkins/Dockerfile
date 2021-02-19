@@ -9,9 +9,9 @@ RUN python -m pip install pip --upgrade; `
     pip install setuptools --upgrade ; `
     pip install wheel ; `
     pip wheel --wheel-dir=c:/wheels cx_freeze
-ADD requirements.txt requirements-dev.txt requirements-freeze.txt c:/temp/
+ADD requirements.txt requirements-dev.txt c:/temp/
 ARG PYTHON_INDEX=https://devpi.library.illinois.edu/production/release
-RUN pip wheel --wheel-dir=c:/wheels -r c:/temp/requirements.txt -r c:/temp/requirements-dev.txt -r c:/temp/requirements-freeze.txt -i ${ENV:PYTHON_INDEX} -v
+RUN pip wheel --wheel-dir=c:/wheels -r c:/temp/requirements.txt -r c:/temp/requirements-dev.txt -i ${ENV:PYTHON_INDEX} -v
 
 FROM python:${PYTHON_VERSION}
 COPY --from=certsgen c:/roots.sst roots.sst
