@@ -276,14 +276,14 @@ pipeline {
                 stage("Source and Wheel formats"){
                     agent {
                         dockerfile {
-                            filename 'ci/docker/python37/windows/build/msvc/Dockerfile'
-                            label "windows && docker"
+                            filename 'ci/docker/python/linux/jenkins/Dockerfile'
+                            label "linux && docker"
                         }
                     }
                     stages{
                         stage("Packaging sdist and wheel"){
                             steps{
-                                bat script: "python setup.py sdist -d dist --format=zip bdist_wheel -d dist"
+                                sh script: "python setup.py sdist -d dist --format=zip bdist_wheel -d dist"
                             }
                             post {
                                 success {
@@ -308,7 +308,7 @@ pipeline {
                 stage("Windows CX_Freeze MSI"){
                     agent {
                         dockerfile {
-                            filename 'ci/docker/python37/windows/build/msvc/Dockerfile'
+                            filename 'ci/docker/python/windows/jenkins/Dockerfile'
                             label "windows && docker"
                         }
                     }
