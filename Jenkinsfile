@@ -639,7 +639,7 @@ pipeline {
                     agent {
                         dockerfile {
                             filename 'ci/docker/python/linux/tox/Dockerfile'
-                            label 'linux&&docker'
+                            label 'linux && docker'
                             additionalBuildArgs '--build-arg PIP_EXTRA_INDEX_URL --build-arg PIP_INDEX_URL'
                           }
                     }
@@ -793,7 +793,7 @@ pipeline {
                                     devpi.testDevpiPackage(
                                         agent: [
                                             dockerfile: [
-                                                filename: 'ci/docker/linux/tox/Dockerfile',
+                                                filename: 'ci/docker/python/linux/tox/Dockerfile',
                                                 additionalBuildArgs: '--build-arg PIP_EXTRA_INDEX_URL --build-arg PIP_INDEX_URL',
                                                 label: 'linux && docker'
                                             ]
@@ -817,7 +817,7 @@ pipeline {
                                     devpi.testDevpiPackage(
                                         agent: [
                                             dockerfile: [
-                                                filename: 'ci/docker/linux/tox/Dockerfile',
+                                                filename: 'ci/docker/python/linux/tox/Dockerfile',
                                                 additionalBuildArgs: '--build-arg PIP_EXTRA_INDEX_URL --build-arg PIP_INDEX_URL',
                                                 label: 'linux && docker'
                                             ]
@@ -830,7 +830,7 @@ pipeline {
                                         package:[
                                             name: props.Name,
                                             version: props.Version,
-                                            selector: "(${pythonVersion.replace('.','')}).*(manylinux).*(\\.whl)"
+                                            selector: 'whl'
                                         ],
                                         test:[
                                             toxEnv: "py${pythonVersion}".replace('.',''),
