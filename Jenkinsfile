@@ -664,7 +664,7 @@ pipeline {
                             def devpi
                             node(){
                                 checkout scm
-                                tox = load('ci/jenkins/scripts/devpi.groovy')
+                                devpi = load('ci/jenkins/scripts/devpi.groovy')
                             }
                             def macPackages = [:]
                             SUPPORTED_MAC_VERSIONS.each{pythonVersion ->
