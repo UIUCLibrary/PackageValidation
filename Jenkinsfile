@@ -620,7 +620,6 @@ pipeline {
                 allOf{
                     anyOf{
                         equals expected: true, actual: params.DEPLOY_DEVPI
-                        triggeredBy "TimerTriggerCause"
                     }
                     anyOf {
                         equals expected: "master", actual: env.BRANCH_NAME
@@ -645,12 +644,14 @@ pipeline {
                     steps {
                         unstash 'DOCS_ARCHIVE'
                         unstash 'PYTHON_PACKAGES'
-                        load('ci/jenkins/scripts/devpi.groovy').upload(
-                                server: DEVPI_CONFIG.server,
-                                credentialsId: DEVPI_CONFIG.credentialsId,
-                                index: getDevPiStagingIndex(),
-                                clientDir: "./devpi"
-                            )
+                        script{
+                            load('ci/jenkins/scripts/devpi.groovy').upload(
+                                    server: DEVPI_CONFIG.server,
+                                    credentialsId: DEVPI_CONFIG.credentialsId,
+                                    index: getDevPiStagingIndex(),
+                                    clientDir: "./devpi"
+                                )
+                        }
 //                         sh(
 //                                 label: "Connecting to DevPi Server",
 //                                 script: 'devpi use https://devpi.library.illinois.edu --clientdir ${WORKSPACE}/devpi && devpi login $DEVPI_USR --password $DEVPI_PSW --clientdir ${WORKSPACE}/devpi'
