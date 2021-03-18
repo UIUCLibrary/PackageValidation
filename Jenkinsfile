@@ -745,7 +745,7 @@ pipeline {
                                                 label: 'windows && docker'
                                             ]
                                         ],
-                                        dockerImageName:  "${currentBuild.fullProjectName}_devpi_with_msvc".replaceAll('-', '_').replaceAll('/', '_').replaceAll(' ', '').toLowerCase(),
+                                        dockerImageName:  "${currentBuild.fullProjectName}".replaceAll('-', '_').replaceAll('/', '_').replaceAll(' ', '').toLowerCase(),
                                         devpi: [
                                             index: DEVPI_CONFIG.stagingIndex,
                                             server: DEVPI_CONFIG.server,
@@ -765,8 +765,8 @@ pipeline {
                                     devpi.testDevpiPackage(
                                         agent: [
                                             dockerfile: [
-                                                filename: 'ci/docker/windows/tox_no_vs/Dockerfile',
-                                                additionalBuildArgs: '--build-arg PIP_EXTRA_INDEX_URL --build-arg PIP_INDEX_URL',
+                                                filename: 'ci/docker/windows/tox/Dockerfile',
+                                                additionalBuildArgs: '--build-arg PIP_EXTRA_INDEX_URL --build-arg PIP_INDEX_URL --build-arg CHOCOLATEY_SOURCE',
                                                 label: 'windows && docker'
                                             ]
                                         ],
@@ -775,11 +775,11 @@ pipeline {
                                             server: DEVPI_CONFIG.server,
                                             credentialsId: DEVPI_CONFIG.credentialsId,
                                         ],
-                                        dockerImageName:  "${currentBuild.fullProjectName}_devpi_without_msvc".replaceAll('-', '_').replaceAll('/', '_').replaceAll(' ', '').toLowerCase(),
+                                        dockerImageName:  "${currentBuild.fullProjectName}_devpi".replaceAll('-', '_').replaceAll('/', '_').replaceAll(' ', '').toLowerCase(),
                                         package:[
                                             name: props.Name,
                                             version: props.Version,
-                                            selector: "(${pythonVersion.replace('.','')}).*(win_amd64\\.whl)"
+                                            selector: 'whl'
                                         ],
                                         test:[
                                             toxEnv: "py${pythonVersion}".replace('.',''),
