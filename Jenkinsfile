@@ -654,15 +654,6 @@ pipeline {
                                     clientDir: "./devpi"
                                 )
                         }
-//                         sh(
-//                                 label: "Connecting to DevPi Server",
-//                                 script: 'devpi use https://devpi.library.illinois.edu --clientdir ${WORKSPACE}/devpi && devpi login $DEVPI_USR --password $DEVPI_PSW --clientdir ${WORKSPACE}/devpi'
-//                             )
-//                         sh(
-//                             label: "Uploading to DevPi Staging",
-//                             script: """devpi use /${env.DEVPI_USR}/${env.BRANCH_NAME}_staging --clientdir ${WORKSPACE}/devpi
-// devpi upload --from-dir dist --clientdir ${WORKSPACE}/devpi"""
-//                         )
                     }
                 }
                 stage("Test DevPi packages") {
@@ -692,8 +683,6 @@ pipeline {
                                 }
                                 steps{
                                     script{
-//                                         unstash "DIST-INFO"
-//                                         def props = readProperties interpolate: true, file: 'dcc_qc.dist-info/METADATA'
                                         bat(
                                             label: "Connecting to Devpi Server",
                                             script: "devpi use https://devpi.library.illinois.edu --clientdir certs\\ && devpi login %DEVPI_USR% --password %DEVPI_PSW% --clientdir certs\\ && devpi use ${env.BRANCH_NAME}_staging --clientdir certs\\"
@@ -729,7 +718,7 @@ pipeline {
                             if (!env.TAG_NAME?.trim()){
                                 checkout scm
                                 docker.build("dcc_qc:devpi",'-f ./ci/docker/python/linux/tox/Dockerfile --build-arg PIP_EXTRA_INDEX_URL --build-arg PIP_INDEX_URL .').inside{
-                                    devpi.pushPackageToIndex(
+                                    load('ci/jenkins/scripts/devpi.groovy').pushPackageToIndex(
                                         pkgName: props.Name,
                                         pkgVersion: props.Version,
                                         server: DEVPI_CONFIG.server,
@@ -747,7 +736,7 @@ pipeline {
                         script{
                             checkout scm
                             docker.build("dcc_qc:devpi",'-f ./ci/docker/python/linux/tox/Dockerfile --build-arg PIP_EXTRA_INDEX_URL --build-arg PIP_INDEX_URL .').inside{
-                                devpi.removePackage(
+                                load('ci/jenkins/scripts/devpi.groovy').removePackage(
                                     pkgName: props.Name,
                                     pkgVersion: props.Version,
                                     index: "DS_Jenkins/${getDevPiStagingIndex()}",
