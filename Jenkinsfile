@@ -633,6 +633,9 @@ pipeline {
                 beforeAgent true
             }
             agent none
+            options{
+                lock("dcc_qc-devpi")
+            }
             environment{
                 DEVPI = credentials("DS_devpi")
             }
