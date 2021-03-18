@@ -271,64 +271,67 @@ pipeline {
             }
         }
         stage("Packaging") {
-            failFast true
-            parallel {
-                stage("Source and Wheel formats"){
-                    agent {
-                        dockerfile {
-                            filename 'ci/docker/python/linux/jenkins/Dockerfile'
-                            label "linux && docker"
+            stages{
+                stage("Create") {
+                    failFast true
+                    parallel {
+                        stage("Source and Wheel formats"){
+                            agent {
+                                dockerfile {
+                                    filename 'ci/docker/python/linux/jenkins/Dockerfile'
+                                    label "linux && docker"
+                                }
+                            }
+                            stages{
+                                stage("Packaging sdist and wheel"){
+                                    steps{
+                                        sh script: "python setup.py sdist -d dist --format=zip bdist_wheel -d dist"
+                                    }
+                                    post {
+                                        success {
+                                            archiveArtifacts(
+                                                artifacts: "dist/*.whl,dist/*.tar.gz,dist/*.zip",
+                                                fingerprint: true
+                                            )
+                                            stash includes: "dist/*.whl,dist/*.tar.gz,dist/*.zip", name: 'PYTHON_PACKAGES'
+                                        }
+                                        cleanup{
+                                            cleanWs(
+                                                deleteDirs: true,
+                                                patterns: [
+                                                    [pattern: 'dist/*.whl,dist/*.tar.gz,dist/*.zip', type: 'INCLUDE']
+                                                ]
+                                            )
+                                        }
+                                    }
+                                }
+                            }
                         }
-                    }
-                    stages{
-                        stage("Packaging sdist and wheel"){
+                        stage("Windows CX_Freeze MSI"){
+                            agent {
+                                dockerfile {
+                                    filename 'ci/docker/python/windows/jenkins/Dockerfile'
+                                    label "windows && docker"
+                                }
+                            }
+                            when {
+                                equals expected: true, actual: params.PACKAGE_CX_FREEZE
+                                beforeAgent true
+                            }
                             steps{
-                                sh script: "python setup.py sdist -d dist --format=zip bdist_wheel -d dist"
+                                bat "python cx_setup.py bdist_msi --add-to-path=true -k --bdist-dir build/msi"
                             }
-                            post {
-                                success {
-                                    archiveArtifacts(
-                                        artifacts: "dist/*.whl,dist/*.tar.gz,dist/*.zip",
-                                        fingerprint: true
-                                    )
-                                    stash includes: "dist/*.whl,dist/*.tar.gz,dist/*.zip", name: 'PYTHON_PACKAGES'
-                                }
-                                cleanup{
-                                    cleanWs(
-                                        deleteDirs: true,
-                                        patterns: [
-                                            [pattern: 'dist/*.whl,dist/*.tar.gz,dist/*.zip', type: 'INCLUDE']
-                                        ]
-                                    )
+                            post{
+                                success{
+                                    stash includes: "dist/*.msi", name: "msi"
+                                    archiveArtifacts artifacts: "dist/*.msi", fingerprint: true
                                 }
                             }
-                        }
-                    }
-                }
-                stage("Windows CX_Freeze MSI"){
-                    agent {
-                        dockerfile {
-                            filename 'ci/docker/python/windows/jenkins/Dockerfile'
-                            label "windows && docker"
-                        }
-                    }
-                    when {
-                        equals expected: true, actual: params.PACKAGE_CX_FREEZE
-                        beforeAgent true
-                    }
-                    steps{
-                        bat "python cx_setup.py bdist_msi --add-to-path=true -k --bdist-dir build/msi"
-                    }
-                    post{
-                        success{
-                            stash includes: "dist/*.msi", name: "msi"
-                            archiveArtifacts artifacts: "dist/*.msi", fingerprint: true
                         }
                     }
                 }
             }
         }
-
         stage("Deploying to DevPi") {
             when {
                 allOf{
