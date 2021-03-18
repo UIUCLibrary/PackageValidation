@@ -745,24 +745,6 @@ pipeline {
                                 )
                             }
                         }
-//                        script{
-//                             docker.build("dcc_qc:devpi",'-f ./ci/docker/python/linux/tox/Dockerfile --build-arg PIP_EXTRA_INDEX_URL --build-arg PIP_INDEX_URL .').inside{
-// //                                 unstash "DIST-INFO"
-// //                                 def props = readProperties interpolate: true, file: 'dcc_qc.dist-info/METADATA'
-//                                 sh(
-//                                     label: "Connecting to DevPi Server",
-//                                     script: 'devpi use https://devpi.library.illinois.edu --clientdir ${WORKSPACE}/devpi && devpi login $DEVPI_USR --password $DEVPI_PSW --clientdir ${WORKSPACE}/devpi'
-//                                 )
-//                                 sh(
-//                                     label: "Selecting to DevPi index",
-//                                     script: "devpi use /DS_Jenkins/${env.BRANCH_NAME}_staging --clientdir ${WORKSPACE}/devpi"
-//                                 )
-//                                 sh(
-//                                     label: "Removing package to DevPi index",
-//                                     script: "devpi remove -y ${props.Name}==${props.Version} --clientdir ${WORKSPACE}/devpi"
-//                                 )
-//                             }
-//                        }
                     }
                 }
             }
