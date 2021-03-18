@@ -440,7 +440,7 @@ pipeline {
                                         agent: [
                                             dockerfile: [
                                                 label: 'windows && docker',
-                                                filename: 'ci/docker/windows/tox_no_vs/Dockerfile',
+                                                filename: 'ci/docker/python/windows/tox/Dockerfile',
                                                 additionalBuildArgs: '--build-arg PIP_EXTRA_INDEX_URL --build-arg PIP_INDEX_URL --build-arg CHOCOLATEY_SOURCE'
                                             ]
                                         ],
@@ -477,7 +477,7 @@ pipeline {
                                         agent: [
                                             dockerfile: [
                                                 label: 'windows && docker',
-                                                filename: 'ci/docker/windows/tox/Dockerfile',
+                                                filename: 'ci/docker/python/windows/tox/Dockerfile',
                                                 additionalBuildArgs: '--build-arg PIP_EXTRA_INDEX_URL --build-arg PIP_INDEX_URL --build-arg CHOCOLATEY_SOURCE'
                                             ]
                                         ],
@@ -513,7 +513,7 @@ pipeline {
                                         agent: [
                                             dockerfile: [
                                                 label: 'linux && docker',
-                                                filename: 'ci/docker/linux/tox/Dockerfile',
+                                                filename: 'ci/docker/python/linux/tox/Dockerfile',
                                                 additionalBuildArgs: '--build-arg PIP_EXTRA_INDEX_URL --build-arg PIP_INDEX_URL'
                                             ]
                                         ],
@@ -553,7 +553,7 @@ pipeline {
                                         agent: [
                                             dockerfile: [
                                                 label: 'linux && docker',
-                                                filename: 'ci/docker/linux/tox/Dockerfile',
+                                                filename: 'ci/docker/python/linux/tox/Dockerfile',
                                                 additionalBuildArgs: '--build-arg PIP_EXTRA_INDEX_URL --build-arg PIP_INDEX_URL'
                                             ]
                                         ],
