@@ -92,6 +92,7 @@ pipeline {
         pytest_args = "--junitxml=reports/junit-{env:OS:UNKNOWN_OS}-{envname}.xml --junit-prefix={env:OS:UNKNOWN_OS}  --basetemp={envtmpdir}"
     }
     parameters {
+        booleanParam(name: "RUN_CHECKS", defaultValue: true, description: "Run checks on code")
         booleanParam(name: "TEST_RUN_TOX", defaultValue: false, description: "Run Tox Tests")
         booleanParam(name: "PACKAGE_CX_FREEZE", defaultValue: false, description: "Create standalone install with CX_Freeze")
         booleanParam(name: "BUILD_PACKAGES", defaultValue: false, description: "Build Python packages")
@@ -137,6 +138,9 @@ pipeline {
             }
         }
         stage("Checks") {
+            when{
+                equals expected: true, actual: params.RUN_CHECKS
+            }
             stages{
                 stage("Code Quality"){
                     agent {
