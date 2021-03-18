@@ -17,37 +17,7 @@ def DEVPI_CONFIG = [
     credentialsId: 'DS_devpi',
 ]
 
-CONFIGURATIONS = [
-    '3.6': [
-        test_docker_image: "python:3.6-windowsservercore",
-        tox_env: "py36"
-        ],
-    "3.7": [
-        test_docker_image: "python:3.7",
-        tox_env: "py37"
-        ],
-    "3.8": [
-        test_docker_image: "python:3.8",
-        tox_env: "py38"
-        ],
-    "3.9": [
-        test_docker_image: "python:3.9",
-        tox_env: "py39"
-        ],
-]
 
-def remove_from_devpi(devpiExecutable, pkgName, pkgVersion, devpiIndex, devpiUsername, devpiPassword){
-    script {
-            try {
-                bat "${devpiExecutable} login ${devpiUsername} --password ${devpiPassword}"
-                bat "${devpiExecutable} use ${devpiIndex}"
-                bat "${devpiExecutable} remove -y ${pkgName}==${pkgVersion}"
-            } catch (Exception ex) {
-                echo "Failed to remove ${pkgName}==${pkgVersion} from ${devpiIndex}"
-        }
-
-    }
-}
 def DEFAULT_AGENT_DOCKERFILE = 'ci/docker/python/linux/jenkins/Dockerfile'
 def DEFAULT_AGENT_LABEL = 'linux && docker'
 def DEFAULT_AGENT_DOCKER_BUILD_ARGS =  '--build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g)'
@@ -626,9 +596,6 @@ pipeline {
             options{
                 lock("dcc_qc-devpi")
             }
-//             environment{
-//                 DEVPI = credentials("DS_devpi")
-//             }
             stages{
                 stage("Deploy to Devpi Staging") {
                     agent {
@@ -842,60 +809,6 @@ pipeline {
                     }
                 }
             }
-//                 stage("Test DevPi packages") {
-//                     matrix {
-//                         axes {
-//                             axis {
-//                                 name 'FORMAT'
-//                                 values 'zip', "whl"
-//                             }
-//                             axis {
-//                                 name 'PYTHON_VERSION'
-//                                 values '3.6', '3.7', '3.8', '3.9'
-//                             }
-//                         }
-//                         agent {
-//                           dockerfile {
-//                             additionalBuildArgs "--build-arg PYTHON_DOCKER_IMAGE_BASE=${CONFIGURATIONS[PYTHON_VERSION].test_docker_image}"
-//                             filename 'ci/docker/deploy/devpi/test/windows/Dockerfile'
-//                             label 'windows && docker'
-//                           }
-//                         }
-//                         stages{
-//                             stage("Testing DevPi Package"){
-//                                 options{
-//                                     timeout(10)
-//                                 }
-//                                 steps{
-//                                     script{
-//                                         bat(
-//                                             label: "Connecting to Devpi Server",
-//                                             script: "devpi use https://devpi.library.illinois.edu --clientdir certs\\ && devpi login %DEVPI_USR% --password %DEVPI_PSW% --clientdir certs\\ && devpi use ${env.BRANCH_NAME}_staging --clientdir certs\\"
-//                                         )
-//                                         bat(
-//                                             label: "Testing package stored on DevPi",
-//                                             script: "devpi test --index ${env.BRANCH_NAME}_staging ${props.Name}==${props.Version} -s ${FORMAT} --clientdir certs\\ -e ${CONFIGURATIONS[PYTHON_VERSION].tox_env} -v"
-//                                         )
-//                                     }
-//                                 }
-//                                 post{
-//                                     cleanup{
-//                                         cleanWs(
-//                                             deleteDirs: true,
-//                                             patterns: [
-//                                                 [pattern: "dist/", type: 'INCLUDE'],
-//                                                 [pattern: "certs/", type: 'INCLUDE'],
-//                                                 [pattern: "dcc_qc.dist-info/", type: 'INCLUDE'],
-//                                                 [pattern: 'build/', type: 'INCLUDE']
-//                                             ]
-//                                         )
-//                                     }
-//                                 }
-//                             }
-//                         }
-//                     }
-//                 }
-//             }
             post{
                 success{
                     node('linux && docker') {
