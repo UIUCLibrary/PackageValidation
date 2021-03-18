@@ -117,6 +117,8 @@ pipeline {
         booleanParam(name: "PACKAGE_CX_FREEZE", defaultValue: false, description: "Create standalone install with CX_Freeze")
 //         todo make this defaultValue false
         booleanParam(name: "BUILD_PACKAGES", defaultValue: true, description: "Build Python packages")
+//         todo make this defaultValue false
+        booleanParam(name: "BUILD_MAC_PACKAGES", defaultValue: true, description: "Test Python packages on Mac")
 //         todo make this defaultValue true
         booleanParam(name: "TEST_PACKAGES", defaultValue: false, description: "Test Python packages by installing them and running tests on the installed package")
 //         todo make this defaultValue true
@@ -733,7 +735,6 @@ pipeline {
                                     )
                                 }
                             }
-
                             def windowsPackages = [:]
                             SUPPORTED_WINDOWS_VERSIONS.each{pythonVersion ->
                                 windowsPackages["Windows - Python ${pythonVersion}: sdist"] = {
