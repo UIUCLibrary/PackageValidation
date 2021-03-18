@@ -724,46 +724,55 @@ pipeline {
             post{
                 success{
                     node('linux && docker') {
-                       script{
-                            docker.build("dcc_qc:devpi",'-f ./ci/docker/python/linux/tox/Dockerfile --build-arg PIP_EXTRA_INDEX_URL --build-arg PIP_INDEX_URL .').inside{
-//                                 unstash "DIST-INFO"
-//                                 def props = readProperties interpolate: true, file: 'dcc_qc.dist-info/METADATA'
-                                sh(
-                                    label: "Connecting to DevPi Server",
-                                    script: 'devpi use https://devpi.library.illinois.edu --clientdir ${WORKSPACE}/devpi && devpi login $DEVPI_USR --password $DEVPI_PSW --clientdir ${WORKSPACE}/devpi'
-                                )
-                                sh(
-                                    label: "Selecting to DevPi index",
-                                    script: "devpi use /DS_Jenkins/${env.BRANCH_NAME}_staging --clientdir ${WORKSPACE}/devpi"
-                                )
-                                sh(
-                                    label: "Pushing package to DevPi index",
-                                    script:  "devpi push ${props.Name}==${props.Version} DS_Jenkins/${env.BRANCH_NAME} --clientdir ${WORKSPACE}/devpi"
-                                )
+                        script{
+                            if (!env.TAG_NAME?.trim()){
+                                checkout scm
+                                docker.build("dcc_qc:devpi",'-f ./ci/docker/python/linux/tox/Dockerfile --build-arg PIP_EXTRA_INDEX_URL --build-arg PIP_INDEX_URL .').inside{
+                                    devpi.pushPackageToIndex(
+                                        pkgName: props.Name,
+                                        pkgVersion: props.Version,
+                                        server: DEVPI_CONFIG.server,
+                                        credentialsId: DEVPI_CONFIG.credentialsId,
+                                        indexSource: "DS_Jenkins/${getDevPiStagingIndex()}",
+                                        indexDestination: "DS_Jenkins/${env.BRANCH_NAME}",
+                                    )
+                                }
                             }
-                       }
+                        }
                     }
                 }
                 cleanup{
                     node('linux && docker') {
-                       script{
+                        script{
+                            checkout scm
                             docker.build("dcc_qc:devpi",'-f ./ci/docker/python/linux/tox/Dockerfile --build-arg PIP_EXTRA_INDEX_URL --build-arg PIP_INDEX_URL .').inside{
-//                                 unstash "DIST-INFO"
-//                                 def props = readProperties interpolate: true, file: 'dcc_qc.dist-info/METADATA'
-                                sh(
-                                    label: "Connecting to DevPi Server",
-                                    script: 'devpi use https://devpi.library.illinois.edu --clientdir ${WORKSPACE}/devpi && devpi login $DEVPI_USR --password $DEVPI_PSW --clientdir ${WORKSPACE}/devpi'
-                                )
-                                sh(
-                                    label: "Selecting to DevPi index",
-                                    script: "devpi use /DS_Jenkins/${env.BRANCH_NAME}_staging --clientdir ${WORKSPACE}/devpi"
-                                )
-                                sh(
-                                    label: "Removing package to DevPi index",
-                                    script: "devpi remove -y ${props.Name}==${props.Version} --clientdir ${WORKSPACE}/devpi"
+                                devpi.removePackage(
+                                    pkgName: props.Name,
+                                    pkgVersion: props.Version,
+                                    index: "DS_Jenkins/${getDevPiStagingIndex()}",
+                                    server: DEVPI_CONFIG.server,
+                                    credentialsId: DEVPI_CONFIG.credentialsId,
                                 )
                             }
-                       }
+                        }
+//                        script{
+//                             docker.build("dcc_qc:devpi",'-f ./ci/docker/python/linux/tox/Dockerfile --build-arg PIP_EXTRA_INDEX_URL --build-arg PIP_INDEX_URL .').inside{
+// //                                 unstash "DIST-INFO"
+// //                                 def props = readProperties interpolate: true, file: 'dcc_qc.dist-info/METADATA'
+//                                 sh(
+//                                     label: "Connecting to DevPi Server",
+//                                     script: 'devpi use https://devpi.library.illinois.edu --clientdir ${WORKSPACE}/devpi && devpi login $DEVPI_USR --password $DEVPI_PSW --clientdir ${WORKSPACE}/devpi'
+//                                 )
+//                                 sh(
+//                                     label: "Selecting to DevPi index",
+//                                     script: "devpi use /DS_Jenkins/${env.BRANCH_NAME}_staging --clientdir ${WORKSPACE}/devpi"
+//                                 )
+//                                 sh(
+//                                     label: "Removing package to DevPi index",
+//                                     script: "devpi remove -y ${props.Name}==${props.Version} --clientdir ${WORKSPACE}/devpi"
+//                                 )
+//                             }
+//                        }
                     }
                 }
             }
