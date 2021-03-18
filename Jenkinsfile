@@ -636,9 +636,9 @@ pipeline {
             options{
                 lock("dcc_qc-devpi")
             }
-            environment{
-                DEVPI = credentials("DS_devpi")
-            }
+//             environment{
+//                 DEVPI = credentials("DS_devpi")
+//             }
             stages{
                 stage("Deploy to Devpi Staging") {
                     agent {
