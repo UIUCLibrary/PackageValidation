@@ -1,9 +1,4 @@
 #!/usr/bin/env groovy
-// @Library("ds-utils")
-// import org.ds.*
-//
-// @Library(["devpi", "PythonHelpers"]) _
-
 def getDevPiStagingIndex(){
 
     if (env.TAG_NAME?.trim()){
@@ -111,18 +106,13 @@ pipeline {
         pytest_args = "--junitxml=reports/junit-{env:OS:UNKNOWN_OS}-{envname}.xml --junit-prefix={env:OS:UNKNOWN_OS}  --basetemp={envtmpdir}"
     }
     parameters {
-//         todo make this defaultValue true
-        booleanParam(name: "RUN_CHECKS", defaultValue: false, description: "Run checks on code")
+        booleanParam(name: "RUN_CHECKS", defaultValue: true, description: "Run checks on code")
         booleanParam(name: "TEST_RUN_TOX", defaultValue: false, description: "Run Tox Tests")
         booleanParam(name: "PACKAGE_CX_FREEZE", defaultValue: false, description: "Create standalone install with CX_Freeze")
-//         todo make this defaultValue false
-        booleanParam(name: "BUILD_PACKAGES", defaultValue: true, description: "Build Python packages")
-//         todo make this defaultValue false
-        booleanParam(name: "BUILD_MAC_PACKAGES", defaultValue: true, description: "Test Python packages on Mac")
-//         todo make this defaultValue true
-        booleanParam(name: "TEST_PACKAGES", defaultValue: false, description: "Test Python packages by installing them and running tests on the installed package")
-//         todo make this defaultValue true
-        booleanParam(name: "DEPLOY_DEVPI", defaultValue: true, description: "Deploy to devpi on http://devpy.library.illinois.edu/DS_Jenkins/${env.BRANCH_NAME}")
+        booleanParam(name: "BUILD_PACKAGES", defaultValue: false, description: "Build Python packages")
+        booleanParam(name: "BUILD_MAC_PACKAGES", defaultValue: false, description: "Test Python packages on Mac")
+        booleanParam(name: "TEST_PACKAGES", defaultValue: true, description: "Test Python packages by installing them and running tests on the installed package")
+        booleanParam(name: "DEPLOY_DEVPI", defaultValue: false, description: "Deploy to devpi on http://devpy.library.illinois.edu/DS_Jenkins/${env.BRANCH_NAME}")
         booleanParam(name: "DEPLOY_DEVPI_PRODUCTION", defaultValue: false, description: "Deploy to https://devpi.library.illinois.edu/production/release")
         booleanParam(name: "UPDATE_DOCS", defaultValue: false, description: "Update the documentation")
         string(name: 'URL_SUBFOLDER', defaultValue: "package_qc", description: 'The directory that the docs should be saved under')
