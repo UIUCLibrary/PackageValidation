@@ -682,7 +682,7 @@ pipeline {
                                         package:[
                                             name: props.Name,
                                             version: props.Version,
-                                            selector: getMacDevpiName(pythonVersion, 'wheel'),
+                                            selector: 'whl',
                                         ],
                                         test:[
                                             setup: {
