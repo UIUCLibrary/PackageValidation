@@ -3,7 +3,7 @@ import platform
 import pytest
 import dcc_qc
 
-includes = ['pkg_resources', "appdirs"] + pytest.freeze_includes()
+includes = ['pkg_resources'] + pytest.freeze_includes()
 
 
 def create_msi_tablename(python_name, fullname):
@@ -72,7 +72,7 @@ setup(
             'includes': includes,
             "include_msvcr": True,
             "include_files": INCLUDE_FILES,
-            "packages":['six', "appdirs", "packaging"],
+            "packages":['six', "packaging"],
         },
         "bdist_msi": {
             "upgrade_code": "{2FB4B947-68DA-45EC-956B-6A9B85D1E060}",
