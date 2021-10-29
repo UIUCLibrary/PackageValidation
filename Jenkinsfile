@@ -161,6 +161,11 @@ pipeline {
                                         }
                                     }
                                 }
+                                stage('Task Scanner'){
+                                    steps{
+                                        recordIssues(tools: [taskScanner(highTags: 'FIXME', includePattern: 'dcc_qc/**/*.py', normalTags: 'TODO')])
+                                    }
+                                }
                                 stage("MyPy"){
                                     steps{
                                         catchError(buildResult: "SUCCESS", message: 'MyPy found issues', stageResult: "UNSTABLE") {
