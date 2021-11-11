@@ -7,9 +7,9 @@ def getDevPiStagingIndex(){
         return "${env.BRANCH_NAME}_staging"
     }
 }
-SUPPORTED_MAC_VERSIONS = ['3.8', '3.9']
-SUPPORTED_LINUX_VERSIONS = ['3.6', '3.7', '3.8', '3.9']
-SUPPORTED_WINDOWS_VERSIONS = ['3.6', '3.7', '3.8', '3.9']
+SUPPORTED_MAC_VERSIONS = ['3.8', '3.9', '3.10']
+SUPPORTED_LINUX_VERSIONS = ['3.6', '3.7', '3.8', '3.9', '3.10']
+SUPPORTED_WINDOWS_VERSIONS = ['3.6', '3.7', '3.8', '3.9', '3.10']
 
 def DEVPI_CONFIG = [
     stagingIndex: getDevPiStagingIndex(),
