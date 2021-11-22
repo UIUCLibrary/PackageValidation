@@ -1,5 +1,5 @@
 # escape=`
-ARG PYTHON_VERSION=3.8
+ARG PYTHON_VERSION=3.9
 FROM python:${PYTHON_VERSION} as certsgen
 RUN certutil -generateSSTFromWU roots.sst
 
