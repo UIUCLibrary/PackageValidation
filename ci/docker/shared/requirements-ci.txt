@@ -2,5 +2,6 @@ coverage
 flake8
 lxml
 mypy
+paramiko
 pytest
 tox

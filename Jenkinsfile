@@ -85,7 +85,6 @@ pipeline {
         booleanParam(name: "DEPLOY_DEVPI", defaultValue: false, description: "Deploy to devpi on http://devpy.library.illinois.edu/DS_Jenkins/${env.BRANCH_NAME}")
         booleanParam(name: "DEPLOY_DEVPI_PRODUCTION", defaultValue: false, description: "Deploy to https://devpi.library.illinois.edu/production/release")
         booleanParam(name: "UPDATE_DOCS", defaultValue: false, description: "Update the documentation")
-        string(name: 'URL_SUBFOLDER', defaultValue: "package_qc", description: 'The directory that the docs should be saved under')
     }
     stages {
         stage("Building Sphinx Documentation"){
@@ -852,42 +851,78 @@ pipeline {
                 }
             }
         }
-        stage("Update online documentation") {
-            agent any
-            when {
-                equals expected: true, actual: params.UPDATE_DOCS
+        stage('Deploy Online Documentation') {
+            when{
+                equals expected: true, actual: params.DEPLOY_DOCS
+                beforeAgent true
+                beforeInput true
             }
-            options {
-                skipDefaultCheckout()
+            agent {
+                dockerfile {
+                    filename 'ci/docker/python/linux/jenkins/Dockerfile'
+                    label "linux && docker"
+                }
             }
-            steps {
-                unstash "DOCS_ARCHIVE"
-                dir("build/docs/html/"){
-                    bat "dir /s /B"
-                    sshPublisher(
-                        publishers: [
-                            sshPublisherDesc(
-                                configName: 'apache-ns - lib-dccuser-updater',
-                                sshLabel: [label: 'Linux'],
-                                transfers: [sshTransfer(excludes: '',
-                                execCommand: '',
-                                execTimeout: 120000,
-                                flatten: false,
-                                makeEmptyDirs: false,
-                                noDefaultExcludes: false,
-                                patternSeparator: '[, ]+',
-                                remoteDirectory: "${params.URL_SUBFOLDER}",
-                                remoteDirectorySDF: false,
-                                removePrefix: '',
-                                sourceFiles: '**')],
-                            usePromotionTimestamp: false,
-                            useWorkspaceInPromotion: false,
-                            verbose: true
-                            )
+            options{
+                timeout(time: 1, unit: 'DAYS')
+            }
+            input {
+                message 'Update project documentation?'
+            }
+            steps{
+                unstash 'DOCS_ARCHIVE'
+                withCredentials([usernamePassword(credentialsId: 'dccdocs-server', passwordVariable: 'docsPassword', usernameVariable: 'docsUsername')]) {
+                    sh 'python utils/upload_docs.py --username=$docsUsername --password=$docsPassword --subroute=package_qc build/docs/html apache-ns.library.illinois.edu'
+                }
+            }
+            post{
+                cleanup{
+                    cleanWs(
+                        deleteDirs: true,
+                        patterns: [
+                            [pattern: 'build/', type: 'INCLUDE'],
+                            [pattern: 'dist/', type: 'INCLUDE'],
                         ]
                     )
                 }
             }
         }
+//         stage("Update online documentation") {
+//             agent any
+//             when {
+//                 equals expected: true, actual: params.UPDATE_DOCS
+//             }
+//             options {
+//                 skipDefaultCheckout()
+//             }
+//             steps {
+//                 unstash "DOCS_ARCHIVE"
+//                 dir("build/docs/html/"){
+//                     bat "dir /s /B"
+//                     sshPublisher(
+//                         publishers: [
+//                             sshPublisherDesc(
+//                                 configName: 'apache-ns - lib-dccuser-updater',
+//                                 sshLabel: [label: 'Linux'],
+//                                 transfers: [sshTransfer(excludes: '',
+//                                 execCommand: '',
+//                                 execTimeout: 120000,
+//                                 flatten: false,
+//                                 makeEmptyDirs: false,
+//                                 noDefaultExcludes: false,
+//                                 patternSeparator: '[, ]+',
+//                                 remoteDirectory: "${params.URL_SUBFOLDER}",
+//                                 remoteDirectorySDF: false,
+//                                 removePrefix: '',
+//                                 sourceFiles: '**')],
+//                             usePromotionTimestamp: false,
+//                             useWorkspaceInPromotion: false,
+//                             verbose: true
+//                             )
+//                         ]
+//                     )
+//                 }
+//             }
+//         }
     }
 }
