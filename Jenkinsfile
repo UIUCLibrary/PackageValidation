@@ -426,7 +426,7 @@ pipeline {
                                     packages.testPkg2(
                                         agent: [
                                             dockerfile: [
-                                                label: 'windows && docker && 8x86',
+                                                label: 'windows && docker && x86',
                                                 filename: 'ci/docker/python/windows/tox/Dockerfile',
                                                 additionalBuildArgs: '--build-arg PIP_EXTRA_INDEX_URL --build-arg PIP_INDEX_URL --build-arg CHOCOLATEY_SOURCE'
                                             ]
@@ -605,7 +605,7 @@ pipeline {
                     agent {
                         dockerfile {
                             filename 'ci/docker/python/linux/tox/Dockerfile'
-                            label 'linux && docker && x86'
+                            label 'linux && docker && devpi-access'
                             additionalBuildArgs '--build-arg PIP_EXTRA_INDEX_URL --build-arg PIP_INDEX_URL'
                           }
                     }
@@ -635,7 +635,7 @@ pipeline {
                                 macPackages["MacOS - Python ${pythonVersion}: wheel"] = {
                                     devpi.testDevpiPackage(
                                         agent: [
-                                            label: "mac && python${pythonVersion}"
+                                            label: "mac && python${pythonVersion} && devpi-access"
                                         ],
                                         devpi: [
                                             index: DEVPI_CONFIG.stagingIndex,
@@ -665,7 +665,7 @@ pipeline {
                                         ]
                                     )
                                 }
-                                macPackages["MacOS - Python ${pythonVersion}: sdist"]= {
+                                macPackages["MacOS - Python ${pythonVersion}: sdist && devpi-access"]= {
                                     devpi.testDevpiPackage(
                                         agent: [
                                             label: "mac && python${pythonVersion}"
@@ -732,7 +732,7 @@ pipeline {
                                             dockerfile: [
                                                 filename: 'ci/docker/python/windows/tox/Dockerfile',
                                                 additionalBuildArgs: '--build-arg PIP_EXTRA_INDEX_URL --build-arg PIP_INDEX_URL --build-arg CHOCOLATEY_SOURCE',
-                                                label: 'windows && docker && x86'
+                                                label: 'windows && docker && x86 && devpi-access'
                                             ]
                                         ],
                                         devpi: [
@@ -760,7 +760,7 @@ pipeline {
                                             dockerfile: [
                                                 filename: 'ci/docker/python/linux/tox/Dockerfile',
                                                 additionalBuildArgs: '--build-arg PIP_EXTRA_INDEX_URL --build-arg PIP_INDEX_URL',
-                                                label: 'linux && docker && x86'
+                                                label: 'linux && docker && x86 && devpi-access'
                                             ]
                                         ],
                                         devpi: [
@@ -784,7 +784,7 @@ pipeline {
                                             dockerfile: [
                                                 filename: 'ci/docker/python/linux/tox/Dockerfile',
                                                 additionalBuildArgs: '--build-arg PIP_EXTRA_INDEX_URL --build-arg PIP_INDEX_URL',
-                                                label: 'linux && docker && x86'
+                                                label: 'linux && docker && x86 && devpi-access'
                                             ]
                                         ],
                                         devpi: [
@@ -815,7 +815,7 @@ pipeline {
             }
             post{
                 success{
-                    node('linux && docker && x86') {
+                    node('linux && docker && devpi-access') {
                         script{
                             if (!env.TAG_NAME?.trim()){
                                 checkout scm
@@ -834,7 +834,7 @@ pipeline {
                     }
                 }
                 cleanup{
-                    node('linux && docker && x86') {
+                    node('linux && docker && devpi-access') {
                         script{
                             checkout scm
                             docker.build("dcc_qc:devpi",'-f ./ci/docker/python/linux/tox/Dockerfile --build-arg PIP_EXTRA_INDEX_URL --build-arg PIP_INDEX_URL .').inside{
