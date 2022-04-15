@@ -78,7 +78,6 @@ pipeline {
     parameters {
         booleanParam(name: "RUN_CHECKS", defaultValue: true, description: "Run checks on code")
         booleanParam(name: "TEST_RUN_TOX", defaultValue: false, description: "Run Tox Tests")
-        booleanParam(name: "PACKAGE_CX_FREEZE", defaultValue: false, description: "Create standalone install with CX_Freeze")
         booleanParam(name: "BUILD_PACKAGES", defaultValue: false, description: "Build Python packages")
         booleanParam(name: "BUILD_MAC_PACKAGES", defaultValue: false, description: "Test Python packages on Mac")
         booleanParam(name: "TEST_PACKAGES", defaultValue: true, description: "Test Python packages by installing them and running tests on the installed package")
@@ -307,27 +306,6 @@ pipeline {
                                             )
                                         }
                                     }
-                                }
-                            }
-                        }
-                        stage("Windows CX_Freeze MSI"){
-                            agent {
-                                dockerfile {
-                                    filename 'ci/docker/python/windows/jenkins/Dockerfile'
-                                    label 'windows && docker && x86'
-                                }
-                            }
-                            when {
-                                equals expected: true, actual: params.PACKAGE_CX_FREEZE
-                                beforeAgent true
-                            }
-                            steps{
-                                bat "python cx_setup.py bdist_msi --add-to-path=true -k --bdist-dir build/msi"
-                            }
-                            post{
-                                success{
-                                    stash includes: "dist/*.msi", name: "msi"
-                                    archiveArtifacts artifacts: "dist/*.msi", fingerprint: true
                                 }
                             }
                         }
