@@ -2,14 +2,12 @@ ARG PYTHON_VERSION=3.8
 FROM python:${PYTHON_VERSION} as wheel_builder
 
 COPY requirements.txt ci/docker/shared/requirements-ci.txt /tmp/
-ARG PYTHON_INDEX=https://devpi.library.illinois.edu/production/release
 RUN python -m pip install --upgrade pip &&  \
     pip install wheel && \
     pip install setuptools --upgrade && \
     pip wheel \
         --no-cache-dir \
         --wheel-dir=/wheels \
-        -i ${PYTHON_INDEX} \
         -r /tmp/requirements.txt \
         -r /tmp/requirements-ci.txt \
         -v
@@ -29,7 +27,6 @@ RUN if id $USER_ID ; then \
 COPY --from=wheel_builder /wheels /wheels/
 COPY requirements.txt ci/docker/shared/requirements-ci.txt /tmp/
 ENV PIP_EXTRA_INDEX_URL="${PYTHON_INDEX}"
-ENV PIP_TRUSTED_HOST="devpi.library.illinois.edu"
 ENV PIP_FIND_LINKS=/wheels
 
 RUN pip install --no-index --find-links=/wheels \
