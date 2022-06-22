@@ -274,47 +274,39 @@ pipeline {
                 beforeAgent true
             }
             stages{
-                stage("Create") {
-                    failFast true
-                    parallel {
-                        stage("Source and Wheel formats"){
-                            agent {
-                                docker {
-                                    image 'python'
-                                    label 'linux && docker'
-                                }
-                            }
-                            stages{
-                                stage('Packaging sdist and wheel'){
-                                    steps{
-                                        sh(
-                                           label: 'Creating Python packages',
-                                           script: '''python -m venv venv --upgrade-deps
-                                                      venv/bin/pip install build
-                                                      venv/bin/python -m build
-                                                   '''
-                                           )
-                                    }
-                                    post {
-                                        success {
-                                            archiveArtifacts(
-                                                artifacts: "dist/*.whl,dist/*.tar.gz,dist/*.zip",
-                                                fingerprint: true
-                                            )
-                                            stash includes: "dist/*.whl,dist/*.tar.gz,dist/*.zip", name: 'PYTHON_PACKAGES'
-                                        }
-                                        cleanup{
-                                            cleanWs(
-                                                deleteDirs: true,
-                                                patterns: [
-                                                    [pattern: 'venv/', type: 'INCLUDE'],
-                                                    [pattern: 'dist/', type: 'INCLUDE']
-                                                ]
-                                            )
-                                        }
-                                    }
-                                }
-                            }
+                stage("Source and Wheel formats"){
+                    agent {
+                        docker {
+                            image 'python'
+                            label 'linux && docker'
+                        }
+                    }
+                    steps{
+                        sh(
+                           label: 'Creating Python packages',
+                           script: '''python -m venv venv --upgrade-deps
+                                      venv/bin/pip install build
+                                      venv/bin/python -m build
+                                   '''
+                           )
+                    }
+                    post {
+                        success {
+                            archiveArtifacts(
+                                artifacts: "dist/*.whl,dist/*.tar.gz,dist/*.zip",
+                                fingerprint: true
+                            )
+                            stash includes: "dist/*.whl,dist/*.tar.gz,dist/*.zip", name: 'PYTHON_PACKAGES'
+                        }
+                        cleanup{
+                            cleanWs(
+                                deleteDirs: true,
+                                patterns: [
+                                    [pattern: 'venv/', type: 'INCLUDE'],
+                                    [pattern: 'dist/', type: 'INCLUDE'],
+                                    [pattern: '**/__pycache__/', type: 'INCLUDE'],
+                                ]
+                            )
                         }
                     }
                 }
