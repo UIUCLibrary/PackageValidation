@@ -279,15 +279,21 @@ pipeline {
                     parallel {
                         stage("Source and Wheel formats"){
                             agent {
-                                dockerfile {
-                                    filename 'ci/docker/python/linux/jenkins/Dockerfile'
-                                    label 'linux && docker && x86'
+                                docker {
+                                    image 'python'
+                                    label 'linux && docker'
                                 }
                             }
                             stages{
-                                stage("Packaging sdist and wheel"){
+                                stage('Packaging sdist and wheel'){
                                     steps{
-                                        sh script: "python setup.py sdist -d dist --format=zip bdist_wheel -d dist"
+                                        sh(
+                                           label: 'Creating Python packages',
+                                           script: '''python -m venv venv --upgrade-deps
+                                                      venv/bin/pip install build
+                                                      venv/bin/python -m build
+                                                   '''
+                                           )
                                     }
                                     post {
                                         success {
@@ -301,7 +307,8 @@ pipeline {
                                             cleanWs(
                                                 deleteDirs: true,
                                                 patterns: [
-                                                    [pattern: 'dist/*.whl,dist/*.tar.gz,dist/*.zip', type: 'INCLUDE']
+                                                    [pattern: 'venv/', type: 'INCLUDE'],
+                                                    [pattern: 'dist/', type: 'INCLUDE']
                                                 ]
                                             )
                                         }
