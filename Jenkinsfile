@@ -75,6 +75,9 @@ pipeline {
         mypy_args = "--junit-xml=mypy.xml"
         pytest_args = "--junitxml=reports/junit-{env:OS:UNKNOWN_OS}-{envname}.xml --junit-prefix={env:OS:UNKNOWN_OS}  --basetemp={envtmpdir}"
     }
+    options {
+        timeout(time: 1, unit: 'DAYS')
+    }
     parameters {
         booleanParam(name: "RUN_CHECKS", defaultValue: true, description: "Run checks on code")
         booleanParam(name: "TEST_RUN_TOX", defaultValue: false, description: "Run Tox Tests")
