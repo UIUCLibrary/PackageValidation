@@ -1,5 +1,5 @@
 pytest
-tox
+-r requirements/requirements_tox.txt
 wheel
 setuptools
 sphinx
