@@ -32,7 +32,7 @@ def DEVPI_CONFIG = getDevpiConfig()
 
 def DEFAULT_AGENT_DOCKERFILE = 'ci/docker/python/linux/jenkins/Dockerfile'
 def DEFAULT_AGENT_LABEL = 'linux && docker && x86'
-def DEFAULT_AGENT_DOCKER_BUILD_ARGS =  '--build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g) --build-arg PIP_EXTRA_INDEX_URL --build-arg PIP_INDEX_URL'
+def DEFAULT_AGENT_DOCKER_BUILD_ARGS =  '--build-arg PIP_EXTRA_INDEX_URL --build-arg PIP_INDEX_URL'
 
 def startup(){
     node('linux && docker && x86') {
