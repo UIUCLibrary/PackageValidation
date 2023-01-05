@@ -3,5 +3,6 @@ include LICENSE tox.ini README.rst requirements.txt
 
 include docs/make.bat docs/Makefile
 
+recursive-include requirements *.txt
 recursive-include docs/source *
 recursive-include tests *.py

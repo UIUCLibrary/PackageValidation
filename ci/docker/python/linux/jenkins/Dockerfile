@@ -2,10 +2,8 @@ ARG PYTHON_VERSION=3.8
 FROM python:${PYTHON_VERSION} as wheel_builder
 ARG PIP_EXTRA_INDEX_URL
 ARG PIP_INDEX_URL
-
 COPY requirements.txt ci/docker/shared/requirements-ci.txt /tmp/
-COPY requirements/ /tmp/requirements/
-
+COPY requirements /tmp/requirements
 RUN python -m pip install --upgrade pip &&  \
     pip install wheel && \
     pip install setuptools --upgrade && \
@@ -30,8 +28,7 @@ RUN if id $USER_ID ; then \
 
 COPY --from=wheel_builder /wheels /wheels/
 COPY requirements.txt ci/docker/shared/requirements-ci.txt /tmp/
-COPY requirements/ /tmp/requirements/
-
+COPY requirements /tmp/requirements
 ARG PIP_EXTRA_INDEX_URL
 ARG PIP_INDEX_URL
 ENV PIP_FIND_LINKS=/wheels
@@ -41,3 +38,4 @@ RUN pip install --no-index --find-links=/wheels \
 
 USER user
 WORKDIR /home/user
+

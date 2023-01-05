@@ -15,12 +15,12 @@ ARG PIP_INDEX_URL
 
 COPY requirements.txt ci/docker/shared/requirements-ci.txt /tmp/
 COPY requirements /tmp/requirements
-
 RUN PYTHON=python3.7 && \
     $PYTHON -m pip install pip --upgrade pip && \
     $PYTHON -m pip install wheel && \
-    $PYTHON -m pip wheel -w /wheels --no-cache-dir -r /tmp/requirements-ci.txt && \
-    $PYTHON -m pip wheel -w /wheels --no-cache-dir -v -r /tmp/requirements.txt
+    $PYTHON -m pip wheel -w /wheels --no-cache-dir  \
+      -r /tmp/requirements-ci.txt  \
+      -r /tmp/requirements.txt
 
 # ==============================================================================
 FROM wheel_builder_base as WHEEL_BUILDER_PY38
@@ -29,12 +29,12 @@ ARG PIP_INDEX_URL
 
 COPY requirements.txt ci/docker/shared/requirements-ci.txt /tmp/
 COPY requirements /tmp/requirements
-
 RUN PYTHON=python3.8 && \
     $PYTHON -m pip install pip --upgrade pip && \
     $PYTHON -m pip install wheel && \
-    $PYTHON -m pip wheel -w /wheels --no-cache-dir -r /tmp/requirements-ci.txt && \
-    $PYTHON -m pip wheel -w /wheels --no-cache-dir -v -r /tmp/requirements.txt
+    $PYTHON -m pip wheel -w /wheels --no-cache-dir  \
+      -r /tmp/requirements-ci.txt  \
+      -r /tmp/requirements.txt
 
 # ==============================================================================
 FROM wheel_builder_base as WHEEL_BUILDER_PY39
@@ -43,12 +43,12 @@ ARG PIP_INDEX_URL
 
 COPY requirements.txt ci/docker/shared/requirements-ci.txt /tmp/
 COPY requirements /tmp/requirements
-
 RUN PYTHON=python3.9 && \
     $PYTHON -m pip install pip --upgrade pip && \
     $PYTHON -m pip install wheel && \
-    $PYTHON -m pip wheel -w /wheels --no-cache-dir -r /tmp/requirements-ci.txt && \
-    $PYTHON -m pip wheel -w /wheels --no-cache-dir -v -r /tmp/requirements.txt
+    $PYTHON -m pip wheel -w /wheels --no-cache-dir  \
+      -r /tmp/requirements-ci.txt  \
+      -r /tmp/requirements.txt
 
 # ==============================================================================
 FROM wheel_builder_base as WHEEL_BUILDER_PY310
@@ -57,13 +57,13 @@ ARG PIP_INDEX_URL
 
 COPY requirements.txt ci/docker/shared/requirements-ci.txt /tmp/
 COPY requirements /tmp/requirements
-
 RUN PYTHON=python3.10 && \
     $PYTHON -m ensurepip --upgrade && \
     $PYTHON -m pip install pip --upgrade pip && \
     $PYTHON -m pip install wheel && \
-    $PYTHON -m pip wheel -w /wheels --no-cache-dir -r /tmp/requirements-ci.txt && \
-    $PYTHON -m pip wheel -w /wheels --no-cache-dir -v -r /tmp/requirements.txt
+    $PYTHON -m pip wheel -w /wheels --no-cache-dir  \
+      -r /tmp/requirements-ci.txt  \
+      -r /tmp/requirements.txt
 
 # ==============================================================================
 FROM wheel_builder_base
@@ -74,8 +74,8 @@ COPY --from=WHEEL_BUILDER_PY38 /wheels/* /wheels/
 COPY --from=WHEEL_BUILDER_PY39 /wheels/* /wheels/
 COPY --from=WHEEL_BUILDER_PY310 /wheels/* /wheels/
 ENV PIP_FIND_LINKS=/wheels
-COPY requirements/ /tmp/requirements
-
-RUN pip3 install -r /tmp/requirements/requirements_tox.txt "devpi-client<6.0"
+COPY requirements/requirements_tox.txt requirements/requirements_tox.txt
+RUN pip3 install -r requirements/requirements_tox.txt "devpi-client<6.0"
 WORKDIR /src
 CMD tox --workdir /tmp/tox --recreate
+
