@@ -78,3 +78,4 @@ COPY requirements/requirements_tox.txt requirements/requirements_tox.txt
 RUN pip3 install -r requirements/requirements_tox.txt "devpi-client<6.0"
 WORKDIR /src
 CMD tox --workdir /tmp/tox --recreate
+

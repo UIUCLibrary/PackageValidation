@@ -11,11 +11,28 @@ SUPPORTED_MAC_VERSIONS = ['3.8', '3.9', '3.10']
 SUPPORTED_LINUX_VERSIONS = ['3.7', '3.8', '3.9', '3.10']
 SUPPORTED_WINDOWS_VERSIONS = ['3.7', '3.8', '3.9', '3.10']
 
-def DEVPI_CONFIG = [
-    stagingIndex: getDevPiStagingIndex(),
-    server: 'https://devpi.library.illinois.edu',
-    credentialsId: 'DS_devpi',
-]
+// def DEVPI_CONFIG = [
+//     stagingIndex: getDevPiStagingIndex(),
+//     server: 'https://devpi.library.illinois.edu',
+//     credentialsId: 'DS_devpi',
+// ]
+
+def getDevpiConfig() {
+    node(){
+        configFileProvider([configFile(fileId: 'devpi_config', variable: 'CONFIG_FILE')]) {
+            def configProperties = readProperties(file: CONFIG_FILE)
+            configProperties.stagingIndex = {
+                if (env.TAG_NAME?.trim()){
+                    return 'tag_staging'
+                } else{
+                    return "${env.BRANCH_NAME}_staging"
+                }
+            }()
+            return configProperties
+        }
+    }
+}
+def DEVPI_CONFIG = getDevpiConfig()
 
 
 def DEFAULT_AGENT_DOCKERFILE = 'ci/docker/python/linux/jenkins/Dockerfile'
@@ -86,49 +103,20 @@ pipeline {
         booleanParam(name: "TEST_PACKAGES", defaultValue: true, description: "Test Python packages by installing them and running tests on the installed package")
         booleanParam(name: "DEPLOY_DEVPI", defaultValue: false, description: "Deploy to devpi on http://devpy.library.illinois.edu/DS_Jenkins/${env.BRANCH_NAME}")
         booleanParam(name: "DEPLOY_DEVPI_PRODUCTION", defaultValue: false, description: "Deploy to https://devpi.library.illinois.edu/production/release")
-        booleanParam(name: "UPDATE_DOCS", defaultValue: false, description: "Update the documentation")
+        booleanParam(name: "DEPLOY_DOCS", defaultValue: false, description: "Update the documentation")
     }
     stages {
-        stage("Building Sphinx Documentation"){
-            agent {
-                dockerfile {
-                    filename DEFAULT_AGENT_DOCKERFILE
-                    label DEFAULT_AGENT_LABEL
-                    additionalBuildArgs DEFAULT_AGENT_DOCKER_BUILD_ARGS
-                }
-            }
-            steps {
-                sh (
-                    label: "Building docs on ${env.NODE_NAME}",
-                    script: """mkdir -p logs
-                               python -m sphinx docs/source build/docs/html -d build/docs/.doctrees -v -w logs/build_sphinx.log
-                               """
-                )
-            }
-            post{
-                always {
-                    recordIssues(tools: [sphinxBuild(name: 'Sphinx Documentation Build', pattern: 'logs/build_sphinx.log', id: 'sphinx_build')])
-                    archiveArtifacts artifacts: 'logs/build_sphinx.log'
-                }
-                success{
-                    publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'build/docs/html', reportFiles: 'index.html', reportName: 'Documentation', reportTitles: ''])
-                    script{
-                        def DOC_ZIP_FILENAME = "${props.Name}-${props.Version}.doc.zip"
-                        zip archive: true, dir: "build/docs/html", glob: '', zipFile: "dist/${DOC_ZIP_FILENAME}"
-                    }
-                    stash includes: "build/docs/html/**,dist/*.doc.zip", name: 'DOCS_ARCHIVE'
-                }
-                failure{
-                    echo "Failed to build Python package"
-                }
-            }
-        }
-        stage("Checks") {
+        stage('Building and Testing'){
             when{
-                equals expected: true, actual: params.RUN_CHECKS
+                anyOf{
+                    equals expected: true, actual: params.RUN_CHECKS
+                    equals expected: true, actual: params.TEST_RUN_TOX
+                    equals expected: true, actual: params.DEPLOY_DEVPI
+                    equals expected: true, actual: params.DEPLOY_DOCS
+                }
             }
             stages{
-                stage("Code Quality"){
+                stage("Building Sphinx Documentation"){
                     agent {
                         dockerfile {
                             filename DEFAULT_AGENT_DOCKERFILE
@@ -136,89 +124,130 @@ pipeline {
                             additionalBuildArgs DEFAULT_AGENT_DOCKER_BUILD_ARGS
                         }
                     }
+                    steps {
+                        sh (
+                            label: "Building docs on ${env.NODE_NAME}",
+                            script: """mkdir -p logs
+                                       python -m sphinx docs/source build/docs/html -d build/docs/.doctrees -v -w logs/build_sphinx.log
+                                       """
+                        )
+                    }
+                    post{
+                        always {
+                            recordIssues(tools: [sphinxBuild(name: 'Sphinx Documentation Build', pattern: 'logs/build_sphinx.log', id: 'sphinx_build')])
+                            archiveArtifacts artifacts: 'logs/build_sphinx.log'
+                        }
+                        success{
+                            publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'build/docs/html', reportFiles: 'index.html', reportName: 'Documentation', reportTitles: ''])
+                            script{
+                                def DOC_ZIP_FILENAME = "${props.Name}-${props.Version}.doc.zip"
+                                zip archive: true, dir: "build/docs/html", glob: '', zipFile: "dist/${DOC_ZIP_FILENAME}"
+                            }
+                            stash includes: "build/docs/html/**,dist/*.doc.zip", name: 'DOCS_ARCHIVE'
+                        }
+                        failure{
+                            echo "Failed to build Python package"
+                        }
+                    }
+                }
+                stage("Checks") {
+                    when{
+                        equals expected: true, actual: params.RUN_CHECKS
+                    }
                     stages{
-                        stage("Run Tests"){
-                            parallel {
-                                stage("PyTest"){
-                                    steps{
-                                        sh "coverage run --parallel-mode --source=dcc_qc -m pytest --junitxml=reports/junit-pytest.xml"
-                                    }
-                                    post {
-                                        always{
-                                            junit "reports/junit-pytest.xml"
-                                        }
-                                    }
+                        stage("Code Quality"){
+                            agent {
+                                dockerfile {
+                                    filename DEFAULT_AGENT_DOCKERFILE
+                                    label DEFAULT_AGENT_LABEL
+                                    additionalBuildArgs DEFAULT_AGENT_DOCKER_BUILD_ARGS
                                 }
-                                stage("Documentation"){
-                                    steps{
-                                            sh """mkdir -p logs
-                                                  python -m sphinx -b doctest docs/source build/docs -d build/docs/doctrees -v -w logs/doctest.log --no-color
-                                                  """
-                                    }
-                                    post{
-                                        always {
-                                            recordIssues(tools: [sphinxBuild(pattern: 'logs/doctest.log')])
+                            }
+                            stages{
+                                stage("Run Tests"){
+                                    parallel {
+                                        stage("PyTest"){
+                                            steps{
+                                                sh "coverage run --parallel-mode --source=dcc_qc -m pytest --junitxml=reports/junit-pytest.xml"
+                                            }
+                                            post {
+                                                always{
+                                                    junit "reports/junit-pytest.xml"
+                                                }
+                                            }
+                                        }
+                                        stage("Documentation"){
+                                            steps{
+                                                    sh """mkdir -p logs
+                                                          python -m sphinx -b doctest docs/source build/docs -d build/docs/doctrees -v -w logs/doctest.log --no-color
+                                                          """
+                                            }
+                                            post{
+                                                always {
+                                                    recordIssues(tools: [sphinxBuild(pattern: 'logs/doctest.log')])
 
+                                                }
+                                            }
                                         }
-                                    }
-                                }
-                                stage('Task Scanner'){
-                                    steps{
-                                        recordIssues(tools: [taskScanner(highTags: 'FIXME', includePattern: 'dcc_qc/**/*.py', normalTags: 'TODO')])
-                                    }
-                                }
-                                stage("MyPy"){
-                                    steps{
-                                        catchError(buildResult: "SUCCESS", message: 'MyPy found issues', stageResult: "UNSTABLE") {
-                                            tee('logs/mypy.log'){
-                                                sh "mypy -p dcc_qc --html-report reports/mypy_html"
+                                        stage('Task Scanner'){
+                                            steps{
+                                                recordIssues(tools: [taskScanner(highTags: 'FIXME', includePattern: 'dcc_qc/**/*.py', normalTags: 'TODO')])
+                                            }
+                                        }
+                                        stage("MyPy"){
+                                            steps{
+                                                catchError(buildResult: "SUCCESS", message: 'MyPy found issues', stageResult: "UNSTABLE") {
+                                                    tee('logs/mypy.log'){
+                                                        sh "mypy -p dcc_qc --html-report reports/mypy_html"
+                                                    }
+                                                }
+                                            }
+                                            post{
+                                                always {
+                                                    recordIssues(tools: [myPy(name: 'MyPy', pattern: 'logs/mypy.log')])
+                                                    publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'reports/mypy_html', reportFiles: 'index.html', reportName: 'MyPy', reportTitles: ''])
+                                                }
+                                            }
+                                        }
+                                        stage("Run Flake8 Static Analysis") {
+                                            steps{
+                                                catchError(buildResult: "SUCCESS", message: 'Flake8 found issues', stageResult: "UNSTABLE") {
+                                                    sh '''mkdir -p logs
+                                                          flake8 dcc_qc --format=pylint --tee --output-file=logs/flake8.log
+                                                          '''
+                                                }
+                                            }
+                                            post {
+                                                always {
+                                                    recordIssues(tools: [flake8(name: 'Flake8', pattern: 'logs/flake8.log')])
+                                                    stash includes: "logs/flake8.log", name: "FLAKE8_REPORT"
+                                                }
                                             }
                                         }
                                     }
                                     post{
-                                        always {
-                                            recordIssues(tools: [myPy(name: 'MyPy', pattern: 'logs/mypy.log')])
-                                            publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'reports/mypy_html', reportFiles: 'index.html', reportName: 'MyPy', reportTitles: ''])
+                                        always{
+                                            sh "coverage combine"
+                                            sh "coverage xml -o reports/coverage.xml"
+                                            publishCoverage(
+                                                adapters: [
+                                                    coberturaAdapter('reports/coverage.xml')
+                                                    ],
+                                                sourceFileResolver: sourceFiles('STORE_ALL_BUILD')
+                                            )
+                                        }
+                                        cleanup{
+                                            cleanWs(
+                                                patterns: [
+                                                    [pattern: 'build/', type: 'INCLUDE'],
+                                                    [pattern: 'logs/', type: 'INCLUDE'],
+                                                    [pattern: 'reports/', type: 'INCLUDE'],
+                                                    [pattern: 'reports/coverage', type: 'INCLUDE'],
+                                                ],
+                                                deleteDirs: true,
+                                            )
                                         }
                                     }
-                                }
-                                stage("Run Flake8 Static Analysis") {
-                                    steps{
-                                        catchError(buildResult: "SUCCESS", message: 'Flake8 found issues', stageResult: "UNSTABLE") {
-                                            sh '''mkdir -p logs
-                                                  flake8 dcc_qc --format=pylint --tee --output-file=logs/flake8.log
-                                                  '''
-                                        }
-                                    }
-                                    post {
-                                        always {
-                                            recordIssues(tools: [flake8(name: 'Flake8', pattern: 'logs/flake8.log')])
-                                            stash includes: "logs/flake8.log", name: "FLAKE8_REPORT"
-                                        }
-                                    }
-                                }
-                            }
-                            post{
-                                always{
-                                    sh "coverage combine"
-                                    sh "coverage xml -o reports/coverage.xml"
-                                    publishCoverage(
-                                        adapters: [
-                                            coberturaAdapter('reports/coverage.xml')
-                                            ],
-                                        sourceFileResolver: sourceFiles('STORE_ALL_BUILD')
-                                    )
-                                }
-                                cleanup{
-                                    cleanWs(
-                                        patterns: [
-                                            [pattern: 'build/', type: 'INCLUDE'],
-                                            [pattern: 'logs/', type: 'INCLUDE'],
-                                            [pattern: 'reports/', type: 'INCLUDE'],
-                                            [pattern: 'reports/coverage', type: 'INCLUDE'],
-                                        ],
-                                        deleteDirs: true,
-                                    )
                                 }
                             }
                         }
@@ -340,7 +369,7 @@ pipeline {
                                                 sh(label: "Running Tox",
                                                    script: """python${pythonVersion} -m venv venv
                                                    ./venv/bin/python -m pip install --upgrade pip
-                                                   ./venv/bin/pip install tox
+                                                   ./venv/bin/pip install -r requirements/requirements_tox.txt
                                                    ./venv/bin/tox --installpkg ${it.path} -e py${pythonVersion.replace('.', '')}"""
                                                 )
                                             }
@@ -375,10 +404,10 @@ pipeline {
                                         },
                                         testCommand: {
                                             findFiles(glob: 'dist/*.tar.gz').each{
-                                                sh(label: "Running Tox",
+                                                sh(label: 'Running Tox',
                                                    script: """python${pythonVersion} -m venv venv
                                                    ./venv/bin/python -m pip install --upgrade pip
-                                                   ./venv/bin/pip install tox
+                                                   ./venv/bin/pip install -r requirements/requirements_tox.txt
                                                    ./venv/bin/tox --installpkg ${it.path} -e py${pythonVersion.replace('.', '')}"""
                                                 )
                                             }
@@ -613,70 +642,74 @@ pipeline {
                             def macPackages = [:]
                             SUPPORTED_MAC_VERSIONS.each{pythonVersion ->
                                 macPackages["MacOS - Python ${pythonVersion}: wheel"] = {
-                                    devpi.testDevpiPackage(
-                                        agent: [
-                                            label: "mac && python${pythonVersion} && devpi-access"
-                                        ],
-                                        devpi: [
-                                            index: DEVPI_CONFIG.stagingIndex,
-                                            server: DEVPI_CONFIG.server,
-                                            credentialsId: DEVPI_CONFIG.credentialsId,
-                                            devpiExec: 'venv/bin/devpi'
-                                        ],
-                                        package:[
-                                            name: props.Name,
-                                            version: props.Version,
-                                            selector: 'whl',
-                                        ],
-                                        test:[
-                                            setup: {
-                                                sh(
-                                                    label:'Installing Devpi client',
-                                                    script: '''python3 -m venv venv
-                                                                venv/bin/python -m pip install pip --upgrade
-                                                                venv/bin/python -m pip install devpi_client
-                                                                '''
-                                                )
-                                            },
-                                            toxEnv: "py${pythonVersion}".replace('.',''),
-                                            teardown: {
-                                                sh( label: 'Remove Devpi client', script: 'rm -r venv')
-                                            }
-                                        ]
-                                    )
+                                    withEnv(['PATH+EXTRA=./venv/bin']) {
+                                        devpi.testDevpiPackage(
+                                            agent: [
+                                                label: "mac && python${pythonVersion} && devpi-access"
+                                            ],
+                                            devpi: [
+                                                index: DEVPI_CONFIG.stagingIndex,
+                                                server: DEVPI_CONFIG.server,
+                                                credentialsId: DEVPI_CONFIG.credentialsId,
+                                                devpiExec: 'venv/bin/devpi'
+                                            ],
+                                            package:[
+                                                name: props.Name,
+                                                version: props.Version,
+                                                selector: 'whl',
+                                            ],
+                                            test:[
+                                                setup: {
+                                                    sh(
+                                                        label:'Installing Devpi client',
+                                                        script: '''python3 -m venv venv
+                                                                    venv/bin/python -m pip install pip --upgrade
+                                                                    venv/bin/python -m pip install devpi_client -r requirements/requirements_tox.txt
+                                                                    '''
+                                                    )
+                                                },
+                                                toxEnv: "py${pythonVersion}".replace('.',''),
+                                                teardown: {
+                                                    sh( label: 'Remove Devpi client', script: 'rm -r venv')
+                                                }
+                                            ]
+                                        )
+                                    }
                                 }
                                 macPackages["MacOS - Python ${pythonVersion}: sdist && devpi-access"]= {
-                                    devpi.testDevpiPackage(
-                                        agent: [
-                                            label: "mac && python${pythonVersion}"
-                                        ],
-                                        devpi: [
-                                            index: DEVPI_CONFIG.stagingIndex,
-                                            server: DEVPI_CONFIG.server,
-                                            credentialsId: DEVPI_CONFIG.credentialsId,
-                                            devpiExec: 'venv/bin/devpi'
-                                        ],
-                                        package:[
-                                            name: props.Name,
-                                            version: props.Version,
-                                            selector: 'tar.gz'
-                                        ],
-                                        test:[
-                                            setup: {
-                                                sh(
-                                                    label:'Installing Devpi client',
-                                                    script: '''python3 -m venv venv
-                                                                venv/bin/python -m pip install pip --upgrade
-                                                                venv/bin/python -m pip install devpi_client
-                                                                '''
-                                                )
-                                            },
-                                            toxEnv: "py${pythonVersion}".replace('.',''),
-                                            teardown: {
-                                                sh( label: 'Remove Devpi client', script: 'rm -r venv')
-                                            }
-                                        ]
-                                    )
+                                    withEnv(['PATH+EXTRA=./venv/bin']) {
+                                        devpi.testDevpiPackage(
+                                            agent: [
+                                                label: "mac && python${pythonVersion}"
+                                            ],
+                                            devpi: [
+                                                index: DEVPI_CONFIG.stagingIndex,
+                                                server: DEVPI_CONFIG.server,
+                                                credentialsId: DEVPI_CONFIG.credentialsId,
+                                                devpiExec: 'venv/bin/devpi'
+                                            ],
+                                            package:[
+                                                name: props.Name,
+                                                version: props.Version,
+                                                selector: 'tar.gz'
+                                            ],
+                                            test:[
+                                                setup: {
+                                                    sh(
+                                                        label:'Installing Devpi client',
+                                                        script: '''python3 -m venv venv
+                                                                    venv/bin/python -m pip install pip --upgrade
+                                                                    venv/bin/python -m pip install devpi_client -r requirements/requirements_tox.txt
+                                                                    '''
+                                                    )
+                                                },
+                                                toxEnv: "py${pythonVersion}".replace('.',''),
+                                                teardown: {
+                                                    sh( label: 'Remove Devpi client', script: 'rm -r venv')
+                                                }
+                                            ]
+                                        )
+                                    }
                                 }
                             }
                             def windowsPackages = [:]

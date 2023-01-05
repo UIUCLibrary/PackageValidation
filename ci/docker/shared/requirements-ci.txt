@@ -4,4 +4,4 @@ lxml
 mypy
 paramiko
 pytest
-tox
+-r requirements/requirements_tox.txt
