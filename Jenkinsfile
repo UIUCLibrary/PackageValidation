@@ -269,7 +269,7 @@ pipeline {
                                                 envNamePrefix: "Tox Linux",
                                                 label: 'linux && docker && x86',
                                                 dockerfile: "ci/docker/python/linux/tox/Dockerfile",
-                                                dockerBuildArgs: "--build-arg PIP_EXTRA_INDEX_URL --build-arg PIP_INDEX_URL"
+                                                dockerArgs: "--build-arg PIP_EXTRA_INDEX_URL --build-arg PIP_INDEX_URL"
                                             )
                                     },
                                     "Windows":{
@@ -277,7 +277,7 @@ pipeline {
                                                 envNamePrefix: "Tox Windows",
                                                 label: 'windows && docker && x86',
                                                 dockerfile: "ci/docker/python/windows/tox/Dockerfile",
-                                                dockerBuildArgs: "--build-arg PIP_EXTRA_INDEX_URL --build-arg PIP_INDEX_URL --build-arg CHOCOLATEY_SOURCE"
+                                                dockerArgs: "--build-arg PIP_EXTRA_INDEX_URL --build-arg PIP_INDEX_URL --build-arg CHOCOLATEY_SOURCE"
                                             )
                                     },
                                     failFast: true
