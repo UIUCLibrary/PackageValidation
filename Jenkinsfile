@@ -254,11 +254,13 @@ pipeline {
                     }
                     steps {
                         script{
-                            def tox
-                            node(){
-                                checkout scm
-                                tox = load('ci/jenkins/scripts/tox.groovy')
-                            }
+                            def tox = fileLoader.fromGit(
+                                'tox',
+                                'https://github.com/UIUCLibrary/jenkins_helper_scripts.git',
+                                '4',
+                                null,
+                                ''
+                            )
                             def windowsJobs = [:]
                             def linuxJobs = [:]
 
