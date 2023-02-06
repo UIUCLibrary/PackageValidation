@@ -1,10 +1,12 @@
 FROM ubuntu:20.04 as wheel_builder_base
 COPY ci/docker/python/linux/tox/apt-packages.txt /tmp/
-RUN apt update && \
-    apt-get install -y software-properties-common && \
+RUN apt-get update && \
+    apt-get install -y software-properties-common=0.99.9.10 --no-install-recommends && \
     add-apt-repository ppa:deadsnakes/ppa && \
-    apt update && \
-    cat /tmp/apt-packages.txt | xargs apt-get -y install
+    apt-get update && \
+    < /tmp/apt-packages.txt xargs apt-get install -y && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 ARG PIP_EXTRA_INDEX_URL
 ARG PIP_INDEX_URL
 
@@ -74,8 +76,8 @@ COPY --from=WHEEL_BUILDER_PY38 /wheels/* /wheels/
 COPY --from=WHEEL_BUILDER_PY39 /wheels/* /wheels/
 COPY --from=WHEEL_BUILDER_PY310 /wheels/* /wheels/
 ENV PIP_FIND_LINKS=/wheels
-COPY requirements/requirements_tox.txt requirements/requirements_tox.txt
-RUN pip3 install -r requirements/requirements_tox.txt "devpi-client<6.0"
+COPY requirements/requirements_tox.txt /requirements/requirements_tox.txt
+RUN pip3 install --no-cache-dir -r /requirements/requirements_tox.txt "devpi-client<6.0"
 WORKDIR /src
-CMD tox --workdir /tmp/tox --recreate
+CMD ["tox", "--workdir", "/tmp/tox", "--recreate"]
 
