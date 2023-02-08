@@ -60,18 +60,18 @@ def startup(){
 }
 
 def get_props(){
+    def packaging = fileLoader.fromGit(
+        'packaging',
+        'https://github.com/UIUCLibrary/jenkins_helper_scripts.git',
+        '7',
+        null,
+        ''
+    )
     stage('Reading Package Metadata'){
         node() {
             try{
                 unstash 'DIST-INFO'
-                def metadataFile = findFiles(excludes: '', glob: '*.dist-info/METADATA')[0]
-                def package_metadata = readProperties interpolate: true, file: metadataFile.path
-                echo """Metadata:
-
-    Name      ${package_metadata.Name}
-    Version   ${package_metadata.Version}
-    """
-                return package_metadata
+                return packaging.getProjectMetadataFromDistInfo()
             } finally {
                 deleteDir()
             }
