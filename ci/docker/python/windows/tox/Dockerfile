@@ -43,26 +43,12 @@ RUN C:\ProgramData\chocolatey\bin\choco.exe install -y --stoponfirstfailure --no
     refreshenv ; `
     Remove-Item -Force -Recurse ${Env:TEMP}\* ; `
     py --list ;`
-    py -3.7 --version ;  `
     py -3.8 --version ; `
     py -3.9 --version ; `
     py -3.10 --version ; `
     py -3.11 --version ; `
     Write-Host "Installing Python with Chocolatey - Done"
 
-
-# ==============================================================================
-FROM BASE_BUILDER as WHEEL_BUilDER_PY37
-SHELL ["cmd", "/S", "/C" ]
-ARG PIP_INDEX_URL
-ARG PIP_EXTRA_INDEX_URL
-COPY requirements.txt ci/docker/shared/requirements-ci.txt c:/requirements/
-COPY requirements c:/requirements/requirements
-ENV PY_PYTHON=3.7
-RUN py -m pip install --upgrade pip wheel && `
-    py -m pip wheel -w c:\wheels\ --no-cache-dir  `
-        -r c:/requirements/requirements-ci.txt  `
-        -r c:/requirements/requirements.txt
 
 # ==============================================================================
 FROM BASE_BUILDER as WHEEL_BUilDER_PY38
@@ -125,7 +111,6 @@ COPY --from=certsgen c:/roots.sst roots.sst
 RUN certutil -addstore -f root roots.sst ; `
     del roots.sst
 
-COPY --from=WHEEL_BUilDER_PY37 c:/wheels/ c:/wheels/
 COPY --from=WHEEL_BUilDER_PY38 c:/wheels/ c:/wheels/
 COPY --from=WHEEL_BUilDER_PY39 c:/wheels/ c:/wheels/
 COPY --from=WHEEL_BUilDER_PY310 c:/wheels/ c:/wheels/
