@@ -53,8 +53,13 @@ COPY --from=certsgen c:/roots.sst roots.sst
 RUN certutil -addstore -f root roots.sst ; `
     del roots.sst
 
-COPY requirements c:/requirements/requirements
-RUN python -m pip install pip --upgrade ; pip install -r c:/requirements/requirements/requirements_tox.txt devpi-client
+
+ARG PIP_EXTRA_INDEX_URL
+ARG PIP_INDEX_URL
+COPY requirements-ci.txt c:/python_requirments/
+COPY requirements/ c:/python_requirments/requirements
+RUN python -m pip install pip --upgrade ; pip install --no-cache-dir -r c:/python_requirments/requirements-ci.txt
+
 ARG PIP_DOWNLOAD_CACHE
 RUN New-Item -type directory -path ${Env:PIP_DOWNLOAD_CACHE} -Force
 ENV PIP_DOWNLOAD_CACHE=${PIP_DOWNLOAD_CACHE}

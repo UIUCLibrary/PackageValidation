@@ -4,4 +4,4 @@ lxml
 mypy
 paramiko
 pytest
--r requirements/requirements_tox.txt
+sphinx
