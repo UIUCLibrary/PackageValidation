@@ -1,30 +1,25 @@
 ARG PYTHON_VERSION=3.11
-FROM python:${PYTHON_VERSION} as wheel_builder
+ARG PIP_FIND_LINKS=/wheels/
+FROM python:${PYTHON_VERSION} AS base_image
+FROM base_image AS wheel_builder
 ARG PIP_EXTRA_INDEX_URL
 ARG PIP_INDEX_URL
-COPY requirements.txt ci/docker/shared/requirements-ci.txt /tmp/
-COPY requirements /tmp/requirements
-RUN python -m pip install --no-cache-dir --upgrade pip &&  \
-    pip install --no-cache-dir wheel && \
-    pip install --no-cache-dir setuptools --upgrade && \
-    pip wheel \
-        --no-cache-dir \
-        --wheel-dir=/wheels \
-        -r /tmp/requirements.txt \
-        -r /tmp/requirements-ci.txt \
-        -v
+COPY requirements-ci.txt /requirements/
+COPY requirements/ /requirements/requirements/
 
-FROM python:${PYTHON_VERSION}
+ARG PIP_FIND_LINKS
+RUN mkdir -p ${PIP_FIND_LINKS} &&  \
+    pip wheel --wheel-dir=${PIP_FIND_LINKS} --no-cache-dir -r /requirements/requirements-ci.txt
 
-COPY --from=wheel_builder /wheels /wheels/
-COPY requirements.txt ci/docker/shared/requirements-ci.txt /tmp/
-COPY requirements /tmp/requirements
+FROM base_image
+
+ARG PIP_FIND_LINKS
 ARG PIP_EXTRA_INDEX_URL
-ARG PIP_INDEX_URL
-ENV PIP_FIND_LINKS=/wheels
-
-RUN pip install --no-cache-dir --no-index --find-links=/wheels \
-    -r /tmp/requirements.txt -r /tmp/requirements-ci.txt
+ARG PIP_TRUSTED_HOST
+COPY --from=wheel_builder ${PIP_FIND_LINKS}/* ${PIP_FIND_LINKS}/
+COPY --from=wheel_builder requirements/ /requirements
+RUN pip install --no-index --no-cache-dir --find-links=${PIP_FIND_LINKS} \
+    -r /requirements/requirements-ci.txt
 
 USER user
 WORKDIR /home/user

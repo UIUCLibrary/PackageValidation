@@ -1,5 +1,2 @@
-pytest
+-r requirements/requirements.txt
 -r requirements/requirements_tox.txt
-wheel
-setuptools
-sphinx
