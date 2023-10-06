@@ -1,5 +1,4 @@
 coverage
-devpi-client
 flake8
 lxml
 mypy
