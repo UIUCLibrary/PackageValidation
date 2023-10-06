@@ -7,9 +7,9 @@ def getDevPiStagingIndex(){
         return "${env.BRANCH_NAME}_staging"
     }
 }
-SUPPORTED_MAC_VERSIONS = ['3.8', '3.9', '3.10', '3.11']
-SUPPORTED_LINUX_VERSIONS = ['3.8', '3.9', '3.10', '3.11']
-SUPPORTED_WINDOWS_VERSIONS = ['3.8', '3.9', '3.10', '3.11']
+SUPPORTED_MAC_VERSIONS = ['3.8', '3.9', '3.10', '3.11', '3.12']
+SUPPORTED_LINUX_VERSIONS = ['3.8', '3.9', '3.10', '3.11', '3.12']
+SUPPORTED_WINDOWS_VERSIONS = ['3.8', '3.9', '3.10', '3.11', '3.12']
 
 
 def getDevpiConfig() {
@@ -551,7 +551,7 @@ pipeline {
                                 }
                                 macArchitectures.each{ processorArchitecture ->
                                     if (nodesByLabel("mac && ${processorArchitecture} && python${pythonVersion}").size() > 0){
-                                        macPackages["Test Python ${pythonVersion}: wheel Mac ${processorArchitecture}"] = {
+                                        macPackages["Mac ${processorArchitecture} - Python ${pythonVersion}: wheel"] = {
                                             withEnv(['PATH+EXTRA=./venv/bin']) {
                                                 devpi.testDevpiPackage(
                                                     agent: [
@@ -587,7 +587,7 @@ pipeline {
                                                 )
                                             }
                                         }
-                                        macPackages["Test Python ${pythonVersion}: sdist Mac ${processorArchitecture}"]= {
+                                        macPackages["Mac ${processorArchitecture} - Python ${pythonVersion}: sdist"]= {
                                             withEnv(['PATH+EXTRA=./venv/bin']) {
                                                 devpi.testDevpiPackage(
                                                     agent: [
@@ -654,7 +654,7 @@ pipeline {
                                         ]
                                     )
                                 }
-                                windowsPackages["Test Python ${pythonVersion}: wheel Windows"] = {
+                                windowsPackages["Windows - Python ${pythonVersion}: wheel"] = {
                                     devpi.testDevpiPackage(
                                         agent: [
                                             dockerfile: [
