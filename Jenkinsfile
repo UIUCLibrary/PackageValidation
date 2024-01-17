@@ -345,11 +345,6 @@ pipeline {
                     }
                     steps{
                         script{
-//                            def packages
-//                            node(){
-//                                checkout scm
-//                                packages = load 'ci/jenkins/scripts/packaging.groovy'
-//                            }
                             def macTestStages = [:]
                             SUPPORTED_MAC_VERSIONS.each{ pythonVersion ->
                                 def macArchitectures = []
@@ -570,6 +565,7 @@ pipeline {
                                                     args: '-v pipcache_packagevalidate:/.cache/pip',
                                                 ]
                                             ],
+                                            retries: 3,
                                             testSetup: {
                                                 checkout scm
                                                 unstash 'PYTHON_PACKAGES'
