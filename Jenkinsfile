@@ -365,6 +365,7 @@ pipeline {
                                                         checkout scm
                                                         unstash 'PYTHON_PACKAGES'
                                                     },
+                                                    retries: 3,
                                                     testCommand: {
                                                         findFiles(glob: 'dist/*.tar.gz').each{
                                                             sh(label: 'Running Tox',
