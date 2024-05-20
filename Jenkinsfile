@@ -64,19 +64,18 @@ def startup(){
 }
 
 def get_props(){
-    def packaging = fileLoader.fromGit(
-        'packaging',
-        'https://github.com/UIUCLibrary/jenkins_helper_scripts.git',
-        '7',
-        null,
-        ''
-    )
     stage('Reading Package Metadata'){
         node() {
             try{
+                def packaging
+                dir("${env.WORKSPACE_TMP}/jenkins_helper_scripts") {
+                    git branch: 'main', url: 'https://github.com/UIUCLibrary/jenkins_helper_scripts.git'
+                    packaging = load 'packaging.groovy'
+                }
                 unstash 'DIST-INFO'
                 return packaging.getProjectMetadataFromDistInfo()
             } finally {
+                cleanWs(deleteDirs: true, patterns: [[pattern: "${env.WORKSPACE_TMP}/jenkins_helper_scripts", type: 'INCLUDE']])
                 deleteDir()
             }
         }
