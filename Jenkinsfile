@@ -303,6 +303,9 @@ pipeline {
             }
             stages{
                 stage('Source and Wheel formats'){
+                    options{
+                      retry(2)
+                    }
                     agent {
                         docker {
                             image 'python'
