@@ -224,38 +224,43 @@ pipeline {
                     when{
                         equals expected: true, actual: params.TEST_RUN_TOX
                     }
-                    steps {
-                        script{
-                            def windowsJobs = [:]
-                            def linuxJobs = [:]
-
-                            stage('Scanning Tox Environments'){
-                                parallel(
-                                    'Linux':{
-                                        linuxJobs = getToxTestsParallel(
-                                                envNamePrefix: 'Tox Linux',
-                                                label: 'linux && docker && x86',
-                                                dockerfile: 'ci/docker/python/linux/tox/Dockerfile',
-                                                dockerArgs: '--build-arg PIP_EXTRA_INDEX_URL --build-arg PIP_INDEX_URL --build-arg PIP_DOWNLOAD_CACHE=/.cache/pip',
-                                                dockerRunArgs: '-v pipcache_packagevalidate:/.cache/pip',
-                                                retry: 3
-                                            )
-                                    },
-                                    'Windows':{
-                                        windowsJobs = getToxTestsParallel(
-                                                envNamePrefix: 'Tox Windows',
-                                                label: 'windows && docker && x86',
-                                                dockerfile: 'ci/docker/python/windows/tox/Dockerfile',
-                                                dockerArgs: '--build-arg PIP_EXTRA_INDEX_URL --build-arg PIP_INDEX_URL --build-arg CHOCOLATEY_SOURCE --build-arg PIP_DOWNLOAD_CACHE=c:/users/containeradministrator/appdata/local/pip',
-                                                dockerRunArgs: '-v pipcache_packagevalidate:c:/users/containeradministrator/appdata/local/pip',
-                                                retry: 3
-                                            )
-                                    },
-                                    failFast: true
-                                )
+                    parallel{
+                        stage('Linux'){
+                            when{
+                                expression {return nodesByLabel('linux && docker && x86').size() > 0}
                             }
-                            stage('Running Tox'){
-                                parallel(windowsJobs + linuxJobs)
+                            steps{
+                                script{
+                                    parallel(
+                                        getToxTestsParallel(
+                                            envNamePrefix: 'Tox Linux',
+                                            label: 'linux && docker && x86',
+                                            dockerfile: 'ci/docker/python/linux/tox/Dockerfile',
+                                            dockerArgs: '--build-arg PIP_EXTRA_INDEX_URL --build-arg PIP_INDEX_URL --build-arg PIP_DOWNLOAD_CACHE=/.cache/pip',
+                                            dockerRunArgs: '-v pipcache_packagevalidate:/.cache/pip',
+                                            retry: 3
+                                        )
+                                    )
+                                }
+                            }
+                        }
+                        stage('Windows'){
+                            when{
+                                expression {return nodesByLabel('windows && docker && x86').size() > 0}
+                            }
+                            steps{
+                                script{
+                                    parallel(
+                                        getToxTestsParallel(
+                                            envNamePrefix: 'Tox Windows',
+                                            label: 'windows && docker && x86',
+                                            dockerfile: 'ci/docker/python/windows/tox/Dockerfile',
+                                            dockerArgs: '--build-arg PIP_EXTRA_INDEX_URL --build-arg PIP_INDEX_URL --build-arg CHOCOLATEY_SOURCE --build-arg PIP_DOWNLOAD_CACHE=c:/users/containeradministrator/appdata/local/pip',
+                                            dockerRunArgs: '-v pipcache_packagevalidate:c:/users/containeradministrator/appdata/local/pip',
+                                            retry: 3
+                                        )
+                                    )
+                                }
                             }
                         }
                     }
