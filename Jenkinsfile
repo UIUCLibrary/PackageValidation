@@ -11,51 +11,6 @@ DEFAULT_AGENT_DOCKERFILE = 'ci/docker/python/linux/jenkins/Dockerfile'
 DEFAULT_AGENT_LABEL = 'linux && docker && x86'
 DEFAULT_AGENT_DOCKER_BUILD_ARGS =  '--build-arg PIP_EXTRA_INDEX_URL --build-arg PIP_INDEX_URL'
 
-def startup(){
-    node('linux && docker && x86') {
-        timeout(2){
-            ws{
-                checkout scm
-
-                try{
-                    docker.image('python').inside {
-                        stage('Getting Distribution Info'){
-                            sh(
-                               label: 'Running setup.py with dist_info',
-                               script: 'PIP_NO_CACHE_DIR=off python setup.py dist_info'
-                            )
-                            stash includes: "*.dist-info/**", name: 'DIST-INFO'
-                            archiveArtifacts artifacts: "*.dist-info/**"
-                        }
-                    }
-                } finally{
-                    deleteDir()
-                }
-            }
-        }
-    }
-}
-
-def get_props(){
-    stage('Reading Package Metadata'){
-        node() {
-            try{
-                def packaging
-                dir("${env.WORKSPACE_TMP}/jenkins_helper_scripts") {
-                    git branch: 'main', url: 'https://github.com/UIUCLibrary/jenkins_helper_scripts.git'
-                    packaging = load 'packaging.groovy'
-                }
-                unstash 'DIST-INFO'
-                return packaging.getProjectMetadataFromDistInfo()
-            } finally {
-                cleanWs(deleteDirs: true, patterns: [[pattern: "${env.WORKSPACE_TMP}/jenkins_helper_scripts", type: 'INCLUDE']])
-                deleteDir()
-            }
-        }
-    }
-}
-startup()
-props = get_props()
 
 pipeline {
     agent none
@@ -112,7 +67,8 @@ pipeline {
                         success{
                             publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'build/docs/html', reportFiles: 'index.html', reportName: 'Documentation', reportTitles: ''])
                             script{
-                                def DOC_ZIP_FILENAME = "${props.Name}-${props.Version}.doc.zip"
+                                def props = readTOML( file: 'pyproject.toml')['project']
+                                def DOC_ZIP_FILENAME = "${props.name}-${props.version}.doc.zip"
                                 zip archive: true, dir: 'build/docs/html', glob: '', zipFile: "dist/${DOC_ZIP_FILENAME}"
                             }
                             stash includes: 'build/docs/html/**,dist/*.doc.zip', name: 'DOCS_ARCHIVE'
