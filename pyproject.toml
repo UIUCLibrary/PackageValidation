@@ -1,0 +1,66 @@
+[build-system]
+requires = ["setuptools>=50.3.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dcc_qc"
+version = "0.1.3.dev0"
+requires-python = ">=3.8"
+
+readme = "README.rst"
+license = {text = "University of Illinois/NCSA Open Source License"}
+authors = [
+    {name = "University Library at The University of Illinois at Urbana Champaign: Preservation Services", email = "prescons@library.illinois.edu"},
+]
+maintainers = [
+    {name = "Henry Borchers", email = "hborcher@illinois.edu"}
+]
+description = "This package is for performing automated quality control tests on file packages"
+classifiers = [
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "License :: OSI Approved :: University of Illinois/NCSA Open Source License",
+    "Topic :: System :: Archiving :: Packaging",
+]
+
+
+[tool.setuptools]
+packages = [
+    "dcc_qc",
+    "dcc_qc.packages",
+    "dcc_qc.task_states",
+    "dcc_qc.checkers",
+    "dcc_qc.profiles",
+    "dcc_qc.reports",
+    "dcc_qc.validator",
+]
+zip-safe = false
+
+
+[project.scripts]
+qcpkg = "dcc_qc.__main__:main"
+
+[tool.coverage.run]
+branch = true
+source = ["hathi_validate"]
+relative_files = true
+
+[tool.coverage.paths]
+source = ["hathi_validate"]
+
+[tool.coverage.report]
+exclude_lines =[
+    "if TYPE_CHECKING:",
+    "except ImportError"
+]
+
+[tool.pytest.ini_options]
+addopts = "--verbose"
+testpaths = [
+    "tests"
+]
+
+
+
+[tool.mypy]
+ignore_missing_imports = true
