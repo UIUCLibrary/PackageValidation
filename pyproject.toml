@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "dcc_qc"
 version = "0.1.3.dev0"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 
 readme = "README.rst"
 license = {text = "University of Illinois/NCSA Open Source License"}
@@ -17,12 +17,38 @@ maintainers = [
 ]
 description = "This package is for performing automated quality control tests on file packages"
 classifiers = [
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
     "License :: OSI Approved :: University of Illinois/NCSA Open Source License",
     "Topic :: System :: Archiving :: Packaging",
 ]
 
+[dependency-groups]
+docs = ["sphinx"]
+type_checking = [
+    "mypy",
+    "lxml",
+]
+
+lint = [
+    "flake8",
+    {include-group = "type_checking"},
+]
+tox = ["tox"]
+test = [
+    "coverage[toml]",
+    "pytest",
+]
+dev = [
+    {include-group = "docs"},
+    {include-group = "lint"},
+    {include-group = "test"},
+    {include-group = "tox"},
+]
+release = ["twine"]
+ci = [
+    {include-group = "release"},
+    {include-group = "dev"},
+]
 
 [tool.setuptools]
 packages = [
@@ -34,6 +60,7 @@ packages = [
     "dcc_qc.reports",
     "dcc_qc.validator",
 ]
+package-dir = {"dcc_qc" = "src/dcc_qc"}
 zip-safe = false
 
 
@@ -60,7 +87,6 @@ testpaths = [
     "tests"
 ]
 
-
-
 [tool.mypy]
 ignore_missing_imports = true
+mypy_path = "src"
