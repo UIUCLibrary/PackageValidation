@@ -125,7 +125,7 @@ def call(){
                                         parallel {
                                             stage('PyTest'){
                                                 steps{
-                                                    sh './venv/bin/uv run coverage run --parallel-mode --source=dcc_qc -m pytest --junitxml=reports/junit-pytest.xml'
+                                                    sh './venv/bin/uv run coverage run --parallel-mode --source=src -m pytest --junitxml=reports/junit-pytest.xml'
                                                 }
                                                 post {
                                                     always{
@@ -148,14 +148,14 @@ def call(){
                                             }
                                             stage('Task Scanner'){
                                                 steps{
-                                                    recordIssues(tools: [taskScanner(highTags: 'FIXME', includePattern: 'dcc_qc/**/*.py', normalTags: 'TODO')])
+                                                    recordIssues(tools: [taskScanner(highTags: 'FIXME', includePattern: 'src/**/*.py', normalTags: 'TODO')])
                                                 }
                                             }
                                             stage('MyPy'){
                                                 steps{
                                                     catchError(buildResult: 'SUCCESS', message: 'MyPy found issues', stageResult: 'UNSTABLE') {
                                                         tee('logs/mypy.log'){
-                                                            sh './venv/bin/uv run mypy -p dcc_qc --html-report reports/mypy_html'
+                                                            sh './venv/bin/uv run mypy -p src --html-report reports/mypy_html'
                                                         }
                                                     }
                                                 }
@@ -170,7 +170,7 @@ def call(){
                                                 steps{
                                                     catchError(buildResult: 'SUCCESS', message: 'Flake8 found issues', stageResult: 'UNSTABLE') {
                                                         sh '''mkdir -p logs
-                                                              ./venv/bin/uv run flake8 dcc_qc --format=pylint --tee --output-file=logs/flake8.log
+                                                              ./venv/bin/uv run flake8 src --format=pylint --tee --output-file=logs/flake8.log
                                                               '''
                                                     }
                                                 }

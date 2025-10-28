@@ -60,6 +60,7 @@ packages = [
     "dcc_qc.reports",
     "dcc_qc.validator",
 ]
+package-dir = {"dcc_qc" = "src/dcc_qc"}
 zip-safe = false
 
 
@@ -88,4 +89,4 @@ testpaths = [
 
 [tool.mypy]
 ignore_missing_imports = true
-
+mypy_path = "src"
