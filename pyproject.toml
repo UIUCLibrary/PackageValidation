@@ -22,6 +22,33 @@ classifiers = [
     "Topic :: System :: Archiving :: Packaging",
 ]
 
+[dependency-groups]
+docs = ["sphinx"]
+type_checking = [
+    "mypy",
+    "lxml",
+]
+
+lint = [
+    "flake8",
+    {include-group = "type_checking"},
+]
+tox = ["tox"]
+test = [
+    "coverage[toml]",
+    "pytest",
+]
+dev = [
+    {include-group = "docs"},
+    {include-group = "lint"},
+    {include-group = "test"},
+    {include-group = "tox"},
+]
+release = ["twine"]
+ci = [
+    {include-group = "release"},
+    {include-group = "dev"},
+]
 
 [tool.setuptools]
 packages = [
@@ -59,7 +86,6 @@ testpaths = [
     "tests"
 ]
 
-
-
 [tool.mypy]
 ignore_missing_imports = true
+

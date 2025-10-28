@@ -53,6 +53,7 @@ def call(){
                             UV_TOOL_DIR='/tmp/uvtools'
                             UV_PYTHON_INSTALL_DIR='/tmp/uvpython'
                             UV_CACHE_DIR='/tmp/uvcache'
+                            UV_FROZEN=1
                         }
                         steps {
                             sh (
@@ -60,9 +61,8 @@ def call(){
                                 script: '''python3 -m venv venv
                                            venv/bin/pip install --disable-pip-version-check uv
                                            trap "rm -rf venv" EXIT
-                                           . ./venv/bin/activate
                                            mkdir -p logs
-                                           uvx --python 3.12 --from sphinx --with-editable . --with-requirements requirements-ci.txt sphinx-build docs/source build/docs/html -d build/docs/.doctrees -v -w logs/build_sphinx.log
+                                           ./venv/bin/uv run --group docs --no-dev sphinx-build docs/source build/docs/html -d build/docs/.doctrees -v -w logs/build_sphinx.log
                                            '''
                             )
                         }
@@ -104,36 +104,28 @@ def call(){
                                     UV_TOOL_DIR='/tmp/uvtools'
                                     UV_PYTHON_INSTALL_DIR='/tmp/uvpython'
                                     UV_CACHE_DIR='/tmp/uvcache'
+                                    UV_FROZEN=1
                                 }
                                 stages{
                                     stage('Setup Testing Environment'){
                                         steps{
                                             sh(
-                                                label: 'Create virtual environment',
+                                                label: 'Create virtual environment with packaging in development mode',
                                                 script: '''python3 -m venv bootstrap_uv
                                                            bootstrap_uv/bin/pip install --disable-pip-version-check uv
-                                                           bootstrap_uv/bin/uv venv --python 3.12 venv
-                                                           . ./venv/bin/activate
-                                                           bootstrap_uv/bin/uv pip install uv
+                                                           bootstrap_uv/bin/uv venv venv
+                                                           UV_PROJECT_ENVIRONMENT=./venv bootstrap_uv/bin/uv sync --frozen --group ci
+                                                           bootstrap_uv/bin/uv pip install --python=./venv/bin/python uv
                                                            rm -rf bootstrap_uv
-                                                           uv pip install -r requirements-ci.txt
-                                                           '''
-                                                       )
-                                            sh(
-                                                label: 'Install package in development mode',
-                                                script: '''. ./venv/bin/activate
-                                                           uv pip install -e .
                                                         '''
-                                                )
+                                           )
                                         }
                                     }
                                     stage('Run Tests'){
                                         parallel {
                                             stage('PyTest'){
                                                 steps{
-                                                    sh '''. ./venv/bin/activate
-                                                          coverage run --parallel-mode --source=dcc_qc -m pytest --junitxml=reports/junit-pytest.xml
-                                                       '''
+                                                    sh './venv/bin/uv run coverage run --parallel-mode --source=dcc_qc -m pytest --junitxml=reports/junit-pytest.xml'
                                                 }
                                                 post {
                                                     always{
@@ -143,9 +135,8 @@ def call(){
                                             }
                                             stage('Documentation'){
                                                 steps{
-                                                        sh '''. ./venv/bin/activate
-                                                              mkdir -p logs
-                                                              python -m sphinx -b doctest docs/source build/docs -d build/docs/doctrees -v -w logs/doctest.log --no-color
+                                                        sh '''mkdir -p logs
+                                                              ./venv/bin/uv run -m sphinx -b doctest docs/source build/docs -d build/docs/doctrees -v -w logs/doctest.log --no-color
                                                               '''
                                                 }
                                                 post{
@@ -164,9 +155,7 @@ def call(){
                                                 steps{
                                                     catchError(buildResult: 'SUCCESS', message: 'MyPy found issues', stageResult: 'UNSTABLE') {
                                                         tee('logs/mypy.log'){
-                                                            sh '''. ./venv/bin/activate
-                                                                  mypy -p dcc_qc --html-report reports/mypy_html
-                                                               '''
+                                                            sh './venv/bin/uv run mypy -p dcc_qc --html-report reports/mypy_html'
                                                         }
                                                     }
                                                 }
@@ -180,9 +169,8 @@ def call(){
                                             stage('Run Flake8 Static Analysis') {
                                                 steps{
                                                     catchError(buildResult: 'SUCCESS', message: 'Flake8 found issues', stageResult: 'UNSTABLE') {
-                                                        sh '''. ./venv/bin/activate
-                                                              mkdir -p logs
-                                                              flake8 dcc_qc --format=pylint --tee --output-file=logs/flake8.log
+                                                        sh '''mkdir -p logs
+                                                              ./venv/bin/uv run flake8 dcc_qc --format=pylint --tee --output-file=logs/flake8.log
                                                               '''
                                                     }
                                                 }
@@ -196,9 +184,8 @@ def call(){
                                         }
                                         post{
                                             always{
-                                                sh '''. ./venv/bin/activate
-                                                      coverage combine
-                                                      coverage xml -o reports/coverage.xml
+                                                sh '''./venv/bin/uv run coverage combine
+                                                      ./venv/bin/uv run coverage xml -o reports/coverage.xml
                                                       '''
                                                 recordCoverage(tools: [[parser: 'COBERTURA', pattern: 'reports/coverage.xml']])
                                             }
@@ -245,7 +232,7 @@ def call(){
                                                      sh(script: 'python3 -m venv venv && venv/bin/pip install --disable-pip-version-check uv')
                                                      envs = sh(
                                                          label: 'Get tox environments',
-                                                         script: './venv/bin/uvx --quiet --with tox-uv tox list -d --no-desc',
+                                                         script: './venv/bin/uv run --only-group tox --with tox-uv --isolated --quiet tox list -d --no-desc',
                                                          returnStdout: true,
                                                      ).trim().split('\n')
                                                  } finally{
@@ -271,16 +258,12 @@ def call(){
                                                                  try{
                                                                      sh( label: 'Running Tox',
                                                                          script: """python3 -m venv venv && venv/bin/pip install --disable-pip-version-check uv
-                                                                                    . ./venv/bin/activate
-                                                                                    uv python install cpython-${version}
-                                                                                    uvx -p ${version} --with tox-uv tox run -e ${toxEnv}
+                                                                                    ./venv/bin/uv python install cpython-${version}
+                                                                                    ./venv/bin/uv run --only-group tox --with tox-uv tox run --runner uv-venv-lock-runner -e ${toxEnv}
                                                                                  """
                                                                          )
                                                                  } catch(e) {
-                                                                     sh(script: '''. ./venv/bin/activate
-                                                                           uv python list
-                                                                           '''
-                                                                             )
+                                                                     sh(script: './venv/bin/uv python list')
                                                                      throw e
                                                                  } finally{
                                                                      cleanWs(
@@ -321,7 +304,7 @@ def call(){
                                                     bat(script: 'python -m venv venv && venv\\Scripts\\pip install --disable-pip-version-check uv')
                                                     envs = bat(
                                                         label: 'Get tox environments',
-                                                        script: '@.\\venv\\Scripts\\uvx --quiet --with tox-uv tox list -d --no-desc',
+                                                        script: '@.\\venv\\Scripts\\uv run --only-group tox --with tox-uv --isolated --quiet tox list -d --no-desc',
                                                         returnStdout: true,
                                                     ).trim().split('\r\n')
                                                 } finally{
@@ -350,10 +333,9 @@ def call(){
                                                                     )
                                                                     retry(3){
                                                                         bat(label: 'Running Tox',
-                                                                            script: """call venv\\Scripts\\activate.bat
-                                                                                   uv python install cpython-${version}
-                                                                                   uvx -p ${version} --with tox-uv tox run -e ${toxEnv}
-                                                                                """
+                                                                            script: """venv\\Scripts\\uv python install cpython-${version}
+                                                                                       venv\\Scripts\\uv run --only-group tox --with tox-uv tox run --runner uv-venv-lock-runner -e ${toxEnv}
+                                                                                    """
                                                                         )
                                                                     }
                                                                 } finally{
@@ -408,8 +390,7 @@ def call(){
                                     label: 'Package',
                                     script: '''python3 -m venv venv && venv/bin/pip install --disable-pip-version-check uv
                                                trap "rm -rf venv" EXIT
-                                               . ./venv/bin/activate
-                                               uv build
+                                               ./venv/bin/uv build
                                             '''
                                 )
                             }
@@ -495,7 +476,7 @@ def call(){
                                                                         script: """python3 -m venv venv
                                                                                    ./venv/bin/pip install --disable-pip-version-check uv
                                                                                    ./venv/bin/uv python install cpython-${entry.PYTHON_VERSION}
-                                                                                   ./venv/bin/uvx --with tox-uv tox --installpkg ${findFiles(glob: entry.PACKAGE_TYPE == 'wheel' ? 'dist/*.whl' : 'dist/*.tar.gz')[0].path} -e py${entry.PYTHON_VERSION.replace('.', '')}
+                                                                                   ./venv/bin/uv run --only-group tox --with tox-uv --isolated tox --installpkg ${findFiles(glob: entry.PACKAGE_TYPE == 'wheel' ? 'dist/*.whl' : 'dist/*.tar.gz')[0].path} -e py${entry.PYTHON_VERSION.replace('.', '')}
                                                                                 """
                                                                     )
                                                                 }
@@ -511,7 +492,7 @@ def call(){
                                                                         script: """python -m venv venv
                                                                                    .\\venv\\Scripts\\pip install --disable-pip-version-check uv
                                                                                    .\\venv\\Scripts\\uv python install cpython-${entry.PYTHON_VERSION}
-                                                                                   .\\venv\\Scripts\\uvx --with tox-uv tox --installpkg ${findFiles(glob: entry.PACKAGE_TYPE == 'wheel' ? 'dist/*.whl' : 'dist/*.tar.gz')[0].path} -e py${entry.PYTHON_VERSION.replace('.', '')}
+                                                                                   .\\venv\\Scripts\\uv run --only-group tox --with tox-uv --isolated tox --installpkg ${findFiles(glob: entry.PACKAGE_TYPE == 'wheel' ? 'dist/*.whl' : 'dist/*.tar.gz')[0].path} -e py${entry.PYTHON_VERSION.replace('.', '')}
                                                                                 """
                                                                     )
                                                                 }
@@ -523,7 +504,7 @@ def call(){
                                                                 label: 'Testing with tox',
                                                                 script: """python3 -m venv venv
                                                                            ./venv/bin/pip install --disable-pip-version-check uv
-                                                                           ./venv/bin/uvx --with tox-uv tox --installpkg ${findFiles(glob: entry.PACKAGE_TYPE == 'wheel' ? 'dist/*.whl' : 'dist/*.tar.gz')[0].path} -e py${entry.PYTHON_VERSION.replace('.', '')}
+                                                                           ./venv/bin/uv run --only-group tox --with tox-uv --isolated tox --installpkg ${findFiles(glob: entry.PACKAGE_TYPE == 'wheel' ? 'dist/*.whl' : 'dist/*.tar.gz')[0].path} -e py${entry.PYTHON_VERSION.replace('.', '')}
                                                                         """
                                                             )
                                                         } else {
@@ -532,7 +513,7 @@ def call(){
                                                                 script: """python -m venv venv
                                                                            .\\venv\\Scripts\\pip install --disable-pip-version-check uv
                                                                            .\\venv\\Scripts\\uv python install cpython-${entry.PYTHON_VERSION}
-                                                                           .\\venv\\Scripts\\uvx --with tox-uv tox --installpkg ${findFiles(glob: entry.PACKAGE_TYPE == 'wheel' ? 'dist/*.whl' : 'dist/*.tar.gz')[0].path} -e py${entry.PYTHON_VERSION.replace('.', '')}
+                                                                           .\\venv\\Scripts\\uv run --only-group tox --with tox-uv --isolated tox --installpkg ${findFiles(glob: entry.PACKAGE_TYPE == 'wheel' ? 'dist/*.whl' : 'dist/*.tar.gz')[0].path} -e py${entry.PYTHON_VERSION.replace('.', '')}
                                                                         """
                                                             )
                                                         }
