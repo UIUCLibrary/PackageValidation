@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "dcc_qc"
 version = "0.1.3.dev0"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 
 readme = "README.rst"
 license = {text = "University of Illinois/NCSA Open Source License"}
@@ -17,8 +17,7 @@ maintainers = [
 ]
 description = "This package is for performing automated quality control tests on file packages"
 classifiers = [
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
     "License :: OSI Approved :: University of Illinois/NCSA Open Source License",
     "Topic :: System :: Archiving :: Packaging",
 ]
