@@ -225,24 +225,33 @@ def call(){
                                  steps{
                                      script{
                                          def envs = []
-                                         node('docker && linux'){
-                                             docker.image('python').inside('--mount source=python-tmp-packageValidation,target=/tmp'){
+                                         retry(2){
+                                             node('docker && linux'){
+                                                 checkout scm
                                                  try{
-                                                     checkout scm
-                                                     sh(script: 'python3 -m venv venv && venv/bin/pip install --disable-pip-version-check uv')
-                                                     envs = sh(
-                                                         label: 'Get tox environments',
-                                                         script: './venv/bin/uv run --only-group tox --with tox-uv --isolated --quiet tox list -d --no-desc',
-                                                         returnStdout: true,
-                                                     ).trim().split('\n')
-                                                 } finally{
-                                                     cleanWs(
-                                                         patterns: [
-                                                             [pattern: 'venv/', type: 'INCLUDE'],
-                                                             [pattern: '.tox', type: 'INCLUDE'],
-                                                             [pattern: '**/__pycache__/', type: 'INCLUDE'],
-                                                         ]
-                                                     )
+                                                     docker.image('python').inside('--mount source=python-tmp-packageValidation,target=/tmp'){
+                                                         retry(2){
+                                                             try{
+                                                                 sh(script: 'python3 -m venv venv && venv/bin/pip install --disable-pip-version-check uv')
+                                                                 envs = sh(
+                                                                     label: 'Get tox environments',
+                                                                     script: './venv/bin/uv run --only-group tox --with tox-uv --isolated --quiet tox list -d --no-desc',
+                                                                     returnStdout: true,
+                                                                 ).trim().split('\n')
+                                                             } catch (e){
+                                                                 cleanWs(
+                                                                     patterns: [
+                                                                         [pattern: 'venv/', type: 'INCLUDE'],
+                                                                         [pattern: '.tox', type: 'INCLUDE'],
+                                                                         [pattern: '**/__pycache__/', type: 'INCLUDE'],
+                                                                     ]
+                                                                 )
+                                                                 throw e
+                                                             }
+                                                         }
+                                                    }
+                                                 } finally {
+                                                    sh "${tool(name: 'Default', type: 'git')} clean -dfx"
                                                  }
                                              }
                                          }
