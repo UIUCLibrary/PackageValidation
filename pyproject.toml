@@ -23,7 +23,7 @@ classifiers = [
 ]
 
 [dependency-groups]
-docs = ["sphinx"]
+docs = ["sphinx", "tomli ; python_full_version < '3.11'"]
 type_checking = [
     "mypy",
     "lxml",
