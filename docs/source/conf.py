@@ -19,13 +19,17 @@
 #
 import os
 import sys
-import tomllib
+if sys.version_info < (3, 11):
+    from tomli import load as load_toml
+else:
+    from tomllib import load as load_toml
+
 
 sys.path.insert(0, os.path.abspath('../..'))
 def get_project_metadata():
     path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../pyproject.toml"))
     with open(path, "rb") as f:
-        return tomllib.load(f)['project']
+        return load_toml(f)['project']
 
 metadata = get_project_metadata()
 
