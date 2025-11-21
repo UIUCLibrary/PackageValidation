@@ -65,20 +65,18 @@ def call(){
                                            ./venv/bin/uv run --group docs --no-dev sphinx-build docs/source build/docs/html -d build/docs/.doctrees -v -w logs/build_sphinx.log
                                            '''
                             )
+                            publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'build/docs/html', reportFiles: 'index.html', reportName: 'Documentation', reportTitles: ''])
+                            script{
+                                def props = readTOML( file: 'pyproject.toml')['project']
+                                def DOC_ZIP_FILENAME = "${props.name}-${props.version}.doc.zip"
+                                zip archive: true, dir: 'build/docs/html', glob: '', zipFile: "dist/${DOC_ZIP_FILENAME}"
+                            }
+                            stash includes: 'build/docs/html/**,dist/*.doc.zip', name: 'DOCS_ARCHIVE'
                         }
                         post{
                             always {
                                 recordIssues(tools: [sphinxBuild(name: 'Sphinx Documentation Build', pattern: 'logs/build_sphinx.log', id: 'sphinx_build')])
                                 archiveArtifacts artifacts: 'logs/build_sphinx.log'
-                            }
-                            success{
-                                publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'build/docs/html', reportFiles: 'index.html', reportName: 'Documentation', reportTitles: ''])
-                                script{
-                                    def props = readTOML( file: 'pyproject.toml')['project']
-                                    def DOC_ZIP_FILENAME = "${props.name}-${props.version}.doc.zip"
-                                    zip archive: true, dir: 'build/docs/html', glob: '', zipFile: "dist/${DOC_ZIP_FILENAME}"
-                                }
-                                stash includes: 'build/docs/html/**,dist/*.doc.zip', name: 'DOCS_ARCHIVE'
                             }
                             failure{
                                 echo 'Failed to build Python package'
