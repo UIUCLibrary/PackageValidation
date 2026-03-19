@@ -5,25 +5,43 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+
 jobs:
+  setup:
+    name: Setup
+    runs-on: ubuntu-latest
+    outputs:
+      tox_matrix: ${{ steps.dataStep.outputs.myoutput }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        name: Get tox environments
+        with:
+          python-version: '3.13'
+          cache: 'pip' # caching pip dependencies
+      - id: dataStep
+        run: |
+          pip install uv
+          echo "myoutput=$(uv run --quiet --only-group=tox tox --listenvs -a | jq  --raw-input . | jq -c --slurp )" >> $GITHUB_OUTPUT
+
   build:
+    needs: setup
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ['3.10', '3.11', '3.12', '3.13']
+        tox-environment: ${{ fromJson(needs.setup.outputs.tox_matrix) }}
       fail-fast: false
-    name: Python ${{ matrix.python-version }} ${{ matrix.os }} build
+    name: "${{ matrix.os }}: ${{ matrix.tox-environment }} "
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
-          python-version: ${{ matrix.python-version }}
           cache: 'pip' # caching pip dependencies
       - name: Install requirements
         run: |
           pip install uv
       - name: Run tox
-        run: uv run --only-group tox --with tox-uv --isolated tox -e py -vvv
         env:
-          PIP_EXTRA_INDEX_URL: ${{vars.PIP_EXTRA_INDEX_URL}}
+          TOXENV: ${{ matrix.tox-environment }}
+        run: uv run --only-group=tox-uv tox run --runner uv-venv-lock-runner -e ${{matrix.tox-environment}}
