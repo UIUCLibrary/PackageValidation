@@ -44,4 +44,4 @@ jobs:
       - name: Run tox
         env:
           TOXENV: ${{ matrix.tox-environment }}
-        run: uv run --only-group=tox-uv tox run -e ${{matrix.tox-environment}}
+        run: uv run --only-group=tox-uv tox run --runner uv-venv-lock-runner -e ${{matrix.tox-environment}}

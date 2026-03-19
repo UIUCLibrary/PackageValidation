@@ -34,6 +34,10 @@ lint = [
     {include-group = "type_checking"},
 ]
 tox = ["tox"]
+tox-uv = [
+    {include-group = "tox"},
+    "tox-uv-bare"
+]
 test = [
     "coverage[toml]",
     "pytest",
