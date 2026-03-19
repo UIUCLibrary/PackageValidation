@@ -192,7 +192,6 @@ def call(){
                                                 post {
                                                     always {
                                                         recordIssues(tools: [flake8(name: 'Flake8', pattern: 'logs/flake8.log')])
-                                                        stash includes: 'logs/flake8.log', name: 'FLAKE8_REPORT'
                                                     }
                                                 }
                                             }
