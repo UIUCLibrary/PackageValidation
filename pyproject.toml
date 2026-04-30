@@ -23,7 +23,6 @@ classifiers = [
 ]
 
 [dependency-groups]
-audit-dependencies = ["uv-secure"]
 docs = ["sphinx", "tomli ; python_full_version < '3.11'"]
 type_checking = [
     "mypy",
@@ -44,7 +43,6 @@ test = [
     "pytest",
 ]
 dev = [
-    {include-group = "audit-dependencies"},
     {include-group = "docs"},
     {include-group = "lint"},
     {include-group = "test"},
