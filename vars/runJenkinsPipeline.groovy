@@ -269,35 +269,39 @@ def call(){
                                      script{
                                          def envs = []
                                          retry(2){
-                                             node('docker && linux'){
-                                                 checkout scm
-                                                 try{
-                                                     docker.image('ghcr.io/astral-sh/uv:debian').inside('--mount source=python-tmp-packageValidation,target=/tmp --tmpfs /ci_tmp:exec -e TOX_WORK_DIR=/ci_tmp/tox'){
-                                                        withEnv(["UV_CONFIG_FILE=${createUVConfig()}"]){
-                                                            retry(2){
-                                                                try{
-                                                                    envs = sh(
-                                                                         label: 'Get tox environments',
-                                                                         script: 'uv run --only-group=tox --isolated --frozen --quiet tox list -d --no-desc',
-                                                                         returnStdout: true,
-                                                                    ).trim().split('\n')
-                                                                } catch (e){
-                                                                    cleanWs(
-                                                                        patterns: [
-                                                                            [pattern: 'venv/', type: 'INCLUDE'],
-                                                                            [pattern: '.tox', type: 'INCLUDE'],
-                                                                            [pattern: '**/__pycache__/', type: 'INCLUDE'],
-                                                                        ]
-                                                                    )
-                                                                    throw e
+                                            timeout(60){
+                                                 node('docker && linux'){
+                                                     checkout scm
+                                                     try{
+                                                         docker.image('ghcr.io/astral-sh/uv:debian').inside('--mount source=python-tmp-packageValidation,target=/tmp --tmpfs /ci_tmp:exec -e TOX_WORK_DIR=/ci_tmp/tox'){
+                                                            withEnv(["UV_CONFIG_FILE=${createUVConfig()}"]){
+                                                                retry(2){
+                                                                    try{
+                                                                        timeout(15){
+                                                                            envs = sh(
+                                                                                 label: 'Get tox environments',
+                                                                                 script: 'uv run --only-group=tox --isolated --frozen --quiet tox list -d --no-desc',
+                                                                                 returnStdout: true,
+                                                                            ).trim().split('\n')
+                                                                        }
+                                                                    } catch (e){
+                                                                        cleanWs(
+                                                                            patterns: [
+                                                                                [pattern: 'venv/', type: 'INCLUDE'],
+                                                                                [pattern: '.tox', type: 'INCLUDE'],
+                                                                                [pattern: '**/__pycache__/', type: 'INCLUDE'],
+                                                                            ]
+                                                                        )
+                                                                        throw e
+                                                                    }
                                                                 }
                                                             }
                                                         }
-                                                    }
-                                                 } finally {
-                                                    sh "${tool(name: 'Default', type: 'git')} clean -dfx"
+                                                     } finally {
+                                                        sh "${tool(name: 'Default', type: 'git')} clean -dfx"
+                                                     }
                                                  }
-                                             }
+                                            }
                                          }
                                          parallel(
                                              envs.collectEntries{toxEnv ->
@@ -305,32 +309,38 @@ def call(){
                                                  [
                                                      "Tox Environment: ${toxEnv}",
                                                      {
-                                                         node('docker && linux'){
-                                                            checkout scm
-                                                            try{
-                                                                docker.image('ghcr.io/astral-sh/uv:debian').inside('--mount source=python-tmp-packageValidation,target=/tmp --tmpfs /.local/share:exec --tmpfs /.local/bin:exec --tmpfs /ci_tmp:exec -e TOX_WORK_DIR=/ci_tmp/tox -e UV_PROJECT_ENVIRONMENT=/ci_tmp/venv'){
-                                                                    withEnv(["UV_CONFIG_FILE=${createUVConfig()}"]){
-                                                                        try{
-                                                                            sh( label: 'Running Tox',
-                                                                                script: """uv python install cpython-${version}
-                                                                                           uv run --only-group=tox-uv tox run --runner uv-venv-lock-runner -e ${toxEnv}
-                                                                                        """
-                                                                             )
-                                                                        } catch(e) {
-                                                                            cleanWs(
-                                                                                patterns: [
-                                                                                    [pattern: 'venv/', type: 'INCLUDE'],
-                                                                                    [pattern: '.tox', type: 'INCLUDE'],
-                                                                                    [pattern: '**/__pycache__/', type: 'INCLUDE'],
-                                                                                ]
-                                                                            )
-                                                                            throw e
+                                                         timeout(60){
+                                                             node('docker && linux'){
+                                                                checkout scm
+                                                                try{
+                                                                    docker.image('ghcr.io/astral-sh/uv:debian').inside('--mount source=python-tmp-packageValidation,target=/tmp --tmpfs /.local/share:exec --tmpfs /.local/bin:exec --tmpfs /ci_tmp:exec -e TOX_WORK_DIR=/ci_tmp/tox -e UV_PROJECT_ENVIRONMENT=/ci_tmp/venv'){
+                                                                        withEnv(["UV_CONFIG_FILE=${createUVConfig()}"]){
+                                                                            try{
+                                                                                timeout(10){
+                                                                                    sh( label: 'Running Tox',
+                                                                                        script: """uv python install cpython-${version}
+                                                                                                   uv run --only-group=tox-uv tox run --runner uv-venv-lock-runner -e ${toxEnv}
+                                                                                                """
+                                                                                     )
+                                                                                }
+                                                                            } catch(e) {
+                                                                                cleanWs(
+                                                                                    patterns: [
+                                                                                        [pattern: 'venv/', type: 'INCLUDE'],
+                                                                                        [pattern: '.tox', type: 'INCLUDE'],
+                                                                                        [pattern: '**/__pycache__/', type: 'INCLUDE'],
+                                                                                    ]
+                                                                                )
+                                                                                throw e
+                                                                            }
                                                                         }
                                                                     }
+                                                                } finally{
+                                                                    timeout(5){
+                                                                        sh "${tool(name: 'Default', type: 'git')} clean -dfx"
+                                                                    }
                                                                 }
-                                                            } finally{
-                                                                sh "${tool(name: 'Default', type: 'git')} clean -dfx"
-                                                            }
+                                                             }
                                                          }
                                                      }
                                                  ]
@@ -352,27 +362,33 @@ def call(){
                                 steps{
                                     script{
                                         def envs = []
-                                        node('docker && windows'){
-                                            checkout scm
-                                            try{
-                                                docker.image(
-                                                    env.DEFAULT_PYTHON_DOCKER_IMAGE ? env.DEFAULT_PYTHON_DOCKER_IMAGE: 'python'
-                                                ).inside(
-                                                    "--mount type=volume,source=uv_python_cache_dir,target=${env.UV_PYTHON_CACHE_DIR}"
-                                                    + " --mount type=volume,source=uv_cache_dir,target=${env.UV_CACHE_DIR}"
+                                        timeout(60){
+                                            node('docker && windows'){
+                                                checkout scm
+                                                try{
+                                                    docker.image(
+                                                        env.DEFAULT_PYTHON_DOCKER_IMAGE ? env.DEFAULT_PYTHON_DOCKER_IMAGE: 'python'
+                                                    ).inside(
+                                                        "--mount type=volume,source=uv_python_cache_dir,target=${env.UV_PYTHON_CACHE_DIR}"
+                                                        + " --mount type=volume,source=uv_cache_dir,target=${env.UV_CACHE_DIR}"
 
-                                                ){
-                                                    withEnv(["UV_CONFIG_FILE=${createUVConfig()}"]){
-                                                        bat(script: 'python -m venv venv && venv\\Scripts\\pip install --disable-pip-version-check uv')
-                                                        envs = bat(
-                                                            label: 'Get tox environments',
-                                                            script: '@.\\venv\\Scripts\\uv run --only-group=tox --isolated --frozen --quiet tox list -d --no-desc',
-                                                            returnStdout: true,
-                                                        ).trim().split('\r\n')
+                                                    ){
+                                                        timeout(10){
+                                                            withEnv(["UV_CONFIG_FILE=${createUVConfig()}"]){
+                                                                bat(script: 'python -m venv venv && venv\\Scripts\\pip install --disable-pip-version-check uv')
+                                                                envs = bat(
+                                                                    label: 'Get tox environments',
+                                                                    script: '@.\\venv\\Scripts\\uv run --only-group=tox --isolated --frozen --quiet tox list -d --no-desc',
+                                                                    returnStdout: true,
+                                                                ).trim().split('\r\n')
+                                                            }
+                                                        }
+                                                    }
+                                                } finally{
+                                                    timeout(5){
+                                                        bat "${tool(name: 'Default', type: 'git')} clean -dfx"
                                                     }
                                                 }
-                                            } finally{
-                                                bat "${tool(name: 'Default', type: 'git')} clean -dfx"
                                             }
                                         }
                                         parallel(
@@ -381,43 +397,49 @@ def call(){
                                                 [
                                                     "Tox Environment: ${toxEnv}",
                                                     {
-                                                        node('docker && windows'){
-                                                            checkout scm
-                                                            try{
-                                                                docker.image(
-                                                                    env.DEFAULT_PYTHON_DOCKER_IMAGE ? env.DEFAULT_PYTHON_DOCKER_IMAGE: 'python'
-                                                                ).inside(
-                                                                    "--mount type=volume,source=uv_python_cache_dir,target=${env.UV_PYTHON_CACHE_DIR}"
-                                                                    + " --mount type=volume,source=uv_cache_dir,target=${env.UV_CACHE_DIR}"
-                                                                ){
-                                                                    withEnv([
-                                                                        "TOX_UV_PATH=${WORKSPACE}\\venv\\Scripts\\uv.exe",
-                                                                        "UV_CONFIG_FILE=${createUVConfig()}"
-                                                                    ]){
-                                                                        bat(label: 'Install uv',
-                                                                            script: 'python -m venv venv && venv\\Scripts\\pip install --disable-pip-version-check uv'
-                                                                        )
-                                                                        retry(3){
-                                                                            try{
-                                                                                bat(label: 'Running Tox',
-                                                                                    script: """venv\\Scripts\\uv python install cpython-${version}
-                                                                                               venv\\Scripts\\uv run --only-group=tox-uv tox run --runner uv-venv-lock-runner -e ${toxEnv}
-                                                                                            """
-                                                                                )
-                                                                            } catch(e) {
-                                                                                cleanWs(
-                                                                                    patterns: [
-                                                                                        [pattern: '.tox', type: 'INCLUDE'],
-                                                                                        [pattern: '**/__pycache__/', type: 'INCLUDE'],
-                                                                                    ]
-                                                                                )
-                                                                                throw e
+                                                        timeout(60){
+                                                            node('docker && windows'){
+                                                                checkout scm
+                                                                try{
+                                                                    docker.image(
+                                                                        env.DEFAULT_PYTHON_DOCKER_IMAGE ? env.DEFAULT_PYTHON_DOCKER_IMAGE: 'python'
+                                                                    ).inside(
+                                                                        "--mount type=volume,source=uv_python_cache_dir,target=${env.UV_PYTHON_CACHE_DIR}"
+                                                                        + " --mount type=volume,source=uv_cache_dir,target=${env.UV_CACHE_DIR}"
+                                                                    ){
+                                                                        withEnv([
+                                                                            "TOX_UV_PATH=${WORKSPACE}\\venv\\Scripts\\uv.exe",
+                                                                            "UV_CONFIG_FILE=${createUVConfig()}"
+                                                                        ]){
+                                                                            bat(label: 'Install uv',
+                                                                                script: 'python -m venv venv && venv\\Scripts\\pip install --disable-pip-version-check uv'
+                                                                            )
+                                                                            retry(3){
+                                                                                try{
+                                                                                    timeout(10){
+                                                                                        bat(label: 'Running Tox',
+                                                                                            script: """venv\\Scripts\\uv python install cpython-${version}
+                                                                                                       venv\\Scripts\\uv run --only-group=tox-uv tox run --runner uv-venv-lock-runner -e ${toxEnv}
+                                                                                                    """
+                                                                                        )
+                                                                                    }
+                                                                                } catch(e) {
+                                                                                    cleanWs(
+                                                                                        patterns: [
+                                                                                            [pattern: '.tox', type: 'INCLUDE'],
+                                                                                            [pattern: '**/__pycache__/', type: 'INCLUDE'],
+                                                                                        ]
+                                                                                    )
+                                                                                    throw e
+                                                                                }
                                                                             }
                                                                         }
                                                                     }
+                                                                } finally {
+                                                                    timeout(5){
+                                                                        bat "${tool(name: 'Default', type: 'git')} clean -dfx"
+                                                                    }
                                                                 }
-                                                            } finally {
-                                                                bat "${tool(name: 'Default', type: 'git')} clean -dfx"
                                                             }
                                                         }
                                                     }
