@@ -59,6 +59,7 @@ def call(){
         )
     )
     def config = getConfig()
+    def MAX_RETRIES = 2
     pipeline {
         agent none
         environment {
@@ -268,13 +269,13 @@ def call(){
                                  steps{
                                      script{
                                          def envs = []
-                                         retry(2){
+                                         retry(MAX_RETRIES){
                                              node('docker && linux'){
                                                  checkout scm
                                                  try{
                                                      docker.image('ghcr.io/astral-sh/uv:debian').inside('--mount source=python-tmp-packageValidation,target=/tmp --tmpfs /ci_tmp:exec -e TOX_WORK_DIR=/ci_tmp/tox'){
                                                         withEnv(["UV_CONFIG_FILE=${createUVConfig()}"]){
-                                                            retry(2){
+                                                            retry(MAX_RETRIES){
                                                                 try{
                                                                     envs = sh(
                                                                          label: 'Get tox environments',
@@ -452,7 +453,7 @@ def call(){
                             UV_CACHE_DIR='/tmp/uvcache'
                         }
                         options {
-                            retry(2)
+                            retry(MAX_RETRIES)
                         }
                         steps{
                             timeout(5){
@@ -534,7 +535,7 @@ def call(){
                                                                 ]){
                                                                     sh "uv python install cpython-${entry.PYTHON_VERSION}"
                                                                     def attempt = 0
-                                                                    retry(2){
+                                                                    retry(MAX_RETRIES){
                                                                         attempt += 1
                                                                         withEnv([(attempt == 1) ? 'UV_OFFLINE=1' : 'UV_OFFLINE=0']){
                                                                             sh(
@@ -553,12 +554,27 @@ def call(){
                                                                     "UV_CONFIG_FILE=${createUVConfig()}",
                                                                     "TOX_UV_PATH=${WORKSPACE}\\venv\\Scripts\\uv.exe",
                                                                 ]){
-                                                                    bat """python -m venv venv
-                                                                           .\\venv\\Scripts\\pip install --disable-pip-version-check uv
-                                                                           .\\venv\\Scripts\\uv python install cpython-${entry.PYTHON_VERSION}
-                                                                        """
+                                                                    retry(MAX_RETRIES){
+                                                                        try{
+                                                                            timeout(15){
+                                                                                bat """python -m venv venv
+                                                                                       .\\venv\\Scripts\\pip install --disable-pip-version-check uv
+                                                                                       .\\venv\\Scripts\\uv python install cpython-${entry.PYTHON_VERSION}
+                                                                                    """
+                                                                            }
+                                                                        } catch (e){
+                                                                            cleanWs(
+                                                                                deleteDirs: true,
+                                                                                patterns: [
+                                                                                    [pattern: 'venv/', type: 'INCLUDE'],
+                                                                                    [pattern: '**/__pycache__/', type: 'INCLUDE'],
+                                                                                ]
+                                                                            )
+                                                                        throw e
+                                                                        }
+                                                                    }
                                                                     def attempt = 0
-                                                                    retry(2){
+                                                                    retry(MAX_RETRIES){
                                                                         attempt += 1
                                                                         withEnv([(attempt == 1) ? 'UV_OFFLINE=1' : 'UV_OFFLINE=0']){
                                                                             bat(
@@ -580,7 +596,7 @@ def call(){
                                                                       ./venv/bin/pip install --disable-pip-version-check uv
                                                                    '''
                                                                 def attempt = 0
-                                                                retry(2){
+                                                                retry(MAX_RETRIES){
                                                                     attempt += 1
                                                                     withEnv([(attempt == 1) ? 'UV_OFFLINE=1' : 'UV_OFFLINE=0']){
                                                                         sh(
@@ -600,7 +616,7 @@ def call(){
                                                                        .\\venv\\Scripts\\uv python install cpython-${entry.PYTHON_VERSION}
                                                                     """
                                                                 def attempt = 0
-                                                                retry(2){
+                                                                retry(MAX_RETRIES){
                                                                     attempt += 1
                                                                     withEnv([(attempt == 1) ? 'UV_OFFLINE=1' : 'UV_OFFLINE=0']){
                                                                         bat(
