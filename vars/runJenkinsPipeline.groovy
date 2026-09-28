@@ -59,7 +59,7 @@ def call(){
         )
     )
     def config = getConfig()
-    def MAX_RETRIES = 2
+    def MAX_RETRIES = 3
     pipeline {
         agent none
         environment {
