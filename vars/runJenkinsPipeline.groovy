@@ -576,11 +576,18 @@ def call(){
                                                                     def attempt = 0
                                                                     retry(MAX_RETRIES){
                                                                         attempt += 1
-                                                                        withEnv([(attempt == 1) ? 'UV_OFFLINE=1' : 'UV_OFFLINE=0']){
-                                                                            bat(
-                                                                                label: "Testing with tox: ${(attempt == 1) ? 'Offline' : 'Online'}",
-                                                                                script: ".\\venv\\Scripts\\uv run --only-group=tox-uv --isolated --frozen tox --installpkg ${findFiles(glob: entry.PACKAGE_TYPE == 'wheel' ? 'dist/*.whl' : 'dist/*.tar.gz')[0].path} -e py${entry.PYTHON_VERSION.replace('.', '')}"
-                                                                            )
+                                                                        try{
+                                                                            withEnv([(attempt == 1) ? 'UV_OFFLINE=1' : 'UV_OFFLINE=0']){
+                                                                                bat(
+                                                                                    label: "Testing with tox: ${(attempt == 1) ? 'Offline' : 'Online'}",
+                                                                                    script: ".\\venv\\Scripts\\uv run --only-group=tox-uv --isolated --frozen tox --installpkg ${findFiles(glob: entry.PACKAGE_TYPE == 'wheel' ? 'dist/*.whl' : 'dist/*.tar.gz')[0].path} -e py${entry.PYTHON_VERSION.replace('.', '')}"
+                                                                                )
+                                                                            }
+                                                                        } catch (Exception e) {
+                                                                            if (attempt < MAX_RETRIES) {
+                                                                                sleep(5)
+                                                                            }
+                                                                            throw e
                                                                         }
                                                                     }
                                                                 }
